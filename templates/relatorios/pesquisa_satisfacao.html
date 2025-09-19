@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="pt-BR" dir="ltr" data-navigation-type="default" data-navbar-horizontal-shape="default">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+    <!-- ===============================================-->
+    <!--    Document Title-->
+    <!-- ===============================================-->
+    <title>{{ context.title }}</title>
+
+
+    <!-- ===============================================-->
+    <!--    Favicons-->
+    <!-- ===============================================-->
+    <link rel="apple-touch-icon" sizes="180x180" href="/static/assets/img/favicons/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/static/assets/img/favicons/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/static/assets/img/favicons/favicon-16x16.png">
+    <link rel="shortcut icon" type="image/x-icon" href="/static/assets/img/favicons/favicon.ico">
+    <link rel="manifest" href="/static/assets/img/favicons/manifest.json">
+    <meta name="msapplication-TileImage" content="/static/assets/img/favicons/mstile-150x150.png">
+    <meta name="theme-color" content="#ffffff">
+    <script src="/static/vendors/simplebar/simplebar.min.js"></script>
+    <script src="/static/assets/js/config.js"></script>
+
+
+    <!-- ===============================================-->
+    <!--    Stylesheets-->
+    <!-- ===============================================-->
+    <link href="/static/vendors/choices/choices.min.css" rel="stylesheet">
+    <link href="/static/vendors/flatpickr/flatpickr.min.css" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@300;400;600;700;800;900&amp;display=swap"
+        rel="stylesheet">
+    <link href="/static/vendors/simplebar/simplebar.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://unicons.iconscout.com/release/v4.0.8/css/line.css">
+    <link href="/static/assets/css/theme-rtl.min.css" type="text/css" rel="stylesheet" id="style-rtl">
+    <link href="/static/assets/css/theme.min.css" type="text/css" rel="stylesheet" id="style-default">
+    <link href="/static/assets/css/user-rtl.min.css" type="text/css" rel="stylesheet" id="user-style-rtl">
+    <link href="/static/assets/css/user.min.css" type="text/css" rel="stylesheet" id="user-style-default">
+    <script>
+        var phoenixIsRTL = window.config.config.phoenixIsRTL;
+        if (phoenixIsRTL) {
+            var linkDefault = document.getElementById('style-default');
+            var userLinkDefault = document.getElementById('user-style-default');
+            linkDefault.setAttribute('disabled', true);
+            userLinkDefault.setAttribute('disabled', true);
+            document.querySelector('html').setAttribute('dir', 'rtl');
+        } else {
+            var linkRTL = document.getElementById('style-rtl');
+            var userLinkRTL = document.getElementById('user-style-rtl');
+            linkRTL.setAttribute('disabled', true);
+            userLinkRTL.setAttribute('disabled', true);
+        }
+    </script>
+</head>
+
+
+<body>
+
+    <!-- ===============================================-->
+    <!--    Main Content-->
+    <!-- ===============================================-->
+    <main class="main" id="top">
+        <!-- MENU -->
+
+        {% include 'menu.html' %}
+        <!-- include top_bar.html -->
+        {% include 'top_bar.html' %}
+        <div class="content">
+
+
+            <h2 class="mb-4">Pesquisa de Satisfação</h2>
+            <div class="row ">
+                <div class="col-xl-5">
+                    <form class="row g-3 mb-6">
+                        <div class="col-sm-6 col-md-6">
+                            <div class="flatpickr-input-container">
+                                <div class="form-floating">
+                                    <input id="floatingInputStartDate" class="form-control datetimepicker" type="text"
+                                        placeholder="end date" data-options='{"disableMobile":true}' />
+                                    <label class="ps-6" for="floatingInputStartDate">Data Inicial</label><span
+                                        class="uil uil-calendar-alt flatpickr-icon text-body-tertiary"></span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm-6 col-md-6">
+                            <div class="flatpickr-input-container">
+                                <div class="form-floating">
+                                    <input id="floatingInputDeadline" class="form-control datetimepicker" type="text"
+                                        placeholder="deadline" data-options='{"disableMobile":true}' />
+                                    <label class="ps-6" for="floatingInputDeadline">Data Final</label><span
+                                        class="uil uil-calendar-alt flatpickr-icon text-body-tertiary"></span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-12 gy-6">
+                            <div class="row g-3 justify-content-end">
+                                <div class="col-auto">
+                                    <button class="btn btn-phoenix-primary px-5">Cancel</button>
+                                </div>
+                                <div class="col-auto">
+                                    <button id="generateReportButton" class="btn btn-primary px-5 px-sm-15">Gerar
+                                        relatório</button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        <footer class="footer position-absolute">
+            <div class="row g-0 justify-content-between align-items-center h-100">
+                <!-- <div class="col-12 col-sm-auto text-center">
+            <p class="mb-0 mt-2 mt-sm-0 text-body">Todos os direitos reservados à Honda Caiuás<span
+                class="d-none d-sm-inline-block"></span><span class="d-none d-sm-inline-block mx-1">|</span><br
+                class="d-sm-none" />2025 &copy;<a class="mx-1" href="https://pabloedu.com">Themewagon</a></p>
+          </div> -->
+                <!-- <div class="col-12 col-sm-auto text-center">
+            <p class="mb-0 text-body-tertiary text-opacity-85">v1.22.0</p>
+          </div> -->
+            </div>
+        </footer>
+
+
+
+
+        <div id="toastMessageContainer" class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 1080;">
+            <div id="toastMessage" class="toast align-items-center text-white dark__text-gray-1100 bg-primary border-0"
+                role="alert" data-bs-autohide="true" aria-live="assertive" aria-atomic="true">
+                <div class="d-flex">
+                    <div class="toast-body">
+                        Hello, world! This is a toast message.
+                    </div>
+                    <button class="btn ms-2 p-0" type="button" data-bs-dismiss="toast" aria-label="Close"><span
+                            class="uil uil-times fs-7 text-white"></span></button>
+                </div>
+            </div>
+        </div>
+        <!-- modal change name -->
+
+
+
+
+    </main>
+    <!-- ===============================================-->
+    <!--    End of Main Content-->
+    <!-- ===============================================-->
+
+
+
+
+    <!-- ===============================================-->
+    <!--    JavaScripts-->
+    <!-- ===============================================-->
+    <script src="/static/vendors/popper/popper.min.js"></script>
+    <script src="/static/vendors/bootstrap/bootstrap.min.js"></script>
+    <script src="/static/vendors/anchorjs/anchor.min.js"></script>
+    <script src="/static/vendors/is/is.min.js"></script>
+    <script src="/static/vendors/fontawesome/all.min.js"></script>
+    <script src="/static/vendors/lodash/lodash.min.js"></script>
+    <script src="/static/vendors/list.js/list.min.js"></script>
+    <script src="/static/vendors/feather-icons/feather.min.js"></script>
+    <script src="/static/vendors/dayjs/dayjs.min.js"></script>
+    <script src="/static/vendors/choices/choices.min.js"></script>
+    <script src="/static/vendors/flatpickr/flatpickr.min.js"></script>
+    <script src="/static/assets/js/phoenix.js"></script>
+    <script src="/static/vendors/prism/prism.js"></script>
+    <script src="/static/assets/js/menu.js"></script>
+    <script>
+        (function (win, doc) {
+            'use strict';
+            let app = (function () {
+                const generateReportButton = doc.getElementById('generateReportButton');
+                const toastMessageContainer = doc.getElementById('toastMessageContainer');
+                const initialDateInput = doc.getElementById('floatingInputStartDate');
+                const endDateInput = doc.getElementById('floatingInputDeadline');
+                if (generateReportButton) {
+                    generateReportButton.addEventListener('click', function (event) {
+                        event.preventDefault();
+                        // disable the button to prevent multiple clicks
+                        generateReportButton.disabled = true;
+                        console.log('Gerar relatório clicado');
+                        console.log('Data Inicial:', initialDateInput.value);
+                        console.log('Data Final:', endDateInput.value);
+                        // if initial_date or final_date is empty, show toast message
+                        if (!initialDateInput.value || !endDateInput.value) {
+                            const toastMessage = doc.getElementById('toastMessage');
+                            toastMessage.querySelector('.toast-body').textContent = 'Por favor, preencha as datas inicial e final.';
+                            toastMessage.classList.remove('bg-primary');
+                            toastMessage.classList.add('bg-danger');
+                            const toast = new bootstrap.Toast(toastMessage);
+                            toast.show();
+                            return;
+                        }
+                        const requestOptions = {
+                            method: "GET",
+                            redirect: "follow"
+                        };
+                        fetch("https://backend.caiuas.com.br/api/reports/pesquisa_satisfacao?initial_date=" + initialDateInput.value + "&final_date=" + endDateInput.value, requestOptions)
+                            .then(response => {
+                                if (!response.ok) {
+                                    // Se a resposta não é OK, tenta ler como JSON para pegar a mensagem de erro
+                                    return response.json().then(errorData => {
+                                        throw new Error(errorData.message || 'Erro na requisição: ' + response.status);
+                                    });
+                                }
+                                // Se a resposta é OK, trata como blob (arquivo)
+                                return response.blob();
+                            })
+                            .then(blob => {
+                                // Sucesso - fazer download do arquivo
+                                const url = URL.createObjectURL(blob);
+                                const a = doc.createElement('a');
+                                a.href = url;
+                                a.download = 'pesquisa_satisfacao.xlsx';
+                                doc.body.appendChild(a);
+                                a.click();
+                                doc.body.removeChild(a);
+                                URL.revokeObjectURL(url);
+                                generateReportButton.disabled = false;
+                                // Mostrar mensagem de sucesso
+                                const toastMessage = doc.getElementById('toastMessage');
+                                toastMessage.querySelector('.toast-body').textContent = 'Relatório gerado com sucesso!';
+                                toastMessage.classList.remove('bg-danger', 'bg-primary');
+                                toastMessage.classList.add('bg-success');
+                                const toast = new bootstrap.Toast(toastMessage);
+                                toast.show();
+                            })
+                            .catch(error => {
+                                console.error('Erro:', error);
+                                const toastMessage = doc.getElementById('toastMessage');
+                                toastMessage.querySelector('.toast-body').textContent = 'Erro ao gerar relatório: ' + error.message;
+                                toastMessage.classList.remove('bg-primary', 'bg-success');
+                                toastMessage.classList.add('bg-danger');
+                                const toast = new bootstrap.Toast(toastMessage);
+                                toast.show();
+                                generateReportButton.disabled = false;
+                            });
+                    });
+                }
+
+                // Retornar um objeto com o método init
+                return {
+                    init: function () {
+                        console.log('App inicializado');
+                        // Adicione aqui a lógica de inicialização
+                    }
+                };
+            })();
+
+            app.init();
+        })(window, document);
+
+    </script>
+
+</body>
+
+</html>

@@ -1,0 +1,166 @@
+from flask import Blueprint, jsonify, request
+import google.generativeai as genai
+from datetime import datetime, timedelta
+from database import postgres_chatwoot
+import json
+import os
+import requests
+from dotenv import load_dotenv
+
+load_dotenv()
+chat_bp = Blueprint('chat', __name__)
+
+@chat_bp.route('/api/chat', methods=['POST'])
+def chat_api():
+    try:
+        data = request.get_json()
+        now = datetime.now() - timedelta(hours=3)
+        GOOGLE_API_KEY = os.getenv("GOOGLE_AI_STUDIO_KEY")
+        genai.configure(api_key=GOOGLE_API_KEY)
+        # genai.configure(api_key=GOOGLE_API_KEY)
+        mensagem = 'Ola'
+        now = now.isoformat()
+        numeros_teste = [
+            '+5515988272755', # Pablo
+            '+5515991057976', # Marcelo
+            '+5515991286831', # Andrea
+            '+5515991549353',  # Doca
+            '+5515988140625'  # Mario
+            ]
+
+        system_instruction = """
+            Você é Paulo, um assistente virtual amigável e eficiente.
+            Sempre comece conversas se apresentando e perguntando como está o dia do usuario.
+            Responda diretamente a perguntas sobre você mesmo (como seu nome ou sua função).
+            Você tem a função de consultar informações como preços e outras informações sobre peças de veículos, acessórios de veículos usando a ferramenta `parts_information`.
+            Você tem a função de consultar informações sobre CEPs usando a ferramenta `get_cep_info`.
+            Você tem a função de consultar informações sobre Cidades usando a ferramenta `get_city`.
+            Você tem a função de consultar a data atual usando a ferramenta `get_day_of_week` sem argumentos nenhum.
+            Sempre que necesário, informa para o cliente que o horário de atendimento é de segunda a sexta-feira, das 08:00 às 18:00 e aos sábados, das 08:00 ás 12:00.
+            Em caso de feriados e datas especias, informe para o cliente que os horários de atendimento podem mudar.
+            Se o usuário fizer uma pergunta que não pode ser respondida com essas ferramentas e nem por você diretamente, use a ferramenta `forward_to_agent`.
+            Se o usuário apenas te cumprimentar, cumprimente de volta sem usar nenhuma ferramenta.
+            """
+        
+        def get_day_of_week(*args):
+            """Retorna o dia da semana e a data completa atual."""
+            now = datetime.now()
+            retorno = {}
+            data_formatada = str(now.strftime("%A, %d de %B de %Y").capitalize())
+            retorno["data_atual"] = data_formatada
+            retorno['feriado'] = False
+            retorno['message'] = "Hoje não é um feriado."
+            return retorno
+
+        def forward_to_agent(user_query: str):
+            """Encaminha a conversa para um atendente humano quando necessário."""
+            atendente_name = 'Pablo'
+            print(f"[LOG: Encaminhando para atendente. Motivo: '{user_query}']")
+            return {
+                "status": "success",
+                "message": f"O cliente foi informado que o atendente {atendente_name} ajudará com: '{user_query}'."
+            }
+        
+        available_tools = {
+            "forward_to_agent": forward_to_agent,
+            "get_day_of_week": get_day_of_week,
+        }
+        model = genai.GenerativeModel(
+            model_name='gemini-2.5-flash',
+            system_instruction=system_instruction,
+            tools=list(available_tools.values())
+        )
+        conversation_history = []
+        if data['meta']['sender']['phone_number'] in numeros_teste and data['messages'][0]['sender']['id'] != 1:
+            inbox_id = data['inbox_id']
+            contact_id = data['contact_inbox']['contact_id']
+            conversation_id = data['id']
+            sender = data['meta']['sender']['phone_number']
+            
+        # if True:
+            with open (f'log/chat_{now}.json', 'w') as f:
+                f.write(json.dumps(data, indent=4, ensure_ascii=False))
+            if 'attachments' in data['messages'][0]:
+                for attach in data['messages'][0]['attachments']:
+                    if attach['file_type'] == 'audio':
+                        mensagem = f"Desculpe, não consigo processar mensagens de áudio no momento."
+                        
+            
+            conn, cur = postgres_chatwoot()
+            
+            query = f"""
+            select 
+                cw.phone_number,
+                m.content, 
+                case
+                    when m.sender_type = 'Contact'
+                    then 'user'
+                    else 'model'
+                end sender_type,
+                asb.key, 
+                asb.filename, 
+                asb.content_type 
+            from messages m
+            left join attachments a on 1=1
+                and m.id = a.message_id
+            left join active_storage_attachments asa on 1=1
+                and asa.record_id = a.id 
+            left join active_storage_blobs asb on 1=1
+                and asb.id = asa.blob_id 
+            left join inboxes i on 1=1
+                and i.id = m.inbox_id
+            left join channel_whatsapp cw on 1=1
+                and i.channel_id = cw.id 
+            where 1=1
+            and m.inbox_id = '{inbox_id}'
+            and m.conversation_id = '{conversation_id}'
+            order by m.id
+            """
+            # return query
+            cur.execute(query)
+            mensagens = cur.fetchall()
+            for mensagem in mensagens:
+                if mensagem[1] is not None:
+                    conversation_history.append(
+                        {
+                            "role": mensagem[2],
+                            "content": mensagem[1],
+                            # "attachments": [
+                            #     {
+                            #         "key": mensagem[3],
+                            #         "filename": mensagem[4],
+                            #         "content_type": mensagem[5]
+                            #     }
+                            # ]
+                        }
+                    )
+            cur.close()
+            conn.close()
+            
+            url = f"https://chat.caiuas.com.br/api/v1/accounts/{inbox_id}/conversations/{conversation_id}/messages"
+            
+            payload = json.dumps({
+                            'content': f"{mensagem}",
+                            })
+            # with open (f'log/payload_chat_{now}.json', 'w') as f:
+            #     f.write(payload)
+            headers = {
+            'api_access_token': f'{os.getenv("CHATWOOT_TOKEN")}',
+            'Content-Type': 'application/json'
+            }
+            response = requests.request("POST", url, headers=headers, data=payload)
+            
+            retorno = {}
+            retorno['response'] = response
+            retorno['message'] = 'Chat data received and logged.'
+            return (payload, 200)
+        else:
+            retorno = {}
+            retorno['message'] = 'Chat data not processed due to conditions not met.'
+    except Exception as e:
+        retorno = {}
+        retorno['error'] = str(e)
+        with open (f'log/error_chat_{now}.json', 'w') as f:
+            f.write(json.dumps(retorno, indent=4, ensure_ascii=False))
+        return jsonify(retorno), 400
+    return jsonify(retorno), 200

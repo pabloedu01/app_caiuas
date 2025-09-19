@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="pt-BR" dir="ltr" data-navigation-type="default" data-navbar-horizontal-shape="default">
+
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+  <!-- ===============================================-->
+  <!--    Document Title-->
+  <!-- ===============================================-->
+  <title>{{ context.title }}</title>
+
+
+  <!-- ===============================================-->
+  <!--    Favicons-->
+  <!-- ===============================================-->
+  <link rel="apple-touch-icon" sizes="180x180" href="/static/assets/img/favicons/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/static/assets/img/favicons/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/static/assets/img/favicons/favicon-16x16.png">
+  <link rel="shortcut icon" type="image/x-icon" href="/static/assets/img/favicons/favicon.ico">
+  <link rel="manifest" href="/static/assets/img/favicons/manifest.json">
+  <meta name="msapplication-TileImage" content="static/assets/img/favicons/mstile-150x150.png">
+  <meta name="theme-color" content="#ffffff">
+  <script src="/static/vendors/simplebar/simplebar.min.js"></script>
+  <script src="/static/assets/js/config.js"></script>
+
+
+  <!-- ===============================================-->
+  <!--    Stylesheets-->
+  <!-- ===============================================-->
+  <link href="/static/vendors/choices/choices.min.css" rel="stylesheet">
+  <link href="/static/vendors/flatpickr/flatpickr.min.css" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+  <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@300;400;600;700;800;900&amp;display=swap"
+    rel="stylesheet">
+  <link href="/static/vendors/simplebar/simplebar.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://unicons.iconscout.com/release/v4.0.8/css/line.css">
+  <link href="/static/assets/css/theme-rtl.min.css" type="text/css" rel="stylesheet" id="style-rtl">
+  <link href="/static/assets/css/theme.min.css" type="text/css" rel="stylesheet" id="style-default">
+  <link href="/static/assets/css/user-rtl.min.css" type="text/css" rel="stylesheet" id="user-style-rtl">
+  <link href="/static/assets/css/user.min.css" type="text/css" rel="stylesheet" id="user-style-default">
+  <script>
+    var phoenixIsRTL = window.config.config.phoenixIsRTL;
+    if (phoenixIsRTL) {
+      var linkDefault = document.getElementById('style-default');
+      var userLinkDefault = document.getElementById('user-style-default');
+      linkDefault.setAttribute('disabled', true);
+      userLinkDefault.setAttribute('disabled', true);
+      document.querySelector('html').setAttribute('dir', 'rtl');
+    } else {
+      var linkRTL = document.getElementById('style-rtl');
+      var userLinkRTL = document.getElementById('user-style-rtl');
+      linkRTL.setAttribute('disabled', true);
+      userLinkRTL.setAttribute('disabled', true);
+    }
+  </script>
+</head>
+
+
+<body>
+
+  <!-- ===============================================-->
+  <!--    Main Content-->
+  <!-- ===============================================-->
+  <main class="main" id="top">
+    <!-- MENU -->
+
+    {% include 'menu.html' %}
+    <!-- include top_bar.html -->
+    {% include 'top_bar.html' %}
+    <div class="content">
+
+      <div class="pb-6">
+        <h2 class="mb-4">{{ context.veiculos|length if context.veiculos else 0 }} Veículos em Estoque</h2>
+
+        <div id="forms_table">
+
+          <div class="row g-3 justify-content-between mb-4">
+            <div class="col-auto">
+
+            </div>
+
+            <div class="col-auto">
+              <div class="d-flex">
+                <button class="btn btn-phoenix-secondary bg-body-emphasis btn-sm px-md-4 me-3"
+                  onclick="downloadEstoque()">
+                  <span class="fa-solid fa-download"></span>
+                  <span class="d-none d-md-inline ms-2">Download</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="search-box mb-3 mx-auto">
+            <form class="position-relative">
+              <input class="form-control search-input search form-control-sm" type="search"
+                placeholder="Procure por chassi ou modelo" aria-label="Search">
+              <span class="fas fa-search search-box-icon"></span>
+            </form>
+          </div>
+
+          <div class="table-responsive">
+            <table class="table table-sm fs-9 mb-0 overflow-hidden">
+              <thead class="text-body">
+                <tr>
+                  <th class="sort border-top border-translucent ps-3" style="max-width:20px; width:18px;">
+                    <div class="form-check mb-0 fs-8">
+                      <input class="form-check-input" id="bulk-select-example" type="checkbox"
+                        data-bulk-select='{"body":"bulk-select-body","actions":"bulk-select-actions","replacedElement":"bulk-select-replace-element"}' />
+                    </div>
+                  </th>
+
+                  <!-- Chassi -->
+                  <th class="sort border-top" data-sort="chassi_completo" style="min-width: 10rem;">
+                    Chassi
+                  </th>
+
+                  <!-- Modelo -->
+                  <th class="sort border-top" data-sort="modelo" style="min-width: 12rem;">
+                    Modelo
+                  </th>
+
+                  <!-- Ano/Modelo -->
+                  <th class="sort border-top text-center" data-sort="ano_modelo" style="min-width: 5rem;">
+                    Ano
+                  </th>
+
+                  <!-- Cor -->
+                  <th class="sort border-top text-center" data-sort="cor" style="min-width: 6rem;">
+                    Cor
+                  </th>
+
+                  <!-- Tipo -->
+                  <th class="sort border-top text-center" data-sort="novo_usado" style="min-width: 5rem;">
+                    Tipo
+                  </th>
+
+                  <!-- Pátio -->
+                  <th class="sort border-top" data-sort="patio" style="min-width: 12rem;">
+                    Pátio
+                  </th>
+
+                  <!-- Vendedor -->
+                  <th class="sort border-top" data-sort="nome_vendedor" style="min-width: 8rem;">
+                    Vendedor
+                  </th>
+
+                  <!-- Cód. Proposta -->
+                  <th class="sort border-top text-center" data-sort="cod_proposta" style="min-width: 6rem;">
+                    Cód. Proposta
+                  </th>
+                </tr>
+              </thead>
+
+              <tbody class="list" id="bulk-select-body">
+                {% if context.veiculos %}
+                {% for veiculo in context.veiculos %}
+                <tr class="btn-reveal-trigger">
+                  <td class="align-middle ps-3">
+                    <div class="form-check mb-0 fs-8">
+                      <input class="form-check-input" type="checkbox" data-chassi="{{ veiculo.chassi_completo }}"
+                        data-bulk-select-row='{"chassi":"{{ veiculo.chassi_completo }}"}' />
+                    </div>
+                  </td>
+
+                  <td class="chassi_completo align-middle">
+                    <span class="fw-semibold text-primary">{{ veiculo.chassi_completo if veiculo.chassi_completo else
+                      '-' }}</span>
+                  </td>
+
+                  <td class="modelo align-middle">
+                    {% if veiculo.modelo %}
+                    {% if veiculo.modelo|length > 35 %}
+                    <span title="{{ veiculo.modelo }}" class="fw-semibold text-body">{{ veiculo.modelo[:32] }}...</span>
+                    {% else %}
+                    <span class="fw-semibold text-body">{{ veiculo.modelo }}</span>
+                    {% endif %}
+                    {% else %}
+                    -
+                    {% endif %}
+                  </td>
+
+                  <td class="ano_modelo align-middle text-center">
+                    {{ veiculo.ano_modelo if veiculo.ano_modelo else '-' }}
+                  </td>
+
+                  <td class="cor align-middle text-center">
+                    {{ veiculo.cor if veiculo.cor else '-' }}
+                  </td>
+
+                  <td class="novo_usado align-middle text-center">
+                    <span class="badge fs-10 
+                        {% if veiculo.novo_usado == 'Novo' %}
+                          badge-phoenix badge-phoenix-success
+                        {% else %}
+                          badge-phoenix badge-phoenix-info
+                        {% endif %}">
+                      {{ veiculo.novo_usado if veiculo.novo_usado else 'N/A' }}
+                    </span>
+                  </td>
+
+                  <td class="patio align-middle">
+                    {% if veiculo.patio %}
+                    {% if veiculo.patio|length > 25 %}
+                    <span title="{{ veiculo.patio }}">{{ veiculo.patio[:22] }}...</span>
+                    {% else %}
+                    {{ veiculo.patio }}
+                    {% endif %}
+                    {% else %}
+                    -
+                    {% endif %}
+                  </td>
+
+                  <td class="nome_vendedor align-middle">
+                    {% if veiculo.nome_vendedor %}
+                    {% if veiculo.nome_vendedor|length > 15 %}
+                    <span title="{{ veiculo.nome_vendedor }}">{{ veiculo.nome_vendedor[:12] }}...</span>
+                    {% else %}
+                    {{ veiculo.nome_vendedor }}
+                    {% endif %}
+                    {% else %}
+                    -
+                    {% endif %}
+                  </td>
+
+                  <td class="cod_proposta align-middle text-center">
+                    {% if veiculo.cod_proposta %}
+                    <span class="badge fs-10 badge-phoenix badge-phoenix-primary">{{ veiculo.cod_proposta }}</span>
+                    {% else %}
+                    -
+                    {% endif %}
+                  </td>
+                </tr>
+                {% endfor %}
+                {% else %}
+                <tr>
+                  <td colspan="9" class="text-center py-4 text-body-tertiary">
+                    Nenhum veículo encontrado
+                  </td>
+                </tr>
+                {% endif %}
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Pagination -->
+          <div class="d-flex justify-content-between mt-3">
+            <span class="d-none d-sm-inline-block" data-list-info="data-list-info"></span>
+            <div class="d-flex">
+              <button class="page-link" data-list-pagination="prev">
+                <span class="fas fa-chevron-left"></span>
+              </button>
+              <ul class="mb-0 pagination"></ul>
+              <button class="page-link pe-0" data-list-pagination="next">
+                <span class="fas fa-chevron-right"></span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <footer class="footer position-absolute">
+        <div class="row g-0 justify-content-between align-items-center h-100">
+        </div>
+      </footer>
+
+      <div id="toastMessageContainer" class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 1080;">
+        <div id="toastMessage" class="toast align-items-center text-white dark__text-gray-1100 bg-primary border-0"
+          role="alert" data-bs-autohide="true" aria-live="assertive" aria-atomic="true">
+          <div class="d-flex">
+            <div class="toast-body">
+              Hello, world! This is a toast message.
+            </div>
+            <button class="btn ms-2 p-0" type="button" data-bs-dismiss="toast" aria-label="Close"><span
+                class="uil uil-times fs-7 text-white"></span></button>
+          </div>
+        </div>
+      </div>
+      <!-- modal change name -->
+
+
+
+
+  </main>
+  <!-- ===============================================-->
+  <!--    End of Main Content-->
+  <!-- ===============================================-->
+
+
+
+
+  <!-- ===============================================-->
+  <!--    JavaScripts-->
+  <!-- ===============================================-->
+  <script src="/static/vendors/popper/popper.min.js"></script>
+  <script src="/static/vendors/bootstrap/bootstrap.min.js"></script>
+  <script src="/static/vendors/anchorjs/anchor.min.js"></script>
+  <script src="/static/vendors/is/is.min.js"></script>
+  <script src="/static/vendors/fontawesome/all.min.js"></script>
+  <script src="/static/vendors/lodash/lodash.min.js"></script>
+  <script src="/static/vendors/list.js/list.min.js"></script>
+  <script src="/static/vendors/feather-icons/feather.min.js"></script>
+  <script src="/static/vendors/dayjs/dayjs.min.js"></script>
+  <script src="/static/vendors/choices/choices.min.js"></script>
+  <script src="/static/vendors/flatpickr/flatpickr.min.js"></script>
+  <script src="/static/assets/js/phoenix.js"></script>
+  <script src="/static/vendors/prism/prism.js"></script>
+  <script src="/static/assets/js/menu.js"></script>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      // Inicializar feather icons
+      if (window.feather) {
+        feather.replace();
+      }
+
+      // Verificar se existe dados para evitar erros
+      if (document.getElementById('estoque_table') && document.getElementById('bulk-select-body')) {
+        // Aguardar um pouco para garantir que a tabela foi renderizada
+        setTimeout(function () {
+          // Inicializar List.js para estoque de veículos
+          try {
+            const estoqueList = new List('estoque_table', {
+              valueNames: ['chassi_completo', 'modelo', 'ano_modelo', 'cor', 'novo_usado', 'patio', 'nome_vendedor', 'cod_proposta'],
+              page: 10,
+              pagination: {
+                item: `<li><button class='page' type='button'></button></li>`
+              }
+            });
+
+            console.log('List.js inicializado para estoque de veículos');
+            console.log('Total de itens encontrados:', estoqueList.items.length);
+            console.log('Páginas disponíveis:', Math.ceil(estoqueList.items.length / 10));
+
+            // Adicionar evento de clique na paginação
+            const paginationElement = document.querySelector('#estoque_table .pagination');
+            if (paginationElement) {
+              paginationElement.addEventListener('click', function (e) {
+                if (e.target.classList.contains('page')) {
+                  // A página é automaticamente gerenciada pelo List.js
+                  console.log('Página clicada:', e.target.textContent);
+                }
+              });
+            }
+          } catch (error) {
+            console.error('Erro ao inicializar List.js:', error);
+          }
+        }, 500);
+      }
+    });
+
+    function downloadEstoque() {
+      // Mostrar loading no botão
+      const downloadBtn = event.target.closest('button');
+      const originalContent = downloadBtn.innerHTML;
+      downloadBtn.disabled = true;
+      downloadBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Baixando...';
+
+      const requestOptions = {
+        method: "GET",
+        redirect: "follow"
+      };
+
+      fetch("https://backend.caiuas.com.br/api/reports/estoque", requestOptions)
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error(`Erro HTTP: ${response.status}`);
+          }
+
+          // Verificar o tipo de conteúdo
+          const contentType = response.headers.get('content-type');
+
+          if (contentType && contentType.includes('application/json')) {
+            // Se for JSON, converter para CSV
+            return response.json().then(data => {
+              return jsonToCsv(data);
+            });
+          } else {
+            // Se já for um arquivo (CSV, Excel, etc), baixar direto
+            return response.blob();
+          }
+        })
+        .then((result) => {
+          let blob, filename;
+
+          if (typeof result === 'string') {
+            // Se for CSV string
+            blob = new Blob([result], { type: 'text/csv;charset=utf-8;' });
+            filename = `estoque_veiculos_${new Date().toISOString().slice(0, 10)}.csv`;
+          } else {
+            // Se for blob (arquivo)
+            blob = result;
+            filename = `estoque_veiculos_${new Date().toISOString().slice(0, 10)}.xlsx`;
+          }
+
+          // Criar link temporário para download
+          const link = document.createElement('a');
+          const url = window.URL.createObjectURL(blob);
+          link.href = url;
+          link.download = filename;
+
+          // Adicionar ao DOM, clicar e remover
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+
+          // Limpar URL
+          window.URL.revokeObjectURL(url);
+
+          console.log('Download concluído:', filename);
+        })
+        .catch((error) => {
+          console.error('Erro no download:', error);
+          alert('Erro ao baixar arquivo. Tente novamente.');
+        })
+        .finally(() => {
+          // Restaurar botão
+          downloadBtn.disabled = false;
+          downloadBtn.innerHTML = originalContent;
+        });
+    }
+
+    function jsonToCsv(jsonData) {
+      if (!jsonData || !Array.isArray(jsonData) || jsonData.length === 0) {
+        return '';
+      }
+
+      // Obter cabeçalhos das colunas
+      const headers = Object.keys(jsonData[0]);
+
+      // Mapear nomes dos campos para português
+      const headerMapping = {
+        'chassi_completo': 'Chassi',
+        'modelo': 'Modelo',
+        'ano_modelo': 'Ano/Modelo',
+        'cor': 'Cor',
+        'novo_usado': 'Tipo',
+        'patio': 'Pátio',
+        'nome_vendedor': 'Vendedor',
+        'cod_proposta': 'Cód. Proposta'
+      };
+
+      // Criar linha de cabeçalho
+      const csvHeaders = headers.map(header => headerMapping[header] || header);
+
+      // Converter dados para CSV
+      const csvRows = jsonData.map(row => {
+        return headers.map(header => {
+          const value = row[header];
+          // Escapar aspas e adicionar aspas se necessário
+          if (value === null || value === undefined) {
+            return '';
+          }
+          const stringValue = String(value);
+          if (stringValue.includes(',') || stringValue.includes('"') || stringValue.includes('\n')) {
+            return '"' + stringValue.replace(/"/g, '""') + '"';
+          }
+          return stringValue;
+        });
+      });
+
+      // Combinar cabeçalho e linhas
+      return [csvHeaders, ...csvRows].map(row => row.join(',')).join('\n');
+    }
+
+    function executeVeiculoAction() {
+      const bulkSelectBody = document.getElementById('bulk-select-body');
+      if (!bulkSelectBody) return;
+
+      const selectedInputs = bulkSelectBody.querySelectorAll('input[type="checkbox"]:checked');
+      const bulkActions = document.getElementById('bulk-actions-select');
+
+      if (!bulkActions || selectedInputs.length === 0) {
+        alert('Selecione pelo menos um veículo');
+        return;
+      }
+
+      const action = bulkActions.value;
+
+      if (action === 'export') {
+        // Lógica para exportar veículos selecionados
+        console.log('Exportando veículos selecionados');
+      } else if (action === 'print') {
+        // Lógica para imprimir veículos selecionados  
+        console.log('Imprimindo veículos selecionados');
+      }
+    }
+  </script>
+
+
+
+
+</body>
+
+</html>

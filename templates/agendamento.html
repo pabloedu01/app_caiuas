@@ -1,0 +1,1393 @@
+<!DOCTYPE html>
+<html lang="pt-BR" dir="ltr" data-navigation-type="default" data-navbar-horizontal-shape="default">
+
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+  <!-- ===============================================-->
+  <!--    Document Title-->
+  <!-- ===============================================-->
+  <title>{{ context.title }}</title>
+
+
+  <!-- ===============================================-->
+  <!--    Favicons-->
+  <!-- ===============================================-->
+  <link rel="apple-touch-icon" sizes="180x180" href="static/assets/img/favicons/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="static/assets/img/favicons/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="static/assets/img/favicons/favicon-16x16.png">
+  <link rel="shortcut icon" type="image/x-icon" href="static/assets/img/favicons/favicon.ico">
+  <link rel="manifest" href="static/assets/img/favicons/manifest.json">
+  <meta name="msapplication-TileImage" content="static/assets/img/favicons/mstile-150x150.png">
+  <meta name="theme-color" content="#ffffff">
+  <script src="static/vendors/simplebar/simplebar.min.js"></script>
+  <script src="static/assets/js/config.js"></script>
+
+
+  <!-- ===============================================-->
+  <!--    Stylesheets-->
+  <!-- ===============================================-->
+  <link href="static/vendors/choices/choices.min.css" rel="stylesheet">
+  <link href="static/vendors/flatpickr/flatpickr.min.css" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+  <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@300;400;600;700;800;900&amp;display=swap"
+    rel="stylesheet">
+  <link href="static/vendors/simplebar/simplebar.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://unicons.iconscout.com/release/v4.0.8/css/line.css">
+  <link href="static/assets/css/theme-rtl.min.css" type="text/css" rel="stylesheet" id="style-rtl">
+  <link href="static/assets/css/theme.min.css" type="text/css" rel="stylesheet" id="style-default">
+  <link href="static/assets/css/user-rtl.min.css" type="text/css" rel="stylesheet" id="user-style-rtl">
+  <link href="static/assets/css/user.min.css" type="text/css" rel="stylesheet" id="user-style-default">
+  <script>
+    var phoenixIsRTL = window.config.config.phoenixIsRTL;
+    if (phoenixIsRTL) {
+      var linkDefault = document.getElementById('style-default');
+      var userLinkDefault = document.getElementById('user-style-default');
+      linkDefault.setAttribute('disabled', true);
+      userLinkDefault.setAttribute('disabled', true);
+      document.querySelector('html').setAttribute('dir', 'rtl');
+    } else {
+      var linkRTL = document.getElementById('style-rtl');
+      var userLinkRTL = document.getElementById('user-style-rtl');
+      linkRTL.setAttribute('disabled', true);
+      userLinkRTL.setAttribute('disabled', true);
+    }
+  </script>
+</head>
+
+
+<body>
+
+  <!-- ===============================================-->
+  <!--    Main Content-->
+  <!-- ===============================================-->
+  <main class="main" id="top">
+    <!-- MENU -->
+
+    {% include 'menu.html' %}
+    <!-- include top_bar.html -->
+    {% include 'top_bar.html' %}
+    <div class="content">
+
+      <div class="pb-6">
+        <h2 class="mb-4">{{ context.agendamentos|length }} Agendamentos</h2>
+
+        <div id="agenda_table"
+          data-list='{"valueNames":["cod_os_agenda","crm_cod_evento","data_comeca","descricao_modelo","nome_consultor","nome_cliente","placa","responsavel_agendamento"],"page":50,"pagination":true}'>
+
+          <div class="row g-3 justify-content-between mb-4">
+
+
+            <div class="col-auto">
+              <div class="d-md-flex justify-content-between">
+                <div id="bulk-select-replace-element">
+                  <button class="btn btn-phoenix-success btn-sm" type="button">
+                    <span class="fas fa-plus" data-fa-transform="shrink-3 down-2">
+                    </span>
+                    <span class="ms-1">Novo</span>
+                  </button>
+                </div>
+                <div class="d-none ms-3" id="bulk-select-actions">
+                  <div class="d-flex">
+                    <select class="form-select form-select-sm" aria-label="Bulk actions" id="bulk-actions-select">
+                      <option selected="selected">Ações em lote</option>
+                      <option value="confirm_visit">Confirmar Visita</option>
+                      <option value="send_wpp">Enviar Confirmação</option>
+                    </select>
+                    <button class="btn btn-phoenix-danger btn-sm ms-2" type="button"
+                      onclick="sendMsgConfirmation()">Aplicar</button>
+                  </div>
+                </div>
+                <!-- <div id="bulk-select-replace-element">
+                  <button class="btn btn-primary me-4"><span class="fas fa-plus me-2"></span>Criar agendamento</button>
+                  <button class="btn btn-link text-body px-0"><span
+                      class="fa-solid fa-file-export fs-9 me-2"></span>Export</button>
+                </div> -->
+              </div>
+            </div>
+
+
+
+            <div class="col-auto">
+              <div class="d-flex">
+                <div class="search-box me-2">
+                  <form class="position-relative">
+                    <input class="form-control search-input search" type="search" placeholder="Procure pelo nome"
+                      aria-label="Search" />
+                    <span class="fas fa-search search-box-icon"></span>
+                  </form>
+                </div>
+                <div class="select-box me-2">
+                  <select class="form-select" aria-label="Default select example" name="cod_empresa">
+                    <option value="11" {% if context.parametros.cod_empresa==11 %}selected{% endif %}>Sorocaba</option>
+                    <option value="33" {% if context.parametros.cod_empresa==33 %}selected{% endif %}>Indaiatuba
+                    </option>
+                  </select>
+                </div>
+                <div class="flatpickr-input-container me-2">
+                  <input class="form-control ps-6 datetimepicker" id="datepicker" type="text"
+                    data-options='{"dateFormat":"Y-m-d","disableMobile":true,"defaultDate":"{{ context.date }}"}' /><span
+                    class="uil uil-calendar-alt flatpickr-icon text-body-tertiary"></span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="table-responsive scrollbar mx-n1 px-1">
+            <table class="table fs-9 mb-0 leads-table border-top border-translucent">
+              <thead>
+                <tr>
+
+                  <div>
+                    <th class="white-space-nowrap fs-9 align-middle ps-0" style="max-width:20px; width:18px;">
+                      <div class="form-check mb-0 fs-8">
+                        <input class="form-check-input" id="bulk-select-example" type="checkbox"
+                          data-bulk-select='{"body":"bulk-select-body","actions":"bulk-select-actions","replacedElement":"bulk-select-replace-element"}' />
+                      </div>
+                    </th>
+                    <!-- cod CRM -->
+                    <th class="sort 
+                  
+                  align-middle ps-4 pe-5 text-uppercase border-end border-translucent" scope="col"
+                      data-sort="crm_cod_evento" style="width:12.5%;">
+                      <div class="d-inline-flex flex-center">
+                        <div class="d-flex align-items-center px-1 py-1 bg-success-subtle rounded me-2"><span
+                            class="text-success-dark" data-feather="mail"></span></div><span>Cod CRM</span>
+                      </div>
+                    </th>
+
+                    <!-- Horario -->
+                    <th class="sort align-middle ps-4 pe-5 text-uppercase border-end border-translucent" scope="col"
+                      data-sort="data_comeca" style="width:12.5%;">
+                      <div class="d-inline-flex flex-center">
+                        <div class="d-flex align-items-center px-1 py-1 bg-success-subtle rounded me-2"><span
+                            class="text-success-dark" data-feather="mail"></span></div><span>Hora</span>
+                      </div>
+                    </th>
+
+                    <!-- Nome cliente -->
+                    <th class="sort align-middle ps-4 pe-5 text-uppercase border-end border-translucent" scope="col"
+                      data-sort="nome_cliente" style="width:12.5%;">
+                      <div class="d-inline-flex flex-center">
+                        <div class="d-flex align-items-center px-1 py-1 bg-success-subtle rounded me-2"><span
+                            class="text-success-dark" data-feather="mail"></span></div><span>Cliente</span>
+                      </div>
+                    </th>
+
+                    <!-- Placa -->
+                    <th class="sort align-middle ps-4 pe-5 text-uppercase border-end border-translucent" scope="col"
+                      data-sort="placa" style="width:12.5%;">
+                      <div class="d-inline-flex flex-center">
+                        <div class="d-flex align-items-center px-1 py-1 bg-success-subtle rounded me-2"><span
+                            class="text-success-dark" data-feather="mail"></span></div><span>Placa</span>
+                      </div>
+                    </th>
+
+                    <!-- Veículo -->
+                    <th class="sort align-middle ps-4 pe-5 text-uppercase border-end border-translucent" scope="col"
+                      data-sort="descricao_modelo" style="width:12.5%;">
+                      <div class="d-inline-flex flex-center">
+                        <div class="d-flex align-items-center px-1 py-1 bg-success-subtle rounded me-2"><span
+                            class="text-success-dark" data-feather="mail"></span></div><span>Veículo</span>
+                      </div>
+                    </th>
+
+                    <!-- Atendente -->
+                    <th class="sort align-middle ps-4 pe-5 text-uppercase border-end border-translucent" scope="col"
+                      data-sort="mesa" style="width:12.5%;">
+                      <div class="d-inline-flex flex-center">
+                        <div class="d-flex align-items-center px-1 py-1 bg-success-subtle rounded me-2"><span
+                            class="text-success-dark" data-feather="mail"></span></div><span>Consultor</span>
+                      </div>
+                    </th>
+
+
+
+
+                    <!-- Agendador -->
+                    <th class="sort align-middle ps-4 pe-5 text-uppercase border-end border-translucent" scope="col"
+                      data-sort="responsavel_agendamento" style="width:12.5%;">
+                      <div class="d-inline-flex flex-center">
+                        <div class="d-flex align-items-center px-1 py-1 bg-success-subtle rounded me-2"><span
+                            class="text-success-dark" data-feather="mail"></span></div><span>Agendador</span>
+                      </div>
+                    </th>
+
+                    <!-- Cod Agenda -->
+                    <th class="sort align-middle ps-4 pe-5 text-uppercase border-end border-translucent" scope="col"
+                      data-sort="cod_os_agenda" style="width:12.5%;">
+                      <div class="d-inline-flex flex-center">
+                        <div class="d-flex align-items-center px-1 py-1 bg-success-subtle rounded me-2"><span
+                            class="text-success-dark" data-feather="mail"></span></div><span>Cod Agenda</span>
+                      </div>
+                    </th>
+
+                    <!-- numero_os -->
+                    <th class="sort align-middle ps-4 pe-5 text-uppercase border-end border-translucent" scope="col"
+                      data-sort="cod_os_agenda" style="width:12.5%;">
+                      <div class="d-inline-flex flex-center">
+                        <div class="d-flex align-items-center px-1 py-1 bg-success-subtle rounded me-2"><span
+                            class="text-success-dark" data-feather="mail"></span></div><span>Numero OS</span>
+                      </div>
+                    </th>
+
+                    <!-- reclamacoes -->
+                    <th class="sort align-middle ps-4 pe-5 text-uppercase border-end border-translucent" scope="col"
+                      data-sort="reclamacoes" style="width:12.5%;">
+                      <div class="d-inline-flex flex-center">
+                        <div class="d-flex align-items-center px-1 py-1 bg-success-subtle rounded me-2"><span
+                            class="text-success-dark" data-feather="mail"></span></div><span>Reclamações</span>
+                      </div>
+                    </th>
+
+                    <!-- Tags -->
+                    <th class="sort align-middle ps-4 pe-5 text-uppercase border-end border-translucent" scope="col"
+                      data-sort="reclamacoes" style="width:12.5%;">
+                      <div class="d-inline-flex flex-center">
+                        <div class="d-flex align-items-center px-1 py-1 bg-success-subtle rounded me-2"><span
+                            class="text-success-dark" data-feather="mail"></span></div><span>TAGS</span>
+                      </div>
+                    </th>
+
+                    <!-- Whatsapp -->
+                    <th class="sort align-middle ps-4 pe-5 text-uppercase border-end border-translucent" scope="col"
+                      data-sort="wpp" style="width:5%;">
+                      <div class="d-inline-flex flex-center">
+                        <div class="d-flex align-items-center px-1 py-1 bg-success-subtle rounded me-2"><span
+                            class="text-success-dark" data-feather="mail"></span></div><span>WPP</span>
+                      </div>
+                    </th>
+
+                </tr>
+              </thead>
+
+              <tbody class="list" id="bulk-select-body">
+                {% for agendamento in context.agendamentos %}
+
+                <tr id="agenda_{{agendamento.cod_os_agenda}}"
+                  class="hover-actions-trigger btn-reveal-trigger position-static {% if agendamento.status_agenda in ('C','E','O','F') %}table-warning {% endif %}">
+                  <td class="fs-9 align-middle">
+                    <div class="form-check mb-0 fs-8">
+                      <input class="form-check-input" type="checkbox"
+                        data-cod-os-agenda="{{ agendamento.cod_os_agenda }}"
+                        data-bulk-select-row='{"cod_os_agenda":{{ agendamento.cod_os_agenda }},"cod_empresa": {{ agendamento.cod_empresa }}}' />
+                    </div>
+                  </td>
+
+                  <td
+                    class="crm_cod_evento align-middle white-space-nowrap fw-semibold ps-4 border-end border-translucent {% if agendamento.status_agenda in ('C','E','O','F') %}table-warning {% endif %}">
+                    {{ agendamento.crm_cod_evento if agendamento.crm_cod_evento is not none else '' }}</td>
+                  <td
+                    class="data_comeca align-middle white-space-nowrap ps-4 border-end border-translucent fw-semibold text-body-highlight {% if agendamento.status_agenda in ('C','E','O','F') %}table-warning {% endif %}">
+                    {{ agendamento.data_comeca }}</td>
+                  <td
+                    class="nome_cliente align-middle white-space-nowrap text-body-tertiary text-opacity-85 ps-4 border-end text-body-tertiary {% if agendamento.status_agenda in ('C','E','O','F') %}table-warning {% endif %}">
+                    {{ agendamento.nome_cliente[:20] if agendamento.nome_cliente is not none else '' }}</td>
+                  <td
+                    class="placa align-middle white-space-nowrap text-body-tertiary text-opacity-85 ps-4 border-end text-body-tertiary {% if agendamento.status_agenda in ('C','E','O','F') %}table-warning {% endif %}">
+                    {{ agendamento.placa }}</td>
+                  <td
+                    class="descricao_modelo align-middle white-space-nowrap ps-4 border-end border-translucent fw-semibold text-body-highlight {% if agendamento.status_agenda in ('C','E','O','F') %}table-warning {% endif %}">
+                    {{ agendamento.descricao_modelo }}</td>
+                  <td
+                    class="nome_consultor align-middle white-space-nowrap text-body-tertiary text-opacity-85 ps-4 border-end border-translucent fw-semibold text-body-highlight {% if agendamento.status_agenda in ('C','E','O','F') %}table-warning {% endif %}"
+                    onclick="changeConsultor('{{ agendamento.cod_os_agenda }}', '{{ agendamento.consultor }}', '{{ agendamento.nome_consultor }}')"
+                    style="cursor:pointer;">{{
+                    agendamento.nome_consultor if agendamento.nome_consultor is not none else '' }}</td>
+
+
+                  <td
+                    class="responsavel_agendamento align-middle white-space-nowrap text-body-tertiary text-opacity-85 ps-4 border-end text-body-tertiary {% if agendamento.status_agenda in ('C','E','O','F') %}table-warning {% endif %}"
+                    onclick="changeAgendador('{{ agendamento.cod_os_agenda }}', '{{ agendamento.responsavel_pelo_evento }}', '{{ agendamento.responsavel_agendamento }}')"
+                    style="cursor:pointer;">
+                    {{ agendamento.responsavel_agendamento[:20] if agendamento.responsavel_agendamento is not none else
+                    '' }}</td>
+                  <td
+                    class="cod_os_agenda align-middle white-space-nowrap fw-semibold ps-4 border-end border-translucent {% if agendamento.status_agenda in ('C','E','O','F') %}table-warning {% endif %}">
+                    {{ agendamento.cod_os_agenda }}</td>
+                  <td
+                    class="numero_os align-middle white-space-nowrap fw-semibold ps-4 border-end border-translucent {% if agendamento.status_agenda in ('C','E','O','F') %}table-warning {% endif %}"
+                    onclick="changeOs('{{ agendamento.cod_os_agenda }}', '{{ agendamento.numero_os }}', '{{ agendamento.cod_empresa }}')"
+                    style="cursor:pointer;">
+                    {{ agendamento.numero_os if agendamento.numero_os is not none else '' }}
+                  </td>
+                  <td class=" {% if agendamento.status_agenda in ('C','E','O','F') %}table-warning {% endif %}">
+                    <!-- for in agendamento.reclamacoes e aplica o campo descricao separado por virgula -->
+                    {{ agendamento.reclamacoes | map(attribute='descricao') | join(', ') if agendamento.reclamacoes else
+                    '' }}
+                  </td>
+
+                  <td id="agendamento_{{ agendamento.cod_os_agenda }}"
+                    class="tags align-middle review pb-2 ps-3 {% if agendamento.status_agenda in ('C','E','O','F') %}table-warning {% endif %}"
+                    style="min-width:225px;">
+                    {% for tag in agendamento.tags %}
+                    <a id="tag_{{ tag.id_tag_os_agenda}}" class="text-decoration-none" href="#!"
+                      onclick="remove_tag({{ tag.id_tag_os_agenda }})">
+                      <span class="badge badge-phoenix fs-10 
+                      {% if tag.name == 'DIAGNOSTICO'%} badge-phoenix-warning
+                      {% elif tag.name == 'EXPRESS' %} badge-phoenix-danger
+                      {% else %} badge-phoenix-info 
+                      {% endif %} 
+                      rounded-pill px-2 py-1 me-1 mb-1" data-bs-toggle="tooltip" data-bs-placement="top" title="{{ tag.name }}
+                      ">
+                        <span class="badge-label">{{ tag.name }}</span>
+                        <span class="ms-1"
+                          data-feather="{% if tag.name == 'DIAGNOSTICO'%}clock{% elif tag.name == 'EXPRESS' %}activity{% else %}bookmark{% endif %}"
+                          style="height:12.8px;width:12.8px;"></span>
+                      </span>
+                    </a>
+
+
+
+                    {% endfor %}
+
+                    <a class="text-decoration-none" href="#!"
+                      onclick="add_tag({{ agendamento.cod_os_agenda }}, {{ agendamento.cod_empresa }})">
+                      <span class="badge badge-phoenix fs-10 badge-phoenix-info rounded-pill px-2 py-1 me-1 mb-1"
+                        data-bs-toggle="tooltip" data-bs-placement="top" title="Add" data-bulk-select="{
+                        'cod_os_agenda':{{ agendamento.cod_os_agenda }}
+                        'cod_empresa': {{ agendamento.cod_empresa }}
+                        }
+                            ">
+                        <span class="badge-label">Add</span>
+                        <span class="ms-1" data-feather="plus-circle" style="height:12.8px;width:12.8px;"></span>
+                      </span>
+                    </a>
+
+                  </td>
+                  <td id="qtd_msg_ag_{{ agendamento.cod_os_agenda }}"
+                    class="align-middle white-space-nowrap {% if agendamento.status_agenda in ('C','E','O','F') %}table-warning {% endif %}">
+                    <!-- for in agendamento.reclamacoes e aplica o campo descricao separado por virgula -->
+                    <!-- adicione len de agendamento.whatsapp -->
+                    {{ agendamento.whatsapp|length }}
+                    <!-- 1 -->
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          <div class="row align-items-center justify-content-end py-4 pe-0 fs-9">
+            <div class="col-auto d-flex">
+              <p class="mb-0 d-none d-sm-block me-3 fw-semibold text-body" data-list-info="data-list-info"></p><a
+                class="fw-semibold" href="#!" data-list-view="*">View all<span class="fas fa-angle-right ms-1"
+                  data-fa-transform="down-1"></span></a><a class="fw-semibold d-none" href="#!"
+                data-list-view="less">View Less<span class="fas fa-angle-right ms-1"
+                  data-fa-transform="down-1"></span></a>
+            </div>
+            <div class="col-auto d-flex">
+              <button class="page-link" data-list-pagination="prev"><span class="fas fa-chevron-left"></span></button>
+              <ul class="mb-0 pagination"></ul>
+              <button class="page-link pe-0" data-list-pagination="next"><span
+                  class="fas fa-chevron-right"></span></button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <footer class="footer position-absolute">
+        <div class="row g-0 justify-content-between align-items-center h-100">
+          <!-- <div class="col-12 col-sm-auto text-center">
+            <p class="mb-0 mt-2 mt-sm-0 text-body">Todos os direitos reservados à Honda Caiuás<span
+                class="d-none d-sm-inline-block"></span><span class="d-none d-sm-inline-block mx-1">|</span><br
+                class="d-sm-none" />2025 &copy;<a class="mx-1" href="https://pabloedu.com">Themewagon</a></p>
+          </div> -->
+          <!-- <div class="col-12 col-sm-auto text-center">
+            <p class="mb-0 text-body-tertiary text-opacity-85">v1.22.0</p>
+          </div> -->
+        </div>
+      </footer>
+
+      <!-- Modal -->
+
+
+
+
+      <!-- </div>
+    <div class="modal fade" id="searchBoxModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="true"
+      data-phoenix-modal="data-phoenix-modal" style="--phoenix-backdrop-opacity: 1;">
+      <div class="modal-dialog">
+        <div class="modal-content mt-15 rounded-pill">
+          <div class="modal-body p-0">
+            <div class="search-box navbar-top-search-box" data-list='{"valueNames":["title"]}' style="width: auto;">
+              <form class="position-relative" data-bs-toggle="search" data-bs-display="static">
+                <input class="form-control search-input fuzzy-search rounded-pill form-control-lg" type="search"
+                  placeholder="Search..." aria-label="Search" />
+                <span class="fas fa-search search-box-icon"></span>
+
+              </form>
+              <div class="btn-close position-absolute end-0 top-50 translate-middle cursor-pointer shadow-none"
+                data-bs-dismiss="search">
+                <button class="btn btn-link p-0" aria-label="Close"></button>
+              </div>
+              <div class="dropdown-menu border start-0 py-0 overflow-hidden w-100">
+                <div class="scrollbar-overlay" style="max-height: 30rem;">
+                  <div class="list pb-3">
+                    <h6 class="dropdown-header text-body-highlight fs-10 py-2">24 <span
+                        class="text-body-quaternary">results</span></h6>
+                    <hr class="my-0" />
+                    <h6 class="dropdown-header text-body-highlight fs-9 border-bottom border-translucent py-2 lh-sm">
+                      Recently Searched </h6>
+                    <div class="py-2"><a class="dropdown-item"
+                        href="../../apps/e-commerce/landing/product-details.html">
+                        <div class="d-flex align-items-center">
+
+                          <div class="fw-normal text-body-highlight title"><span class="fa-solid fa-clock-rotate-left"
+                              data-fa-transform="shrink-2"></span> Store Macbook</div>
+                        </div>
+                      </a>
+                      <a class="dropdown-item" href="../../apps/e-commerce/landing/product-details.html">
+                        <div class="d-flex align-items-center">
+
+                          <div class="fw-normal text-body-highlight title"> <span class="fa-solid fa-clock-rotate-left"
+                              data-fa-transform="shrink-2"></span> MacBook Air - 13″</div>
+                        </div>
+                      </a>
+
+                    </div>
+                    <hr class="my-0" />
+                    <h6 class="dropdown-header text-body-highlight fs-9 border-bottom border-translucent py-2 lh-sm">
+                      Products</h6>
+                    <div class="py-2"><a class="dropdown-item py-2 d-flex align-items-center"
+                        href="../../apps/e-commerce/landing/product-details.html">
+                        <div class="file-thumbnail me-2"><img class="h-100 w-100 object-fit-cover rounded-3"
+                            src="static/assets/img/products/60x60/3.png" alt="" /></div>
+                        <div class="flex-1">
+                          <h6 class="mb-0 text-body-highlight title">MacBook Air - 13″</h6>
+                          <p class="fs-10 mb-0 d-flex text-body-tertiary"><span
+                              class="fw-medium text-body-tertiary text-opactity-85">8GB Memory - 1.6GHz - 128GB
+                              Storage</span></p>
+                        </div>
+                      </a>
+                      <a class="dropdown-item py-2 d-flex align-items-center"
+                        href="../../apps/e-commerce/landing/product-details.html">
+                        <div class="file-thumbnail me-2"><img class="img-fluid"
+                            src="static/assets/img/products/60x60/3.png" alt="" /></div>
+                        <div class="flex-1">
+                          <h6 class="mb-0 text-body-highlight title">MacBook Pro - 13″</h6>
+                          <p class="fs-10 mb-0 d-flex text-body-tertiary"><span
+                              class="fw-medium text-body-tertiary text-opactity-85">30 Sep at 12:30 PM</span></p>
+                        </div>
+                      </a>
+
+                    </div>
+                    <hr class="my-0" />
+                    <h6 class="dropdown-header text-body-highlight fs-9 border-bottom border-translucent py-2 lh-sm">
+                      Quick Links</h6>
+                    <div class="py-2"><a class="dropdown-item"
+                        href="../../apps/e-commerce/landing/product-details.html">
+                        <div class="d-flex align-items-center">
+
+                          <div class="fw-normal text-body-highlight title"><span class="fa-solid fa-link text-body"
+                              data-fa-transform="shrink-2"></span> Support MacBook House</div>
+                        </div>
+                      </a>
+                      <a class="dropdown-item" href="../../apps/e-commerce/landing/product-details.html">
+                        <div class="d-flex align-items-center">
+
+                          <div class="fw-normal text-body-highlight title"> <span class="fa-solid fa-link text-body"
+                              data-fa-transform="shrink-2"></span> Store MacBook″</div>
+                        </div>
+                      </a>
+
+                    </div>
+                    <hr class="my-0" />
+                    <h6 class="dropdown-header text-body-highlight fs-9 border-bottom border-translucent py-2 lh-sm">
+                      Files</h6>
+                    <div class="py-2"><a class="dropdown-item"
+                        href="../../apps/e-commerce/landing/product-details.html">
+                        <div class="d-flex align-items-center">
+
+                          <div class="fw-normal text-body-highlight title"><span
+                              class="fa-solid fa-file-zipper text-body" data-fa-transform="shrink-2"></span> Library
+                            MacBook folder.rar</div>
+                        </div>
+                      </a>
+                      <a class="dropdown-item" href="../../apps/e-commerce/landing/product-details.html">
+                        <div class="d-flex align-items-center">
+
+                          <div class="fw-normal text-body-highlight title"> <span
+                              class="fa-solid fa-file-lines text-body" data-fa-transform="shrink-2"></span> Feature
+                            MacBook extensions.txt</div>
+                        </div>
+                      </a>
+                      <a class="dropdown-item" href="../../apps/e-commerce/landing/product-details.html">
+                        <div class="d-flex align-items-center">
+
+                          <div class="fw-normal text-body-highlight title"> <span class="fa-solid fa-image text-body"
+                              data-fa-transform="shrink-2"></span> MacBook Pro_13.jpg</div>
+                        </div>
+                      </a>
+
+                    </div>
+                    <hr class="my-0" />
+                    <h6 class="dropdown-header text-body-highlight fs-9 border-bottom border-translucent py-2 lh-sm">
+                      Members</h6>
+                    <div class="py-2"><a class="dropdown-item py-2 d-flex align-items-center"
+                        href="../../pages/members.html">
+                        <div class="avatar avatar-l status-online  me-2 text-body">
+                          <img class="rounded-circle " src="static/assets/img/team/40x40/10.webp" alt="" />
+
+                        </div>
+                        <div class="flex-1">
+                          <h6 class="mb-0 text-body-highlight title">Carry Anna</h6>
+                          <p class="fs-10 mb-0 d-flex text-body-tertiary">anna@technext.it</p>
+                        </div>
+                      </a>
+                      <a class="dropdown-item py-2 d-flex align-items-center" href="../../pages/members.html">
+                        <div class="avatar avatar-l  me-2 text-body">
+                          <img class="rounded-circle " src="static/assets/img/team/40x40/12.webp" alt="" />
+
+                        </div>
+                        <div class="flex-1">
+                          <h6 class="mb-0 text-body-highlight title">John Smith</h6>
+                          <p class="fs-10 mb-0 d-flex text-body-tertiary">smith@technext.it</p>
+                        </div>
+                      </a>
+
+                    </div>
+                    <hr class="my-0" />
+                    <h6 class="dropdown-header text-body-highlight fs-9 border-bottom border-translucent py-2 lh-sm">
+                      Related Searches</h6>
+                    <div class="py-2"><a class="dropdown-item"
+                        href="../../apps/e-commerce/landing/product-details.html">
+                        <div class="d-flex align-items-center">
+
+                          <div class="fw-normal text-body-highlight title"><span
+                              class="fa-brands fa-firefox-browser text-body" data-fa-transform="shrink-2"></span> Search
+                            in the Web MacBook</div>
+                        </div>
+                      </a>
+                      <a class="dropdown-item" href="../../apps/e-commerce/landing/product-details.html">
+                        <div class="d-flex align-items-center">
+
+                          <div class="fw-normal text-body-highlight title"> <span class="fa-brands fa-chrome text-body"
+                              data-fa-transform="shrink-2"></span> Store MacBook″</div>
+                        </div>
+                      </a>
+
+                    </div>
+                  </div>
+                  <div class="text-center">
+                    <p class="fallback fw-bold fs-7 d-none">No Result Found.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div> -->
+
+
+
+      <div id="toastMessageContainer" class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 1080;">
+        <div id="toastMessage" class="toast align-items-center text-white dark__text-gray-1100 bg-primary border-0"
+          role="alert" data-bs-autohide="true" aria-live="assertive" aria-atomic="true">
+          <div class="d-flex">
+            <div class="toast-body">
+              Hello, world! This is a toast message.
+            </div>
+            <button class="btn ms-2 p-0" type="button" data-bs-dismiss="toast" aria-label="Close"><span
+                class="uil uil-times fs-7 text-white"></span></button>
+          </div>
+        </div>
+      </div>
+      <!-- modal change name -->
+
+
+
+
+  </main>
+  <!-- ===============================================-->
+  <!--    End of Main Content-->
+  <!-- ===============================================-->
+
+
+
+
+  <!-- ===============================================-->
+  <!--    JavaScripts-->
+  <!-- ===============================================-->
+  <script src="static/vendors/popper/popper.min.js"></script>
+  <script src="static/vendors/bootstrap/bootstrap.min.js"></script>
+  <script src="static/vendors/anchorjs/anchor.min.js"></script>
+  <script src="static/vendors/is/is.min.js"></script>
+  <script src="static/vendors/fontawesome/all.min.js"></script>
+  <script src="static/vendors/lodash/lodash.min.js"></script>
+  <script src="static/vendors/list.js/list.min.js"></script>
+  <script src="static/vendors/feather-icons/feather.min.js"></script>
+  <script src="static/vendors/dayjs/dayjs.min.js"></script>
+  <script src="static/vendors/choices/choices.min.js"></script>
+  <script src="static/vendors/flatpickr/flatpickr.min.js"></script>
+  <script src="static/assets/js/phoenix.js"></script>
+  <script src="static/vendors/prism/prism.js"></script>
+  <script src="static/assets/js/menu.js"></script>
+  <script>
+    // crie um script para monitorar a alteração do #datepicker
+    document.addEventListener('DOMContentLoaded', function () {
+      const datepicker = document.getElementById('datepicker');
+      if (datepicker) {
+        datepicker.addEventListener('change', function () {
+          // console.log('Data selecionada:', datepicker.value);
+          // redireciona para a /agendamento?date=yyyy-mm-dd
+          const selectedDate = datepicker.value;
+          const cod_empresa = document.querySelector('select[name="cod_empresa"]').value;
+          const url = new URL(window.location.href);
+          url.searchParams.set('date', selectedDate);
+          url.searchParams.set('cod_empresa', cod_empresa);
+          window.location.href = url.toString();
+        });
+      }
+    });
+  </script>
+  <script>
+
+    function changeOs(cod_os_agenda, numero_os, cod_empresa) {
+      // Lógica para alterar a OS
+
+      const oldModal = document.getElementById('modalChangeOs');
+      if (oldModal) {
+        oldModal.remove();
+      }
+
+      const requestOptions = {
+        method: "GET",
+        redirect: "follow"
+      };
+
+      fetch(`https://backend.caiuas.com.br/api/agenda/os_agenda?cod_empresa=${cod_empresa}&cod_os_agenda=${cod_os_agenda}`, requestOptions)
+        .then(response => {
+          return response.json().then(data => {
+            if (!response.ok || (data.status && data.status === 'error')) {
+              throw new Error(data.message || `Erro ${response.status}: ${response.statusText}`);
+            }
+            return data;
+          });
+        })
+        .then(data => {
+          // Cria HTML do modal
+          const modalHtml = `
+            <div class="modal fade" id="modalChangeOs" tabindex="-1" aria-labelledby="tooltipModalLabel" aria-hidden="true">
+              <div class="modal-dialog">
+                <div class="modal-content">
+                  <div class="modal-header">
+                    <h5 class="modal-title" id="tooltipModalLabel">Alterar OS</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                  </div>
+                  <div class="modal-body">
+                    <form id="formChangeOs">
+                      <input type="hidden" id="inputCodEmpresa" name="cod_empresa" value="${cod_empresa}">
+                      <input type="hidden" id="inputCodOsAgenda" name="cod_os_agenda" value="${cod_os_agenda}">
+                      <div class="mb-3">
+                        <label for="selectOs" class="form-label">Selecione a OS</label>
+                        <select class="form-select" id="selectOs" name="selectOs" required>
+                          <option value="" disabled selected>Selecione uma OS</option>
+                          ${data.list_os.map(os => {
+            const dataFormatada = dayjs(os.data_emissao).format('DD/MM/YYYY');
+            return `<option value="${os.numero_os}">${os.numero_os} - ${dataFormatada} - ${os.nome_completo}</option>`;
+          }).join('')}
+                        </select>
+                      </div>
+                    </form>
+                  </div>
+                  <div class="modal-footer justify-content-center">
+                    <button type="button" class="btn btn-secondary me-2" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" id="btnChangeOs">Alterar OS</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          `;
+          document.body.insertAdjacentHTML('beforeend', modalHtml);
+          // Inicializa o modal
+          var myModal = new bootstrap.Modal(document.getElementById('modalChangeOs'));
+
+          myModal.show();
+          const btnChangeOs = document.getElementById('btnChangeOs');
+          if (btnChangeOs) {
+            btnChangeOs.addEventListener('click', function () {
+              changeOSbutton();
+            });
+          }
+        })
+        .catch(error => {
+
+          console.error("Erro ao buscar OS:", error);
+          const toastEl = document.getElementById('toastMessage');
+          toastEl.querySelector('.toast-body').textContent = `${error.message}`;
+          toastEl.classList.remove('bg-primary');
+          toastEl.classList.add('bg-danger');
+          var toast = bootstrap.Toast.getOrCreateInstance(toastEl);
+          toast.show();
+          // Adiciona evento ao botão de alterar OS
+          // cheque o onsbmit e faça um console.log
+
+
+        });
+    }
+
+    function changeOSbutton() {
+      const form = document.getElementById('formChangeOs');
+      const selectOs = document.getElementById('selectOs');
+      const cod_os_agenda = parseInt(document.getElementById('inputCodOsAgenda').value, 10);
+      const cod_empresa = parseInt(document.getElementById('inputCodEmpresa').value, 10);
+      const numero_os = selectOs ? parseInt(selectOs.value) : null;
+
+      const requestOptions = {
+        method: "POST",
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          cod_empresa: cod_empresa,
+          cod_os_agenda: cod_os_agenda,
+          numero_os: numero_os
+        }),
+        redirect: "follow"
+      };
+
+      fetch(`https://backend.caiuas.com.br/api/agenda/change_os`, requestOptions)
+        .then(response => response.json())
+        .then(data => {
+          if (data.status && data.status === 'error') {
+            throw new Error(data.message || 'Erro ao alterar OS');
+          }
+          // altera valor da td cod_os para o retorno
+          const agendaRow = document.getElementById(`agenda_${cod_os_agenda}`);
+          if (agendaRow) {
+            const numeroOsCell = agendaRow.querySelector('.numero_os');
+            if (numeroOsCell) {
+              numeroOsCell.textContent = numero_os || 'N/A';
+            }
+          }
+          // Atualiza a tabela ou faz o que for necessário após a alteração
+          const toastEl = document.getElementById('toastMessage');
+          toastEl.querySelector('.toast-body').textContent = data.message || 'OS alterada com sucesso!';
+          toastEl.classList.remove('bg-danger');
+          toastEl.classList.add('bg-primary');
+          var toast = bootstrap.Toast.getOrCreateInstance(toastEl);
+          toast.show();
+          // Fecha o modal
+          const modalEl = document.getElementById('modalChangeOs');
+          if (modalEl) {
+            var myModal = bootstrap.Modal.getInstance(modalEl);
+            myModal.hide();
+            modalEl.remove();
+          }
+        })
+        .catch(error => {
+          console.error("Erro ao alterar OS:", error);
+          const toastEl = document.getElementById('toastMessage');
+          toastEl.querySelector('.toast-body').textContent = `Erro inesperado: ${error.message}`;
+          toastEl.classList.remove('bg-primary');
+          toastEl.classList.add('bg-danger');
+          var toast = bootstrap.Toast.getOrCreateInstance(toastEl);
+          toast.show();
+        });
+    };
+
+    function remove_tag(id_tag_os_agenda) {
+      // remove tag que acabou de clicar
+      const tagElement = document.getElementById(`tag_${id_tag_os_agenda}`);
+
+      // abre um modal de confirmação
+      const oldModal = document.getElementById('modalChangeConsultor');
+      if (oldModal) {
+        oldModal.remove();
+      }
+      const oldRemoveModal = document.getElementById('confirmarRemoveTagModal');
+      if (oldRemoveModal) {
+        oldRemoveModal.remove();
+      }
+      const modaConfirmaDelete = `
+        <div class="modal fade" id="confirmarRemoveTagModal" tabindex="-1" aria-labelledby="tooltipModalLabel" aria-hidden="true">
+          <div class="modal-dialog">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title" id="tooltipModalLabel">Confirma a remoção da TAG?</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+              </div>
+              
+              <div class="modal-footer justify-content-center">
+                <button type="button" class="btn btn-secondary me-2" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" id="btnRemove">CONFIRMO !</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+      document.body.insertAdjacentHTML('beforeend', modaConfirmaDelete);
+
+      // Agora sim, inicializa o modal
+      var myModal = new bootstrap.Modal(document.getElementById('confirmarRemoveTagModal'));
+      console.log("Modal criado e inicializado");
+      myModal.show();
+
+      // Torna a função global para o botão funcionar
+      window.confirmRemoveTag = function () {
+        if (tagElement) {
+          tagElement.remove();
+        }
+        // Fecha o modal
+        myModal.hide();
+        // Remove o modal do DOM após fechar
+        setTimeout(function () {
+          const modalEl = document.getElementById('confirmarRemoveTagModal');
+          if (modalEl) modalEl.remove();
+        }, 500);
+
+        const requestOptions = {
+          method: "DELETE",
+          redirect: "follow"
+        };
+
+        fetch(`https://backend.caiuas.com.br/api/remove_tag_os_agenda/${id_tag_os_agenda}`, requestOptions)
+          .then((response) => {
+            const toastEl = document.getElementById('toastMessage');
+            return response.json().then(json => {
+              if (response.ok && (!json.status || json.status === 'success')) {
+                toastEl.querySelector('.toast-body').textContent = json.message || 'Tag removida com sucesso!';
+                toastEl.classList.remove('bg-danger');
+                toastEl.classList.add('bg-primary');
+              } else {
+                toastEl.querySelector('.toast-body').textContent = json.message || 'Erro ao remover tag';
+                toastEl.classList.remove('bg-primary');
+                toastEl.classList.add('bg-danger');
+              }
+              var toast = bootstrap.Toast.getOrCreateInstance(toastEl);
+              toast.show();
+            });
+          })
+          .catch((error) => {
+            const toastEl = document.getElementById('toastMessage');
+            toastEl.querySelector('.toast-body').textContent = `Erro inesperado: ${error}`;
+            toastEl.classList.remove('bg-primary');
+            toastEl.classList.add('bg-danger');
+            var toast = bootstrap.Toast.getOrCreateInstance(toastEl);
+            toast.show();
+            console.error(error);
+          });
+      };
+      // Adiciona o handler ao botão
+      document.getElementById('btnRemove').onclick = window.confirmRemoveTag;
+    }
+
+    function add_tag(cod_os_agenda, cod_empresa) {
+      const url = new URL(`https://backend.caiuas.com.br/api/os_agenda_tags_unique?cod_empresa=${cod_empresa}&cod_os_agenda=${cod_os_agenda}`);
+      console.log(url);
+      const requestOptions = {
+        method: "GET",
+        redirect: "follow"
+      };
+      fetch(url, requestOptions)
+        .then((response) => response.json())
+        .then((data) => {
+          const oldModal = document.getElementById('modalChangeConsultor');
+          if (oldModal) {
+            oldModal.remove();
+          }
+          // Cria HTML do modal
+          const modalHtml = `
+        <div class="modal fade" id="modalChangeConsultor" tabindex="-1" aria-labelledby="tooltipModalLabel" aria-hidden="true">
+          <div class="modal-dialog">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title" id="tooltipModalLabel">Alterar Consultor</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+              </div>
+              <div class="modal-body">
+                <select id="selectTag" class="form-select">
+                  ${data.tags_disponiveis.map(tag => `<option value="${tag.id_tag}">${tag.name}</option>`).join('')}
+                </select>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" id="btnSalvarTag">Salvar</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+          document.body.insertAdjacentHTML('beforeend', modalHtml);
+
+          // Agora sim, inicializa o modal
+          var myModal = new bootstrap.Modal(document.getElementById('modalChangeConsultor'));
+          console.log("Modal criado e inicializado");
+          myModal.show();
+
+          // Adiciona o evento ao botão Salvar
+          document.getElementById('btnSalvarTag').addEventListener('click', function () {
+            const select = document.getElementById('selectTag');
+            const id_tag_selecionada = select.value;
+            const nome_tag_selecionada = select.options[select.selectedIndex].text;
+            const agendamentoElement = document.getElementById(`agendamento_${cod_os_agenda}`);
+            const children = agendamentoElement.children;
+
+            // Monta o badge igual ao template Jinja2
+            const badgeHtml = `
+              <a class="text-decoration-none" href="#">
+                <span class="badge badge-phoenix fs-10
+                  ${nome_tag_selecionada === 'DIAGNOSTICO' ? 'badge-phoenix-warning' :
+                nome_tag_selecionada === 'EXPRESS' ? 'badge-phoenix-danger' : 'badge-phoenix-info'}
+                  rounded-pill px-2 py-1 me-1 mb-1"
+                  data-bs-toggle="tooltip" data-bs-placement="top" title="${nome_tag_selecionada}">
+                  <span class="badge-label">${nome_tag_selecionada}</span>
+                  <span class="ms-1"
+                    data-feather="${nome_tag_selecionada === 'DIAGNOSTICO' ? 'clock' :
+                nome_tag_selecionada === 'EXPRESS' ? 'activity' : 'bookmark'}"
+                    style="height:12.8px;width:12.8px;"></span>
+                </span>
+              </a>
+            `;
+            const temp = document.createElement('div');
+            temp.innerHTML = badgeHtml.trim();
+            const badgeNode = temp.firstElementChild;
+            if (children.length > 0) {
+              agendamentoElement.insertBefore(
+                badgeNode,
+                children[children.length - 1]
+              );
+            } else {
+              agendamentoElement.appendChild(badgeNode);
+            }
+            // Atualiza tooltips e feather icons
+            if (window.feather) feather.replace();
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            tooltipTriggerList.map(function (tooltipTriggerEl) {
+              return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+            // Fecha o modal
+            myModal.hide();
+
+            const myHeaders = new Headers();
+            myHeaders.append("Content-Type", "application/json");
+
+            const raw = JSON.stringify({
+              "cod_empresa": cod_empresa,
+              "cod_os_agenda": cod_os_agenda,
+              "id_tag": id_tag_selecionada,
+            });
+
+            const requestOptions = {
+              method: "POST",
+              headers: myHeaders,
+              body: raw,
+              redirect: "follow"
+            };
+
+            fetch("https://backend.caiuas.com.br/api/add_tag_os_agenda", requestOptions)
+              .then((response) => {
+                const toastEl = document.getElementById('toastMessage');
+                return response.json().then(json => {
+                  if (response.ok && (!json.status || json.status === 'success')) {
+                    toastEl.querySelector('.toast-body').textContent = json.message || 'Tag adicionada com sucesso!';
+                    toastEl.classList.remove('bg-danger');
+                    toastEl.classList.add('bg-primary');
+                  } else {
+                    toastEl.querySelector('.toast-body').textContent = json.message || 'Erro ao adicionar tag';
+                    toastEl.classList.remove('bg-primary');
+                    toastEl.classList.add('bg-danger');
+                  }
+                  var toast = bootstrap.Toast.getOrCreateInstance(toastEl);
+                  toast.show();
+                });
+              })
+              .catch((error) => {
+                const toastEl = document.getElementById('toastMessage');
+                toastEl.querySelector('.toast-body').textContent = `Erro inesperado: ${error}`;
+                toastEl.classList.remove('bg-primary');
+                toastEl.classList.add('bg-danger');
+                var toast = bootstrap.Toast.getOrCreateInstance(toastEl);
+                toast.show();
+                console.error(error);
+              });
+          });
+        })
+        .catch((error) => console.error(error));
+
+
+
+
+
+
+
+
+    }
+
+    function save_change_consultor(consultor, cod_os_agenda, nome_consultor) {
+      console.log("Salvando consultor:", consultor, "para o agendamento:", cod_os_agenda, "com nome:", nome_consultor);
+      const modal = document.getElementById('modalChangeConsultor');
+      const td = document.querySelector(`#agenda_${cod_os_agenda} .nome_consultor`);
+      td.textContent = nome_consultor;
+      td.setAttribute('onclick', `changeConsultor('${cod_os_agenda}', '${consultor}', '${nome_consultor}')`);
+      // Exibe o toast de sucesso usando Bootstrap
+
+
+      if (modal) {
+        var myModal = bootstrap.Modal.getInstance(modal);
+        if (myModal) {
+          myModal.hide();
+        }
+      }
+      const myHeaders = new Headers();
+      myHeaders.append("Content-Type", "application/json");
+
+      const raw = JSON.stringify({
+        "cod_empresa": "{{ context.parametros.cod_empresa }}",
+        // "cod_empresa": 3333,
+        "cod_os_agenda": cod_os_agenda,
+        "consultor": consultor
+      });
+
+      const requestOptions = {
+        method: "POST",
+        headers: myHeaders,
+        body: raw,
+        redirect: "follow"
+      };
+
+      fetch("https://backend.caiuas.com.br/api/agenda/muda_consultor", requestOptions)
+        .then((response) => {
+          const toastEl = document.getElementById('toastMessage');
+          if (response.ok) {
+            toastEl.querySelector('.toast-body').textContent = `Consultor alterado para ${nome_consultor} com sucesso!`;
+            toastEl.classList.remove('bg-danger');
+            toastEl.classList.add('bg-primary');
+            var toast = bootstrap.Toast.getOrCreateInstance(toastEl);
+            toast.show();
+            return response.text();
+          } else {
+            return response.json().then(r => {
+              toastEl.querySelector('.toast-body').textContent = r.message || 'Erro ao alterar consultor';
+              toastEl.classList.remove('bg-primary');
+              toastEl.classList.add('bg-danger');
+              var toast = bootstrap.Toast.getOrCreateInstance(toastEl);
+              toast.show();
+            });
+          }
+        })
+        .catch((error) => {
+          const toastEl = document.getElementById('toastMessage');
+          toastEl.querySelector('.toast-body').textContent = `Erro inesperado: ${error}`;
+          toastEl.classList.remove('bg-primary');
+          toastEl.classList.add('bg-danger');
+          var toast = bootstrap.Toast.getOrCreateInstance(toastEl);
+          toast.show();
+          console.error(error);
+        });
+
+    };
+
+    function changeConsultor(cod_os_agenda, consultor_atual, nome_consultor) {
+      const td = document.querySelector(`#agenda_${cod_os_agenda} .nome_consultor`);
+      const cod_empresa = "{{ context.parametros.cod_empresa }}";
+      const url = new URL("https://backend.caiuas.com.br/api/consultor_agenda/" + cod_empresa);
+      const requestOptions = {
+        method: "GET",
+        redirect: "follow"
+      };
+
+      fetch(url, requestOptions)
+        .then((response) => response.json())
+        .then((data) => {
+          // const consultor_atual = td
+          const oldModal = document.getElementById('modalChangeConsultor');
+          if (oldModal) {
+            oldModal.remove();
+          }
+          // Cria HTML do modal
+          const modalHtml = `
+        <div class="modal fade" id="modalChangeConsultor" tabindex="-1" aria-labelledby="tooltipModalLabel" aria-hidden="true">
+          <div class="modal-dialog">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title" id="tooltipModalLabel">Alterar Consultor</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+              </div>
+              <div class="modal-body">
+                <!-- Aqui você pode montar um select com os consultores de data.consultores -->
+                <select id="selectConsultor" class="form-select">
+                  ${data.consultores.map(c => `<option value="${c.nome}"${c.nome === consultor_atual ? ' selected' : ''}>${c.nome_completo}</option>`).join('')}
+                </select>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" id="btnSalvarConsultor">Salvar</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+          document.body.insertAdjacentHTML('beforeend', modalHtml);
+
+          // Agora sim, inicializa o modal
+          var myModal = new bootstrap.Modal(document.getElementById('modalChangeConsultor'));
+          myModal.show();
+
+          // Adiciona o evento ao botão Salvar
+          document.getElementById('btnSalvarConsultor').addEventListener('click', function () {
+            const select = document.getElementById('selectConsultor');
+            const consultorSelecionado = select.value;
+            const nomeConsultorSelecionado = select.options[select.selectedIndex].text;
+            // console.log("Consultor selecionado:", consultorSelecionado);
+            // console.log("Nome consultor selecionado:", nomeConsultorSelecionado);
+            save_change_consultor(consultorSelecionado, cod_os_agenda, nomeConsultorSelecionado);
+          });
+        })
+        .catch((error) => console.error(error));
+    }
+
+    function sendMsgConfirmation() {
+      const bulkSelectBody = document.getElementById('bulk-select-body');
+      if (!bulkSelectBody) return;
+      const selectedInputs = bulkSelectBody.querySelectorAll('input[type="checkbox"]:checked');
+      const BulkActions = document.getElementById('bulk-actions-select');
+      if (!BulkActions) return;
+      if (BulkActions.value === 'send_wpp') {
+        selectedInputs.forEach(input => {
+          const dataBulkSelected = input.getAttribute('data-bulk-select-row');
+          if (!dataBulkSelected) return;
+          let obj;
+          try {
+            obj = JSON.parse(dataBulkSelected);
+          } catch (e) {
+            return;
+          }
+          const codOsAgenda = obj.cod_os_agenda;
+          const codEmpresa = obj.cod_empresa;
+          const myHeaders = new Headers();
+          myHeaders.append("Content-Type", "application/json");
+          const raw = JSON.stringify({
+            "cod_os_agenda": codOsAgenda,
+            "cod_empresa": codEmpresa,
+            "message": "confirmacao_agendamento"
+          });
+          const requestOptions = {
+            method: "POST",
+            headers: myHeaders,
+            body: raw,
+            redirect: "follow"
+          };
+          fetch("https://backend.caiuas.com.br/api/agenda/send_whatsapp_confirmation", requestOptions)
+            .then((response) => {
+              const toastEl = document.getElementById('toastMessage');
+              return response.json().then(json => {
+                if (response.ok && (!json.status || json.status === 'success')) {
+                  toastEl.querySelector('.toast-body').textContent = json.message || 'Mensagem enviada com sucesso!';
+                  toastEl.classList.remove('bg-danger');
+                  toastEl.classList.add('bg-primary');
+                } else {
+                  toastEl.querySelector('.toast-body').textContent = json.message || 'Erro ao enviar mensagem';
+                  toastEl.classList.remove('bg-primary');
+                  toastEl.classList.add('bg-danger');
+                }
+                var toast = bootstrap.Toast.getOrCreateInstance(toastEl);
+                toast.show();
+                const agendamentoElement = document.getElementById(`agendamento_${codOsAgenda}`);
+                let cont_msg = document.getElementById(`qtd_msg_ag_${codOsAgenda}`).textContent;
+
+                cont_msg = parseInt(cont_msg) + 1;
+                document.getElementById(`qtd_msg_ag_${codOsAgenda}`).textContent = cont_msg;
+              });
+            })
+            .catch((error) => {
+              const toastEl = document.getElementById('toastMessage');
+              toastEl.querySelector('.toast-body').textContent = `Erro inesperado: ${error}`;
+              toastEl.classList.remove('bg-primary');
+              toastEl.classList.add('bg-danger');
+              var toast = bootstrap.Toast.getOrCreateInstance(toastEl);
+              toast.show();
+            });
+        });
+      }
+      if (BulkActions.value === 'confirm_visit') {
+
+
+        selectedInputs.forEach(input => {
+          const dataBulkSelected = input.getAttribute('data-bulk-select-row');
+          if (!dataBulkSelected) return;
+          let obj;
+          try {
+            obj = JSON.parse(dataBulkSelected);
+          } catch (e) {
+            return;
+          }
+          const codOsAgenda = obj.cod_os_agenda;
+          const codEmpresa = obj.cod_empresa;
+          const myHeaders = new Headers();
+          myHeaders.append("Content-Type", "application/json");
+
+          const raw = JSON.stringify({
+            "cod_empresa": codEmpresa,
+            "cod_os_agenda": codOsAgenda
+          });
+
+          const requestOptions = {
+            method: "POST",
+            headers: myHeaders,
+            body: raw,
+            redirect: "follow"
+          };
+
+          fetch("https://backend.caiuas.com.br/api/agenda/confirm_visit", requestOptions)
+            .then((response) => {
+              const toastEl = document.getElementById('toastMessage');
+              return response.json().then(json => {
+                if (response.ok && (!json.status || json.status === 'success')) {
+                  toastEl.querySelector('.toast-body').textContent = json.message || 'Visita confirmada com sucesso!';
+                  toastEl.classList.remove('bg-danger');
+                  toastEl.classList.add('bg-primary');
+                } else {
+                  toastEl.querySelector('.toast-body').textContent = json.message || 'Erro ao confirmar visita';
+                  toastEl.classList.remove('bg-primary');
+                  toastEl.classList.add('bg-danger');
+                }
+                var toast = bootstrap.Toast.getOrCreateInstance(toastEl);
+                toast.show();
+                // reload page
+                window.location.reload();
+              });
+            })
+            .catch((error) => {
+              const toastEl = document.getElementById('toastMessage');
+              toastEl.querySelector('.toast-body').textContent = `Erro inesperado: ${error}`;
+              toastEl.classList.remove('bg-primary');
+              toastEl.classList.add('bg-danger');
+              var toast = bootstrap.Toast.getOrCreateInstance(toastEl);
+              toast.show();
+            });
+        });
+
+
+      }
+    }
+
+    function save_change_agendador(agendador, cod_os_agenda, nome_agendador, cod_empresa) {
+      const token = "{{ context.token }}";
+      const modal = document.getElementById('modalChangeAgendador');
+      const td = document.querySelector(`#agenda_${cod_os_agenda} .responsavel_agendamento`);
+      td.textContent = nome_agendador;
+      td.setAttribute('onclick', `changeAgendador('${cod_os_agenda}', '${agendador}', '${nome_agendador}')`);
+
+      if (modal) {
+        var myModal = bootstrap.Modal.getInstance(modal);
+        if (myModal) {
+          myModal.hide();
+        }
+      }
+      const myHeaders = new Headers();
+      myHeaders.append("Content-Type", "application/json");
+
+      const raw = JSON.stringify({
+        "cod_empresa": "{{ context.parametros.cod_empresa }}",
+        "cod_os_agenda": cod_os_agenda,
+        "responsavel_pelo_evento": agendador,
+        "token": token
+      });
+
+      const requestOptions = {
+        method: "POST",
+        headers: myHeaders,
+        body: raw,
+        redirect: "follow"
+      };
+
+      fetch("https://backend.caiuas.com.br/api/agenda/muda_agendador", requestOptions)
+        .then((response) => {
+          const toastEl = document.getElementById('toastMessage');
+          if (response.ok) {
+            return response.json().then(json => {
+              toastEl.querySelector('.toast-body').textContent = json.message || `Agendador alterado para ${nome_agendador} com sucesso!`;
+              toastEl.classList.remove('bg-danger');
+              toastEl.classList.add('bg-primary');
+              var toast = bootstrap.Toast.getOrCreateInstance(toastEl);
+              toast.show();
+            });
+          } else {
+            return response.json().then(r => {
+              toastEl.querySelector('.toast-body').textContent = r.message || 'Erro ao alterar agendador';
+              toastEl.classList.remove('bg-primary');
+              toastEl.classList.add('bg-danger');
+              var toast = bootstrap.Toast.getOrCreateInstance(toastEl);
+              toast.show();
+            });
+          }
+        })
+        .catch((error) => {
+          const toastEl = document.getElementById('toastMessage');
+          toastEl.querySelector('.toast-body').textContent = `Erro inesperado: ${error}`;
+          toastEl.classList.remove('bg-primary');
+          toastEl.classList.add('bg-danger');
+          var toast = bootstrap.Toast.getOrCreateInstance(toastEl);
+          toast.show();
+          console.error(error);
+        });
+    };
+
+    function changeAgendador() {
+      const cod_os_agenda = arguments[0];
+      const responsavel_pelo_evento = arguments[1];
+      const cod_empresa = "{{ context.parametros.cod_empresa }}";
+      
+      console.log("Mudando agendador para o agendamento:", cod_os_agenda, "com agendador atual:", responsavel_pelo_evento, "e empresa:", cod_empresa);
+
+      fetch("https://backend.caiuas.com.br/api/users/users_crm", {
+        method: "GET",
+        redirect: "follow"
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          const oldModal = document.getElementById('modalChangeAgendador');
+          if (oldModal) {
+            oldModal.remove();
+          }
+          // Cria HTML do modal
+          const modalHtml = `
+          <div class="modal fade" id="modalChangeAgendador" tabindex="-1" aria-labelledby="tooltipModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h5 class="modal-title" id="tooltipModalLabel">Alterar Agendador</h5>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                </div>
+                <div class="modal-body">
+                  <!-- Aqui você pode montar um select com os agendadores de data.users -->
+                  <select id="selectAgendador" class="form-select">
+                    ${data.usuarios_crm.map(u => `<option value="${u.nome}"${u.nome === responsavel_pelo_evento ? ' selected' : ''}>${u.nome} - ${u.nome_completo.substring(0, 20)}</option>`).join('')}
+                  </select>
+                </div>
+                <div class="modal-footer">
+                  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+                  <button type="button" class="btn btn-primary" id="btnConfirmarAlteracao">Confirmar</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+          // Adiciona o modal ao corpo da página
+          document.body.insertAdjacentHTML('beforeend', modalHtml);
+
+          // Adiciona o evento ao botão Salvar
+          document.getElementById('btnConfirmarAlteracao').addEventListener('click', function () {
+            const select = document.getElementById('selectAgendador');
+            const agendadorSelecionado = select.value;
+            const nomeAgendadorSelecionado = select.options[select.selectedIndex].text;
+            save_change_agendador(agendadorSelecionado, cod_os_agenda, nomeAgendadorSelecionado, cod_empresa);
+          });
+
+          // Mostra o modal
+          const modal = new bootstrap.Modal(document.getElementById('modalChangeAgendador'));
+          modal.show();
+        });
+    }
+  </script>
+
+
+
+
+</body>
+
+</html>

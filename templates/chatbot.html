@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="pt-BR" dir="ltr" data-navigation-type="default" data-navbar-horizontal-shape="default">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+    <!-- ===============================================-->
+    <!--    Document Title-->
+    <!-- ===============================================-->
+    <title>{{ context.title }}</title>
+
+
+    <!-- ===============================================-->
+    <!--    Favicons-->
+    <!-- ===============================================-->
+    <link rel="apple-touch-icon" sizes="180x180" href="static/assets/img/favicons/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="static/assets/img/favicons/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="static/assets/img/favicons/favicon-16x16.png">
+    <link rel="shortcut icon" type="image/x-icon" href="static/assets/img/favicons/favicon.ico">
+    <link rel="manifest" href="static/assets/img/favicons/manifest.json">
+    <meta name="msapplication-TileImage" content="static/assets/img/favicons/mstile-150x150.png">
+    <meta name="theme-color" content="#ffffff">
+    <script src="static/vendors/simplebar/simplebar.min.js"></script>
+    <script src="static/assets/js/config.js"></script>
+
+
+    <!-- ===============================================-->
+    <!--    Stylesheets-->
+    <!-- ===============================================-->
+    <link href="static/vendors/choices/choices.min.css" rel="stylesheet">
+    <link href="static/vendors/flatpickr/flatpickr.min.css" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@300;400;600;700;800;900&amp;display=swap"
+        rel="stylesheet">
+    <link href="static/vendors/simplebar/simplebar.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://unicons.iconscout.com/release/v4.0.8/css/line.css">
+    <link href="static/assets/css/theme-rtl.min.css" type="text/css" rel="stylesheet" id="style-rtl">
+    <link href="static/assets/css/theme.min.css" type="text/css" rel="stylesheet" id="style-default">
+    <link href="static/assets/css/user-rtl.min.css" type="text/css" rel="stylesheet" id="user-style-rtl">
+    <link href="static/assets/css/user.min.css" type="text/css" rel="stylesheet" id="user-style-default">
+    <script>
+        var phoenixIsRTL = window.config.config.phoenixIsRTL;
+        if (phoenixIsRTL) {
+            var linkDefault = document.getElementById('style-default');
+            var userLinkDefault = document.getElementById('user-style-default');
+            linkDefault.setAttribute('disabled', true);
+            userLinkDefault.setAttribute('disabled', true);
+            document.querySelector('html').setAttribute('dir', 'rtl');
+        } else {
+            var linkRTL = document.getElementById('style-rtl');
+            var userLinkRTL = document.getElementById('user-style-rtl');
+            linkRTL.setAttribute('disabled', true);
+            userLinkRTL.setAttribute('disabled', true);
+        }
+    </script>
+</head>
+
+
+<body>
+
+    <!-- ===============================================-->
+    <!--    Main Content-->
+    <!-- ===============================================-->
+    <main class="main" id="top">
+        <!-- MENU -->
+
+        {% include 'menu.html' %}
+        <!-- include top_bar.html -->
+        {% include 'top_bar.html' %}
+        <div class="content">
+        
+        <div class="border-bottom border-translucent mb-7 mx-n3 px-3 mx-lg-n6 px-lg-6">
+          <div class="row">
+            <div class="col-xl-9">
+              <div class="d-sm-flex justify-content-between">
+                <h2 class="mb-4">Atualização do Chatbot</h2>
+                
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-xl-9">
+            <div class="d-flex align-items-end position-relative mb-7">
+              <input class="d-none" id="upload-avatar" type="file" />
+              <div class="hoverbox" style="width: 150px; height: 150px">
+                <div class="hoverbox-content rounded-circle d-flex flex-center z-1" style="--phoenix-bg-opacity: .56;"><span class="fa-solid fa-camera fs-1 text-body-quaternary"></span></div>
+                <div class="position-relative bg-body-quaternary rounded-circle cursor-pointer d-flex flex-center mb-xxl-7">
+                  <div class="avatar avatar-5xl"><img class="rounded-circle" src="/static/assets/img/team/150x150/58.webp" alt="" /></div>
+                  <label class="w-100 h-100 position-absolute z-1" for="upload-avatar"></label>
+                </div>
+              </div>
+            </div>
+            <h4 class="mb-3">Informações sobre o chatbot</h4>
+            <form class="row g-3 mb-9" id="formChatbot">
+              <div class="col-sm-6 col-md-4">
+                <div class="form-floating">
+                  <input class="form-control" id="floatingInputFirstname" type="text" placeholder="Nome" value="{{ (context.chatbot_info.instructions.persona_e_identidade.nome) if context.chatbot_info and context.chatbot_info.instructions and context.chatbot_info.instructions.persona_e_identidade else '' }}" />
+                  <label for="floatingInputFirstname">Nome do Bot</label>
+                </div>
+              </div>
+              
+              
+              <!-- NOVO CAMPO JSON -->
+              <h4 class="mt-6">Configuração JSON</h4>
+              <div class="col-12">
+                <label for="jsonConfigInput" class="form-label fw-semibold">JSON do Chatbot</label>
+                <textarea class="form-control font-monospace" id="jsonConfigInput" name="json_config" rows="12" placeholder='Cole o JSON aqui...'>
+                  {{ context.chatbot_info | tojson }}
+                </textarea>
+                <div id="jsonConfigMessage" class="mt-2"></div>
+                <button type="button" class="btn btn-outline-secondary mt-2" id="validateJsonBtn">Validar e Formatar JSON</button>
+              </div>
+              <!-- FIM NOVO CAMPO JSON -->
+              
+              <div class="col-12 d-flex justify-content-end mt-6">
+                <button type="button" id="btnSalvar" class="btn btn-primary">Atualizar</button>
+              </div>
+            </form>
+          </div>
+        </div>
+        <footer class="footer position-absolute">
+          <div class="row g-0 justify-content-between align-items-center h-100">
+            
+          </div>
+        </footer>
+      </div>
+    </main>
+
+    <!-- ===============================================-->
+    <!--    JavaScripts-->
+    <!-- ===============================================-->
+    <script src="static/vendors/popper/popper.min.js"></script>
+    <script src="static/vendors/bootstrap/bootstrap.min.js"></script>
+    <script src="static/vendors/anchorjs/anchor.min.js"></script>
+    <script src="static/vendors/is/is.min.js"></script>
+    <script src="static/vendors/fontawesome/all.min.js"></script>
+    <script src="static/vendors/lodash/lodash.min.js"></script>
+    <script src="static/vendors/list.js/list.min.js"></script>
+    <script src="static/vendors/feather-icons/feather.min.js"></script>
+    <script src="static/vendors/dayjs/dayjs.min.js"></script>
+    <script src="static/assets/js/phoenix.js"></script>
+    <script src="static/assets/js/menu.js"></script>
+    
+    <!-- Script de validação e formatação JSON -->
+    <!-- Dados JSON injetados de forma segura -->
+    <script id="chatbotInfoData" type="application/json">{{ context.chatbot_info | tojson }}</script>
+    <script>
+      (function(){
+        const input = document.getElementById('jsonConfigInput');
+        const btnValida = document.getElementById('validateJsonBtn');
+        const msg = document.getElementById('jsonConfigMessage');
+        const btnSalvar = document.getElementById('btnSalvar');
+        const nomeBotInput = document.getElementById('floatingInputFirstname');
+        let chatbotInfo = {};
+        try { chatbotInfo = JSON.parse(document.getElementById('chatbotInfoData').textContent || '{}'); } catch(e) { chatbotInfo = {}; }
+        const idBot = (chatbotInfo && chatbotInfo.id_bot) ? chatbotInfo.id_bot : 1;
+        function showMessage(text, type){
+          msg.innerHTML = '';
+          msg.className = '';
+          const div = document.createElement('div');
+          div.className = 'alert alert-' + (type === 'success' ? 'success' : (type === 'info' ? 'info' : 'danger')) + ' py-2 mb-0';
+          div.textContent = text;
+          msg.appendChild(div);
+        }
+        function formatIfValid(){
+          const raw = input.value.trim();
+          if(raw === ''){ showMessage('O campo JSON está vazio.', 'error'); return false; }
+          try{ const obj = JSON.parse(raw); input.value = JSON.stringify(obj, null, 2); showMessage('JSON válido.', 'success'); return obj; }
+          catch(e){ showMessage('Erro: JSON inválido. Detalhes: ' + e.message, 'error'); return false; }
+        }
+        btnValida && btnValida.addEventListener('click', formatIfValid);
+        input && input.addEventListener('blur', formatIfValid);
+        btnSalvar && btnSalvar.addEventListener('click', async function(){
+          const obj = formatIfValid();
+          if(!obj) return;
+          if(!obj.persona_e_identidade) obj.persona_e_identidade = {};
+          obj.persona_e_identidade.nome = nomeBotInput.value || obj.persona_e_identidade.nome || '';
+          try{
+            showMessage('Salvando...', 'info');
+            const resp = await fetch(`/api/update_chatbot_information/${idBot}`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ instructions: obj })
+            });
+            const data = await resp.json();
+            if(resp.ok){
+              showMessage('Atualizado com sucesso.', 'success');
+            } else {
+              showMessage('Falha ao atualizar: ' + (data.message || resp.status), 'error');
+            }
+          }catch(e){
+            showMessage('Erro de rede: ' + e.message, 'error');
+          }
+        });
+      })();
+    </script>
+</body>
+
+</html>

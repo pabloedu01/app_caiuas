@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html lang="pt-BR" dir="ltr" data-navigation-type="default" data-navbar-horizontal-shape="default">
+
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+  <!-- ===============================================-->
+  <!--    Document Title-->
+  <!-- ===============================================-->
+  <title>{{ context.title }}</title>
+
+
+  <!-- ===============================================-->
+  <!--    Favicons-->
+  <!-- ===============================================-->
+  <link rel="apple-touch-icon" sizes="180x180" href="/static/assets/img/favicons/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/static/assets/img/favicons/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/static/assets/img/favicons/favicon-16x16.png">
+  <link rel="shortcut icon" type="image/x-icon" href="/static/assets/img/favicons/favicon.ico">
+  <link rel="manifest" href="/static/assets/img/favicons/manifest.json">
+  <meta name="msapplication-TileImage" content="/static/assets/img/favicons/mstile-150x150.png">
+  <meta name="theme-color" content="#ffffff">
+  <script src="/static/vendors/simplebar/simplebar.min.js"></script>
+  <script src="/static/assets/js/config.js"></script>
+
+
+  <!-- ===============================================-->
+  <!--    Stylesheets-->
+  <!-- ===============================================-->
+  <link href="/static/vendors/dropzone/dropzone.css" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+  <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@300;400;600;700;800;900&amp;display=swap"
+    rel="stylesheet">
+  <link href="/static/vendors/simplebar/simplebar.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://unicons.iconscout.com/release/v4.0.8/css/line.css">
+  <link href="/static/assets/css/theme-rtl.min.css" type="text/css" rel="stylesheet" id="style-rtl">
+  <link href="/static/assets/css/theme.min.css" type="text/css" rel="stylesheet" id="style-default">
+  <link href="/static/assets/css/user-rtl.min.css" type="text/css" rel="stylesheet" id="user-style-rtl">
+  <link href="/static/assets/css/user.min.css" type="text/css" rel="stylesheet" id="user-style-default">
+  <script>
+    var phoenixIsRTL = window.config.config.phoenixIsRTL;
+    if (phoenixIsRTL) {
+      var linkDefault = document.getElementById('style-default');
+      var userLinkDefault = document.getElementById('user-style-default');
+      linkDefault.setAttribute('disabled', true);
+      userLinkDefault.setAttribute('disabled', true);
+      document.querySelector('html').setAttribute('dir', 'rtl');
+    } else {
+      var linkRTL = document.getElementById('style-rtl');
+      var userLinkRTL = document.getElementById('user-style-rtl');
+      linkRTL.setAttribute('disabled', true);
+      userLinkRTL.setAttribute('disabled', true);
+    }
+  </script>
+</head>
+
+
+<body>
+
+  <!-- ===============================================-->
+  <!--    Main Content-->
+  <!-- ===============================================-->
+  <main class="main" id="top">
+    <!-- MENU -->
+
+    {% include 'menu.html' %}
+    <!-- include top_bar.html -->
+    {% include 'top_bar.html' %}
+    <div class="content">
+      <nav class="mb-3" aria-label="breadcrumb">
+        <ol class="breadcrumb mb-0">
+          <li class="breadcrumb-item"><a href="/">Home</a></li>
+          <li class="breadcrumb-item"><a
+              href="{{ context.previous_page if context.previous_page else '/crm/eventos_showroom' }}">eventos_showroom</a>
+          </li>
+          <li class="breadcrumb-item active">Default</li>
+        </ol>
+      </nav>
+      <div class="pb-9">
+        <div class="row">
+          <div class="col-12">
+            <div class="row align-items-center justify-content-between g-3 mb-3">
+              <div class="col-12 col-md-auto">
+                <h2 class="mb-0">Evento {{context.data.cod_evento}}</h2>
+              </div>
+              <div class="col-12 col-md-auto">
+                <div class="d-flex">
+                  <div class="flex-1 d-md-none">
+                    <button class="btn px-3 btn-phoenix-secondary text-body-tertiary me-2"
+                      data-phoenix-toggle="offcanvas" data-phoenix-target="#productFilterColumn"><span
+                        class="fa-solid fa-bars"></span></button>
+                  </div>
+                  <button class="btn btn-primary px-3 px-sm-5 me-2">
+                    <span class="fa-solid fa-calendar-check me-sm-2"></span>
+                    <span class="d-none d-sm-inline">Agendar visita</span>
+                  </button>
+                  <button class="btn btn-success me-2">
+                    <span class="fa-solid fa-check me-2"></span>
+                    <span>Encerrar Evento</span>
+                  </button>
+                  <button class="btn btn-danger px-3 px-sm-5 me-2">
+                    <span class="fa-solid fa-times me-sm-2"></span>
+                    <span class="d-none d-sm-inline">Descartar</span>
+                  </button>
+                  <button class="btn px-3 btn-phoenix-secondary" type="button" data-bs-toggle="dropdown"
+                    data-boundary="window" aria-haspopup="true" aria-expanded="false" data-bs-reference="parent"><span
+                      class="fa-solid fa-ellipsis"></span></button>
+                  <ul class="dropdown-menu dropdown-menu-end p-0" style="z-index: 9999;">
+                    <!-- <li><a class="dropdown-item" href="#!">View profile</a></li>
+                    <li><a class="dropdown-item" href="#!">Report</a></li>
+                    <li><a class="dropdown-item" href="#!">Manage notifications</a></li> -->
+                    <li><a class="dropdown-item text-danger" href="#">Apagar Evento</a></li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="row g-0 g-md-4 g-xl-6">
+          <div class="col-md-5 col-lg-5 col-xl-4">
+            <div class="sticky-leads-sidebar">
+              <div class="lead-details-offcanvas bg-body scrollbar phoenix-offcanvas phoenix-offcanvas-fixed"
+                id="productFilterColumn" data-breakpoint="md">
+                <div class="d-flex justify-content-between align-items-center mb-2 d-md-none">
+                  <h3 class="mb-0">Lead Details</h3>
+                  <button class="btn p-0" data-phoenix-dismiss="offcanvas"><span
+                      class="uil uil-times fs-7"></span></button>
+                </div>
+                <div class="card mb-3">
+                  <div class="card-body">
+                    <div class="row align-items-center g-3 text-center text-xxl-start">
+                      <!-- <div class="col-12 col-xxl-auto">
+                        <div class="avatar avatar-5xl"><img class="rounded-circle"
+                            src="/static/assets/img/team/avatar.webp" alt="" /></div>
+                      </div> -->
+                      <div class="col-12 col-sm-auto flex-1">
+                        <h3 class="fw-bolder mb-2">{{ context.data.nome_cliente}}</h3>
+                        {% if context.data.cod_cliente == 1 %}
+                        <a class="fw-bold text-danger">
+                          <span class="fas fa-exclamation-triangle me-1"></span>
+                          Cliente não cadastrado
+                        </a>
+                        {% else %}
+                        <p class="mb-0">CPF ou CNPJ</p><a class="fw-bold">{{ context.data.cod_cliente }}</a>
+                        {% endif %}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="card mb-3">
+                  <div class="card-body">
+                    <div class="d-flex align-items-center mb-5">
+                      <h3>Mais sobre o evento</h3>
+
+                    </div>
+
+                    <div class="mb-4">
+                      <div class="d-flex align-items-center mb-1">
+                        <span class="me-2 uil uil-clock"></span>
+                        <h5 class="text-body-highlight mb-0">Tempo de Atendimento</h5>
+                      </div>
+                      <div class="d-flex align-items-center">
+                        <span class="badge badge-phoenix fs-9 badge-phoenix-info" id="timer-display">
+                          <span class="fas fa-hourglass-half me-1"></span>
+                          <span id="elapsed-time">Calculando...</span>
+                        </span>
+                      </div>
+                    </div>
+
+                    <script>
+                      document.addEventListener('DOMContentLoaded', function () {
+                        const startTime = new Date('{{ context.data.data_criacao }}');
+                        const timerElement = document.getElementById('elapsed-time');
+
+                        function updateTimer() {
+                          const now = new Date();
+                          const diff = now - startTime;
+
+                          // Calculate time components
+                          const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+                          const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                          const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                          const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+                          // Format the display
+                          let timeString = '';
+                          if (days > 0) {
+                            timeString += `${days}d `;
+                          }
+                          if (hours > 0 || days > 0) {
+                            timeString += `${hours.toString().padStart(2, '0')}:`;
+                          }
+                          timeString += `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+
+                          timerElement.textContent = timeString;
+                        }
+
+                        // Update immediately and then every second
+                        updateTimer();
+                        setInterval(updateTimer, 1000);
+                      });
+                    </script>
+
+                    <div class="mb-4">
+                      <div class="d-flex align-items-center mb-1"><span class="me-2 uil uil-calendar-alt"></span>
+                        <h5 class="text-body-highlight mb-0">Tipo do Evento</h5>
+                      </div>{{ context.data.desc_tipo_evento if context.data.desc_tipo_evento else 'Não informado' }}
+                      <button class="btn btn-link p-0 ms-2" type="button" data-bs-toggle="modal"
+                        data-bs-target="#editMidiaModal" title="Editar canal de venda">
+                        <span class="fas fa-edit fs-10 text-body-tertiary"></span>
+                      </button>
+                    </div>
+
+                    <div class="mb-4">
+                      <div class="d-flex align-items-center mb-1">
+                        <span class="me-2 uil uil-car"></span>
+                        <h5 class="text-body-highlight mb-0">Veículo de interesse</h5>
+                        {% if context.data.descricao_modelo %}
+                      </div>{{ context.data.descricao_modelo }}
+                      {% else %}
+                    </div>Não informado
+                    {% endif %}
+                    <button class="btn btn-link p-0 ms-2" type="button" data-bs-toggle="modal"
+                      data-bs-target="#editMidiaModal" title="Editar canal de venda">
+                      <span class="fas fa-edit fs-10 text-body-tertiary"></span>
+                    </button>
+                  </div>
+
+                  <div class="mb-4">
+                    <div class="d-flex align-items-center mb-1"><span class="me-2 uil uil-user"></span>
+                      <h5 class="text-body-highlight mb-0">Responsável</h5>
+                    </div>{{ context.data.responsavel_nome_completo if context.data.responsavel_nome_completo else
+                    'Não informado' }}
+                    <button class="btn btn-link p-0 ms-2" type="button" data-bs-toggle="modal"
+                      data-bs-target="#editMidiaModal" title="Editar canal de venda">
+                      <span class="fas fa-edit fs-10 text-body-tertiary"></span>
+                    </button>
+                  </div>
+
+                  <div class="mb-4">
+                    <div class="d-flex align-items-center mb-1">
+                      <span class="me-2 uil uil-megaphone"></span>
+                      <h5 class="text-body-highlight mb-0">Canal de Venda</h5>
+                    </div>
+                    <div class="d-flex align-items-center">
+                      <span>{{ context.data.desc_midia if context.data.desc_midia else 'Não informado' }}</span>
+                      <button class="btn btn-link p-0 ms-2" type="button" data-bs-toggle="modal"
+                        data-bs-target="#editMidiaModal" title="Editar canal de venda">
+                        <span class="fas fa-edit fs-10 text-body-tertiary"></span>
+                      </button>
+                    </div>
+                  </div>
+
+                  <div class="mb-4">
+                    <div class="d-flex align-items-center mb-1"><span class="me-2 uil uil-chart-line"></span>
+                      <h5 class="text-body-highlight mb-0">Andamento</h5>
+                    </div>{{ context.data.andamento if context.data.andamento else 'Não informado' }}
+                    <button class="btn btn-link p-0 ms-2" type="button" data-bs-toggle="modal"
+                      data-bs-target="#editMidiaModal" title="Editar canal de venda">
+                      <span class="fas fa-edit fs-10 text-body-tertiary"></span>
+                    </button>
+                  </div>
+
+                  <div class="mb-4">
+                    <div class="d-flex align-items-center mb-1"><span class="me-2 uil uil-temperature"></span>
+                      <h5 class="text-body-highlight mb-0">Termômetro</h5>
+                    </div>
+                    {% if context.data.termometro is none or context.data.termometro == null %}
+                    <span class="badge badge-phoenix fs-10 badge-phoenix-secondary">
+                      <span class="fw-bold">Indefinido</span>
+                      <span class="ms-1 fas fa-question"></span>
+                    </span>
+                    {% elif context.data.termometro == 1 %}
+                    <span class="badge badge-phoenix fs-10 badge-phoenix-info">
+                      <span class="fw-bold">Frio</span>
+                      <span class="ms-1 fas fa-snowflake"></span>
+                    </span>
+                    {% elif context.data.termometro == 2 %}
+                    <span class="badge badge-phoenix fs-10 badge-phoenix-warning">
+                      <span class="fw-bold">Morno</span>
+                      <span class="ms-1 fas fa-thermometer-half"></span>
+                    </span>
+                    {% elif context.data.termometro == 3 %}
+                    <span class="badge badge-phoenix fs-10 badge-phoenix-danger">
+                      <span class="fw-bold">Quente</span>
+                      <span class="ms-1 fas fa-fire"></span>
+                    </span>
+                    {% elif context.data.termometro == 4 %}
+                    <span class="badge badge-phoenix fs-10 badge-phoenix-success">
+                      <span class="fw-bold">Super quente</span>
+                      <span class="ms-1 fas fa-fire-flame-curved"></span>
+                    </span>
+                    {% else %}
+                    <span class="badge badge-phoenix fs-10 badge-phoenix-secondary">
+                      <span class="fw-bold">Indefinido</span>
+                      <span class="ms-1 fas fa-question"></span>
+                    </span>
+                    {% endif %}
+                    <button class="btn btn-link p-0 ms-2" type="button" data-bs-toggle="modal"
+                      data-bs-target="#editMidiaModal" title="Editar canal de venda">
+                      <span class="fas fa-edit fs-10 text-body-tertiary"></span>
+                    </button>
+                  </div>
+
+                  <div class="mb-4">
+                    <div class="d-flex align-items-center mb-1"><span class="me-2 uil uil-check-circle"></span>
+                      <h5 class="text-body-highlight mb-0">Status do evento</h5>
+                    </div>
+                    {% if context.data.status == 'P' %}
+                    <span class="badge badge-phoenix fs-10 badge-phoenix-warning">
+                      <span class="fw-bold">Pendente</span>
+                      <span class="ms-1 fas fa-clock"></span>
+                    </span>
+                    {% elif context.data.status == 'E' %}
+                    <span class="badge badge-phoenix fs-10 badge-phoenix-success">
+                      <span class="fw-bold">Encerrado</span>
+                      <span class="ms-1 fas fa-check-circle"></span>
+                    </span>
+                    {% elif context.data.status == 'D' %}
+                    <span class="badge badge-phoenix fs-10 badge-phoenix-danger">
+                      <span class="fw-bold">Descartado</span>
+                      <span class="ms-1 fas fa-times-circle"></span>
+                    </span>
+                    {% elif context.data.status == 'V' %}
+                    <span class="badge badge-phoenix fs-10 badge-phoenix-info">
+                      <span class="fw-bold">Visita Agendada</span>
+                      <span class="ms-1 fas fa-calendar-check"></span>
+                    </span>
+                    {% elif context.data.status == 'R' %}
+                    <span class="badge badge-phoenix fs-10 badge-phoenix-secondary">
+                      <span class="fw-bold">Remarcou</span>
+                      <span class="ms-1 fas fa-calendar-times"></span>
+                    </span>
+                    {% elif context.data.status == 'A' %}
+                    <span class="badge badge-phoenix fs-10 badge-phoenix-primary">
+                      <span class="fw-bold">Evento tem ações</span>
+                      <span class="ms-1 fas fa-tasks"></span>
+                    </span>
+                    {% elif context.data.status == 'CP' %}
+                    <span class="badge badge-phoenix fs-10 badge-phoenix-danger">
+                      <span class="fw-bold">Contato Perdido</span>
+                      <span class="ms-1 fas fa-user-times"></span>
+                    </span>
+                    {% else %}
+                    <span class="badge badge-phoenix fs-10 badge-phoenix-secondary">
+                      <span class="fw-bold">Indefinido</span>
+                      <span class="ms-1 fas fa-question"></span>
+                    </span>
+                    {% endif %}
+                  </div>
+
+
+
+                  {% if context.data.motivo_perda %}
+                  <div class="mb-4">
+                    <div class="d-flex align-items-center mb-1"><span class="me-2 uil uil-exclamation-triangle"></span>
+                      <h5 class="text-body-highlight mb-0">Motivo da Perda</h5>
+                    </div><span class="text-danger fw-semibold">{{ context.data.motivo_perda }}</span>
+                  </div>
+                  {% endif %}
+
+                  {% if context.data.descricao_descarte %}
+                  <div>
+                    <div class="d-flex align-items-center mb-1"><span class="me-2 uil uil-trash-alt"></span>
+                      <h5 class="text-body-highlight mb-0">Descrição do Descarte</h5>
+                    </div><span class="text-warning fw-semibold">{{ context.data.descricao_descarte }}</span>
+                  </div>
+                  {% endif %}
+
+                </div>
+              </div>
+
+
+              <div class="card mb-3">
+                <div class="card-body">
+                  <div class="d-flex align-items-center mb-5">
+                    <h3>Mais sobre o contato</h3>
+                    <!-- <button class="btn btn-link px-3" type="button">Edit</button> -->
+                  </div>
+
+
+
+
+
+                  {% if context.data.email_cliente_avulso %}
+                  <div class="mb-4">
+                    <div class="d-flex align-items-center mb-1"><span class="me-2 uil uil-envelope-alt"> </span>
+                      <h5 class="text-body-highlight mb-0">Email do Evento</h5>
+                    </div><a href="mailto:shatinon@jeemail.com:">{{ context.data.email_cliente_avulso }}</a>
+                  </div>
+                  {% endif %}
+                  {% if context.data.email_nfe %}
+                  <div class="mb-4">
+                    <div class="d-flex align-items-center mb-1"><span class="me-2 uil uil-envelope-alt"> </span>
+                      <h5 class="text-body-highlight mb-0">Email NFE</h5>
+                    </div><a href="mailto:shatinon@jeemail.com:">{{ context.data.email_nfe }}</a>
+                  </div>
+                  {% endif %}
+                  {% if context.data.fone_cliente_avulso %}
+                  <div class="mb-4">
+                    <div class="d-flex align-items-center mb-1"><span class="me-2 uil uil-phone"> </span>
+                      <h5 class="text-body-highlight mb-0">Telefone Evento</h5>
+                    </div><a href="tel:+55{{ context.data.fone_cliente_avulso }}">+55{{ context.data.fone_cliente_avulso
+                      }}</a>
+                  </div>
+                  {% endif %}
+                  {% if context.data.tel_cel %}
+                  <div class="mb-4">
+                    <div class="d-flex align-items-center mb-1"><span class="me-2 uil uil-phone"> </span>
+                      <h5 class="text-body-highlight mb-0">Telefone Celular</h5>
+                    </div><a href="tel:+55{{ context.data.tel_cel }}">+55{{ context.data.tel_cel }}</a>
+                  </div>
+                  {% endif %}
+                  {% if context.data.tel_whatsapp %}
+                  <div class="mb-4">
+                    <div class="d-flex align-items-center mb-1"><span class="me-2 uil uil-phone"> </span>
+                      <h5 class="text-body-highlight mb-0">Telefone Whatsapp</h5>
+                    </div><a href="https://wa.me/{{ context.data.tel_whatsapp }}" target="_blank">+55{{
+                      context.data.tel_whatsapp }}</a>
+                  </div>
+                  {% endif %}
+
+
+                </div>
+              </div>
+              <div class="card mb-3">
+                <div class="card-body">
+                  <div class="d-flex align-items-center mb-5">
+                    <h3>Agendamento de visita</h3>
+
+                  </div>
+
+                  {% if context.data.data_agendada %}
+                  <!-- Formulário para editar agendamento existente -->
+                  <form id="agendamentoForm" class="border rounded-3 p-4 bg-body-emphasis">
+                    <div class="mb-3">
+                      <label class="form-label" for="data-agendada">Data Agendada</label>
+                      <input type="datetime-local" class="form-control" id="data-agendada" name="data_agendada"
+                        value="{{ context.data.data_agendada[:16] if context.data.data_agendada else '' }}" required>
+                    </div>
+
+                    <div class="mb-3">
+                      <label class="form-label" for="data-visita">Data da Visita</label>
+                      <input type="datetime-local" class="form-control" id="data-visita" name="data_visita"
+                        value="{{ context.data.data_visita[:16] if context.data.data_visita else '' }}">
+                    </div>
+
+                    <div class="d-flex justify-content-end">
+                      <button type="submit" class="btn btn-primary">
+                        <span class="fas fa-save me-2"></span>Salvar Alterações
+                      </button>
+                    </div>
+                  </form>
+
+                  <!-- Exibir informações atuais -->
+                  <div class="mt-4">
+                    <div class="mb-3">
+                      <div class="d-flex align-items-center mb-1">
+                        <span class="me-2 uil uil-calendar-alt"></span>
+                        <h5 class="mb-0 text-body-highlight">Data Agendada</h5>
+                      </div>
+                      <p class="mb-0 text-body-secondary">
+                        {% if context.data.data_agendada %}
+                        {{ context.data.data_agendada[:10].split('-')[2] }}/{{
+                        context.data.data_agendada[:10].split('-')[1] }}/{{
+                        context.data.data_agendada[:10].split('-')[0] }} às {{ context.data.data_agendada[11:16] }}
+                        {% else %}
+                        Não informado
+                        {% endif %}
+                      </p>
+                    </div>
+
+                    {% if context.data.data_visita %}
+                    <div>
+                      <div class="d-flex align-items-center mb-1">
+                        <span class="me-2 uil uil-check-circle"></span>
+                        <h5 class="mb-0 text-body-highlight">Data da Visita Realizada</h5>
+                      </div>
+                      <p class="mb-0 text-body-secondary">
+                        {{ context.data.data_visita[:10].split('-')[2] }}/{{ context.data.data_visita[:10].split('-')[1]
+                        }}/{{ context.data.data_visita[:10].split('-')[0] }} às {{ context.data.data_visita[11:16] }}
+                      </p>
+                    </div>
+                    {% endif %}
+                  </div>
+
+                  {% else %}
+                  <!-- Mensagem quando não há agendamento -->
+                  <div class="text-center py-5">
+                    <div class="mb-4">
+                      <span class="fa-solid fa-calendar-plus fa-3x text-secondary"></span>
+                    </div>
+                    <h5 class="mb-3">Nenhum agendamento encontrado</h5>
+                    <p class="text-body-secondary mb-4">
+                      Este evento ainda não possui uma data de visita agendada.
+                    </p>
+                    <button type="button" class="btn btn-primary" data-bs-toggle="modal"
+                      data-bs-target="#novoAgendamentoModal">
+                      <span class="fas fa-plus me-2"></span>Agendar Nova Visita
+                    </button>
+                  </div>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+            <div class="phoenix-offcanvas-backdrop d-lg-none top-0" data-phoenix-backdrop="data-phoenix-backdrop">
+            </div>
+          </div>
+        </div>
+        <div class="col-md-7 col-lg-7 col-xl-8">
+          <div class="lead-details-container">
+            <nav class="navbar pb-4 px-0 sticky-top bg-body nav-underline-scrollspy" id="navbar-deals-detail">
+              <ul class="nav nav-underline fs-9">
+                <li class="nav-item"><a class="nav-link me-2" href="#scrollspyAcoes">Ações</a></li>
+                <li class="nav-item"><a class="nav-link me-2" href="#scrollspyObservacoes">Observações</a></li>
+                <!-- <li class="nav-item"><a class="nav-link me-2" href="#scrollspyEmails">Emails</a></li>
+                <li class="nav-item"><a class="nav-link" href="#scrollspyAttachments">Attachments </a></li> -->
+              </ul>
+            </nav>
+            <div class="scrollspy-example rounded-2" data-bs-spy="scroll" data-bs-offset="0"
+              data-bs-target="#navbar-deals-detail" data-bs-root-margin="0px 0px -40%" data-bs-smooth-scroll="true"
+              tabindex="0">
+              <div class="mb-8">
+                <h2 class="mb-4" id="scrollspyAcoes">Ações</h2>
+                <div class="row align-items-center g-0 justify-content-start mb-3">
+                  <div class="col-12">
+                    <form class="border rounded-3 p-4 bg-body-emphasis">
+                      <h5 class="mb-3">Nova Ação</h5>
+
+                      <!-- <div class="mb-3">
+                        <label class="form-label" for="tipo-acao">Tipo de ação</label>
+                        <select class="form-select" id="tipo-acao" name="tipo_acao" required>
+                          <option value="">Selecione o tipo de ação</option>
+                          <option value="encaminhado">Encaminhado</option>
+                          <option value="encerrado">Encerrado</option>
+                          <option value="em_contato">Em contato</option>
+                        </select>
+                      </div> -->
+
+                      <div class="mb-3">
+                        <label class="form-label" for="observacao">Observação</label>
+                        <textarea class="form-control" id="observacao" name="observacao" rows="3"
+                          placeholder="Digite sua observação..."></textarea>
+                      </div>
+
+                      <div class="d-flex justify-content-end">
+                        <button type="submit" class="btn btn-primary">
+                          <span class="fas fa-save me-2"></span>Salvar
+                        </button>
+                      </div>
+                    </form>
+                  </div>
+                </div>
+                <div class="table-responsive scrollbar mx-n1 px-1">
+                  <table class="table fs-9 mb-0">
+                    <thead>
+                      <tr>
+                        <th class="white-space-nowrap fs-9 align-middle ps-0" style="width:26px;">
+                          <div class="form-check mb-0 fs-8">
+                            <input class="form-check-input" type="checkbox"
+                              data-bulk-select='{"body":"acoes-table-body"}' />
+                          </div>
+                        </th>
+                        <th class="sort white-space-nowrap align-middle pe-3 ps-0 text-uppercase" scope="col"
+                          style="width:15%; min-width:120px">Data</th>
+                        <th class="sort align-middle pe-3 text-uppercase" scope="col"
+                          style="width:15%; min-width:150px">Tipo de Ação</th>
+                        <th class="sort align-middle pe-3 text-uppercase" scope="col"
+                          style="width:35%; min-width:250px">Observação</th>
+                        <th class="sort align-middle text-start text-uppercase" scope="col"
+                          style="width:10%; min-width:100px">Criado por</th>
+                        <th class="sort align-middle text-start text-uppercase" scope="col"
+                          style="width:10%; min-width:100px">Responsável</th>
+                        <th class="sort align-middle text-start text-uppercase" scope="col"
+                          style="width:10%; min-width:80px">Status</th>
+                        <th class="align-middle pe-0 text-end" scope="col" style="width:5%;"></th>
+                      </tr>
+                    </thead>
+                    <tbody class="list" id="acoes-table-body">
+                      {% if context.data.acoes %}
+                      {% for acao in context.data.acoes %}
+                      <tr class="hover-actions-trigger btn-reveal-trigger position-static">
+                        <td class="fs-9 align-middle px-0 py-3">
+                          <div class="form-check mb-0 fs-8">
+                            <input class="form-check-input" type="checkbox" />
+                          </div>
+                        </td>
+                        <td class="align-middle white-space-nowrap py-2 ps-0">
+                          <span class="fw-semibold">{{ acao.data[:10].split('-')[2] }}/{{ acao.data[:10].split('-')[1]
+                            }}/{{ acao.data[:10].split('-')[0] }}</span>
+                          <div class="fs-10 text-body-tertiary">{{ acao.data[11:19] }}</div>
+                        </td>
+                        <td class="align-middle py-2">
+                          <span class="badge badge-phoenix fs-10 badge-phoenix-info">{{ acao.desc_tipo_acao }}</span>
+                        </td>
+                        <td class="align-middle py-2">
+                          {% if acao.observacao %}
+                          <div class="text-body" style="white-space: pre-line;">{{ acao.observacao }}</div>
+                          {% else %}
+                          <span class="text-body-tertiary fst-italic">Sem observação</span>
+                          {% endif %}
+                        </td>
+                        <td class="align-middle white-space-nowrap text-start fw-bold text-body-tertiary py-2">
+                          {{ acao.quem_criou if acao.quem_criou else '-' }}
+                        </td>
+                        <td class="align-middle white-space-nowrap text-start fw-bold text-body-tertiary py-2">
+                          {{ acao.responsavel if acao.responsavel else '-' }}
+                        </td>
+                        <td class="align-middle white-space-nowrap py-2">
+                          {% if acao.status == 'P' %}
+                          <span class="badge badge-phoenix fs-10 badge-phoenix-warning">Pendente</span>
+                          {% elif acao.status == 'A' %}
+                          <span class="badge badge-phoenix fs-10 badge-phoenix-primary">Ativo</span>
+                          {% elif acao.status == 'E' %}
+                          <span class="badge badge-phoenix fs-10 badge-phoenix-success">Encerrado</span>
+                          {% else %}
+                          <span class="badge badge-phoenix fs-10 badge-phoenix-secondary">{{ acao.status }}</span>
+                          {% endif %}
+                        </td>
+                        <td class="align-middle text-end white-space-nowrap pe-0 action py-2">
+                          <div class="btn-reveal-trigger position-static">
+                            <button class="btn btn-sm dropdown-toggle dropdown-caret-none transition-none btn-reveal"
+                              type="button" data-bs-toggle="dropdown" data-boundary="window" aria-haspopup="true"
+                              aria-expanded="false" data-bs-reference="parent">
+                              <span class="fas fa-ellipsis-h fs-10"></span>
+                            </button>
+                            <div class="dropdown-menu dropdown-menu-end py-2">
+                              <a class="dropdown-item" href="#!">Ver detalhes</a>
+                              <a class="dropdown-item" href="#!">Editar</a>
+                              <div class="dropdown-divider"></div>
+                              <a class="dropdown-item text-danger" href="#!">Remover</a>
+                            </div>
+                          </div>
+                        </td>
+                      </tr>
+                      {% endfor %}
+                      {% else %}
+                      <tr>
+                        <td colspan="8" class="text-center text-body-tertiary py-4">
+                          <div class="mb-3">
+                            <span class="fa-solid fa-clipboard-list fa-2x text-secondary"></span>
+                          </div>
+                          <h5 class="mb-1">Nenhuma ação encontrada</h5>
+                          <p class="mb-0">Adicione uma nova ação usando o formulário acima.</p>
+                        </td>
+                      </tr>
+                      {% endif %}
+                    </tbody>
+                  </table>
+                </div>
+
+
+              </div>
+              <div class="mb-8">
+                <div class="d-flex justify-content-between align-items-center mb-4" id="scrollspyObservacoes">
+                  <h2 class="mb-0">Observação do evento</h2>
+
+                </div>
+                <div class="row align-items-center g-0 justify-content-start mb-3">
+                  <div class="col-12">
+                    <form class="border rounded-3 p-4 bg-body-emphasis">
+
+                      <div class="mb-3">
+                        <label class="form-label" for="observacao">Observação</label>
+                        <textarea class="form-control" id="observacao" name="observacao" rows="10"
+                          placeholder="Digite sua observação...">{{ context.data.obs_memo if context.data.obs_memo else '' }}</textarea>
+                      </div>
+
+                      <div class="d-flex justify-content-end">
+                        <button type="submit" class="btn btn-primary">
+                          <span class="fas fa-save me-2"></span>Salvar
+                        </button>
+                      </div>
+                    </form>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <footer class="footer position-absolute">
+      <div class="row g-0 justify-content-between align-items-center h-100">
+
+      </div>
+    </footer>
+    </div>
+
+    <script>
+      var navbarTopStyle = window.config.config.phoenixNavbarTopStyle;
+      var navbarTop = document.querySelector('.navbar-top');
+      if (navbarTopStyle === 'darker') {
+        navbarTop.setAttribute('data-navbar-appearance', 'darker');
+      }
+
+      var navbarVerticalStyle = window.config.config.phoenixNavbarVerticalStyle;
+      var navbarVertical = document.querySelector('.navbar-vertical');
+      if (navbarVertical && navbarVerticalStyle === 'darker') {
+        navbarVertical.setAttribute('data-navbar-appearance', 'darker');
+      }
+    </script>
+
+  </main>
+  <!-- ===============================================-->
+  <!--    End of Main Content-->
+  <!-- ===============================================-->
+
+
+
+
+
+  <!-- ===============================================-->
+  <!--    JavaScripts-->
+  <!-- ===============================================-->
+  <script src="/static/vendors/popper/popper.min.js"></script>
+  <script src="/static/vendors/bootstrap/bootstrap.min.js"></script>
+  <script src="/static/vendors/anchorjs/anchor.min.js"></script>
+  <script src="/static/vendors/is/is.min.js"></script>
+  <script src="/static/vendors/fontawesome/all.min.js"></script>
+  <script src="/static/vendors/lodash/lodash.min.js"></script>
+  <script src="/static/vendors/list.js/list.min.js"></script>
+  <script src="/static/vendors/feather-icons/feather.min.js"></script>
+  <script src="/static/vendors/dayjs/dayjs.min.js"></script>
+  <script src="/static/vendors/dropzone/dropzone-min.js"></script>
+  <script src="/static/assets/js/phoenix.js"></script>
+
+</body>
+
+</html>

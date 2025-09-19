@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="pt-BR" dir="ltr" data-navigation-type="default" data-navbar-horizontal-shape="default">
+
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+  <!-- ===============================================-->
+  <!--    Document Title-->
+  <!-- ===============================================-->
+  <title>{{ context.title }}</title>
+
+
+  <!-- ===============================================-->
+  <!--    Favicons-->
+  <!-- ===============================================-->
+  <link rel="apple-touch-icon" sizes="180x180" href="/static/assets/img/favicons/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/static/assets/img/favicons/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/static/assets/img/favicons/favicon-16x16.png">
+  <link rel="shortcut icon" type="image/x-icon" href="/static/assets/img/favicons/favicon.ico">
+  <link rel="manifest" href="/static/assets/img/favicons/manifest.json">
+  <meta name="msapplication-TileImage" content="static/assets/img/favicons/mstile-150x150.png">
+  <meta name="theme-color" content="#ffffff">
+  <script src="/static/vendors/simplebar/simplebar.min.js"></script>
+  <script src="/static/assets/js/config.js"></script>
+
+
+  <!-- ===============================================-->
+  <!--    Stylesheets-->
+  <!-- ===============================================-->
+  <link href="/static/vendors/choices/choices.min.css" rel="stylesheet">
+  <link href="/static/vendors/flatpickr/flatpickr.min.css" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+  <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@300;400;600;700;800;900&amp;display=swap"
+    rel="stylesheet">
+  <link href="/static/vendors/simplebar/simplebar.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://unicons.iconscout.com/release/v4.0.8/css/line.css">
+  <link href="/static/assets/css/theme-rtl.min.css" type="text/css" rel="stylesheet" id="style-rtl">
+  <link href="/static/assets/css/theme.min.css" type="text/css" rel="stylesheet" id="style-default">
+  <link href="/static/assets/css/user-rtl.min.css" type="text/css" rel="stylesheet" id="user-style-rtl">
+  <link href="/static/assets/css/user.min.css" type="text/css" rel="stylesheet" id="user-style-default">
+  <script>
+    var phoenixIsRTL = window.config.config.phoenixIsRTL;
+    if (phoenixIsRTL) {
+      var linkDefault = document.getElementById('style-default');
+      var userLinkDefault = document.getElementById('user-style-default');
+      linkDefault.setAttribute('disabled', true);
+      userLinkDefault.setAttribute('disabled', true);
+      document.querySelector('html').setAttribute('dir', 'rtl');
+    } else {
+      var linkRTL = document.getElementById('style-rtl');
+      var userLinkRTL = document.getElementById('user-style-rtl');
+      linkRTL.setAttribute('disabled', true);
+      userLinkRTL.setAttribute('disabled', true);
+    }
+  </script>
+</head>
+
+
+<body>
+
+  <!-- ===============================================-->
+  <!--    Main Content-->
+  <!-- ===============================================-->
+  <main class="main" id="top">
+    <!-- MENU -->
+
+    {% include 'menu.html' %}
+    <!-- include top_bar.html -->
+    {% include 'top_bar.html' %}
+    <div class="content">
+
+      <div class="pb-6">
+        <h2 class="mb-4">{{ context.total_count if context.total_count else 0 }} Formulários</h2>
+
+        <div id="forms_table">
+
+          <div class="row g-3 justify-content-between mb-4">
+            <div class="col-auto">
+
+            </div>
+
+            <!-- <div class="col-auto">
+              <form class="d-flex" id="date-filter-form">
+                <input class="form-control form-control-sm me-2" name="initial_date" id="initial_date" type="text"
+                  placeholder="Data inicial" value="{{ request.args.get('initial_date', '') }}">
+                <input class="form-control form-control-sm me-2" name="final_date" id="final_date" type="text"
+                  placeholder="Data final" value="{{ request.args.get('final_date', '') }}">
+                <button class="btn btn-sm btn-primary" type="submit">Buscar</button>
+              </form>
+            </div>
+          </div> -->
+
+          
+
+
+
+
+
+<div class="row g-3 justify-content-between mb-4">
+  <div class="col-auto">
+    <!-- Unified search form combining search and date filters -->
+    <form class="d-flex" id="unified-filter-form">
+      <input class="form-control form-control-sm me-2" name="search" id="search" type="text"
+        placeholder="Procure por nome, email ou modelo" value="{{ request.args.get('search', '') }}">
+      <input class="form-control form-control-sm me-2" name="initial_date" id="initial_date" type="text"
+        placeholder="Data inicial" value="{{ request.args.get('initial_date', '') }}">
+      <input class="form-control form-control-sm me-2" name="final_date" id="final_date" type="text"
+        placeholder="Data final" value="{{ request.args.get('final_date', '') }}">
+      <button class="btn btn-sm btn-primary" type="submit">Buscar</button>
+      <button class="btn btn-sm btn-outline-secondary ms-2" type="button" id="clear-filters">Limpar</button>
+    </form>
+  </div>
+
+  <div class="col-auto">
+    <!-- You can add other actions here if needed -->
+  </div>
+</div>
+
+
+
+
+
+
+
+
+
+          <!-- <div class="search-box mb-3 mx-auto">
+            <form class="position-relative">
+              <input class="form-control search-input search form-control-sm" type="search"
+                placeholder="Procure por nome, email ou modelo" aria-label="Search">
+              <span class="fas fa-search search-box-icon"></span>
+            </form>
+          </div> -->
+
+          <div class="table-responsive">
+            <table class="table table-sm fs-9 mb-0 overflow-hidden">
+              <thead class="text-body">
+                <tr>
+                  <th class="sort border-top border-translucent ps-3" style="max-width:20px; width:18px;">
+                    <div class="form-check mb-0 fs-8">
+                      <input class="form-check-input" id="bulk-select-example" type="checkbox"
+                        data-bulk-select='{"body":"bulk-select-body","actions":"bulk-select-actions","replacedElement":"bulk-select-replace-element"}' />
+                    </div>
+                  </th>
+
+                  <!-- Nome -->
+                  <th class="sort border-top" data-sort="nome" style="min-width: 12rem;">
+                    Nome
+                  </th>
+
+                  <!-- Email -->
+                  <th class="sort border-top" data-sort="email" style="min-width: 12rem;">
+                    Email
+                  </th>
+
+                  <!-- Telefone -->
+                  <th class="sort border-top" data-sort="telefone" style="min-width: 8rem;">
+                    Telefone
+                  </th>
+
+                  <!-- Modelo de Interesse -->
+                  <th class="sort border-top" data-sort="modelo_interesse" style="min-width: 10rem;">
+                    Modelo de Interesse
+                  </th>
+
+                  <!-- Status -->
+                  <th class="sort border-top text-center" data-sort="status" style="min-width: 8rem;">
+                    Status
+                  </th>
+
+                  <!-- Data de Criação -->
+                  <th class="sort border-top" data-sort="data_criacao" style="min-width: 10rem;">
+                    Data de Criação
+                  </th>
+
+                  <!-- Origem -->
+                  <th class="sort border-top" data-sort="origem" style="min-width: 8rem;">
+                    Origem
+                  </th>
+
+                  <!-- Ações -->
+                  <th class="border-top">Ações</th>
+
+                </tr>
+              </thead>
+
+              <tbody class="list" id="bulk-select-body">
+                {% if context.forms %}
+                {% for form in context.forms %}
+                <tr class="btn-reveal-trigger">
+                  <td class="align-middle ps-3">
+                    <div class="form-check mb-0 fs-8">
+                      <input class="form-check-input" type="checkbox" data-id-form="{{ form.id_form_site }}"
+                        data-bulk-select-row='{"id":"{{ form.id_form_site }}"}' />
+                    </div>
+                  </td>
+
+                  <td class="nome align-middle">
+                    <span class="fw-semibold text-primary">{{ form.body.first_name }} {{ form.body.last_name }}</span>
+                  </td>
+
+                  <td class="email align-middle">
+                    {{ form.body.email if form.body.email else '-' }}
+                  </td>
+
+                  <td class="telefone align-middle">
+                    {{ form.body.mobile if form.body.mobile else '-' }}
+                  </td>
+
+                  <td class="modelo_interesse align-middle">
+                    {{ form.body.model_interest__c if form.body.model_interest__c else '-' }}
+                  </td>
+
+                  <td class="status align-middle text-center">
+                    <span class="badge fs-10 
+                        {% if form.status == 'formulario_valido' %}
+                          badge-phoenix badge-phoenix-success
+                        {% else %}
+                          badge-phoenix badge-phoenix-warning
+                        {% endif %}">
+                      {{ form.status | replace('_', ' ') | title if form.status else 'N/A' }}
+                    </span>
+                  </td>
+
+                  <td class="data_criacao align-middle">
+                    {{ form.created_at if form.created_at else '-' }}
+                  </td>
+
+                  <td class="origem align-middle">
+                    {{ form.body.lead_source if form.body.lead_source else '-' }}
+                  </td>
+
+                  <td class="align-middle">
+                    <a href="/forms/form_site/{{ form.id_form_site }}" class="btn btn-sm btn-phoenix-secondary">
+                      <span class="fa-solid fa-arrow-right"></span>
+                    </a>
+                  </td>
+                </tr>
+                {% endfor %}
+                {% else %}
+                <tr>
+                  <td colspan="9" class="text-center py-4 text-body-tertiary">
+                    Nenhum formulário encontrado
+                  </td>
+                </tr>
+                {% endif %}
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Pagination -->
+          <div class="d-flex justify-content-between mt-3">
+            <div>
+              <span class="d-none d-sm-inline-block">
+                Exibindo {{ context.forms|length }} de {{ context.total_count }} resultados
+              </span>
+            </div>
+            <div class="d-flex">
+              {% if context.total_pages > 1 %}
+              <a href="?page={{ context.current_page - 1 }}{% for key, value in request.args.items() %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}"
+                class="page-link {{ 'disabled' if context.current_page == 1 else '' }}">
+                <span class="fas fa-chevron-left"></span>
+              </a>
+
+              <ul class="mb-0 pagination">
+                {% set start_page = [context.current_page - 2, 1] | max %}
+                {% set end_page = [context.current_page + 2, context.total_pages] | min %}
+
+                {% if start_page > 1 %}
+                <li class="page-item"><a
+                    href="?page=1{% for key, value in request.args.items() %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}"
+                    class="page-link">1</a></li>
+                {% if start_page > 2 %}
+                <li class="page-item disabled"><span class="page-link">...</span></li>
+                {% endif %}
+                {% endif %}
+
+                {% for page_num in range(start_page, end_page + 1) %}
+                <li class="page-item {{ 'active' if page_num == context.current_page else '' }}">
+                  <a href="?page={{ page_num }}{% for key, value in request.args.items() %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}"
+                    class="page-link">{{
+                    page_num }}</a>
+                </li>
+                {% endfor %}
+
+                {% if end_page < context.total_pages %} {% if end_page < context.total_pages - 1 %} <li
+                  class="page-item disabled"><span class="page-link">...</span></li>
+                  {% endif %}
+                  <li class="page-item"><a
+                      href="?page={{ context.total_pages }}{% for key, value in request.args.items() %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}"
+                      class="page-link">{{ context.total_pages }}</a></li>
+                  {% endif %}
+              </ul>
+
+              <a href="?page={{ context.current_page + 1 }}{% for key, value in request.args.items() %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}"
+                class="page-link pe-0 {{ 'disabled' if context.current_page == context.total_pages else '' }}">
+                <span class="fas fa-chevron-right"></span>
+              </a>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+      <footer class="footer position-absolute">
+        <div class="row g-0 justify-content-between align-items-center h-100">
+        </div>
+      </footer>
+
+      <div id="toastMessageContainer" class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 1080;">
+        <div id="toastMessage" class="toast align-items-center text-white dark__text-gray-1100 bg-primary border-0"
+          role="alert" data-bs-autohide="true" aria-live="assertive" aria-atomic="true">
+          <div class="d-flex">
+            <div class="toast-body">
+              Hello, world! This is a toast message.
+            </div>
+            <button class="btn ms-2 p-0" type="button" data-bs-dismiss="toast" aria-label="Close"><span
+                class="uil uil-times fs-7 text-white"></span></button>
+          </div>
+        </div>
+      </div>
+      <!-- modal change name -->
+
+
+
+
+  </main>
+  <!-- ===============================================-->
+  <!--    End of Main Content-->
+  <!-- ===============================================-->
+
+
+
+
+  <!-- ===============================================-->
+  <!--    JavaScripts-->
+  <!-- ===============================================-->
+  <script src="/static/vendors/popper/popper.min.js"></script>
+  <script src="/static/vendors/bootstrap/bootstrap.min.js"></script>
+  <script src="/static/vendors/anchorjs/anchor.min.js"></script>
+  <script src="/static/vendors/is/is.min.js"></script>
+  <script src="/static/vendors/fontawesome/all.min.js"></script>
+  <script src="/static/vendors/lodash/lodash.min.js"></script>
+  <script src="/static/vendors/list.js/list.min.js"></script>
+  <script src="/static/vendors/feather-icons/feather.min.js"></script>
+  <script src="/static/vendors/dayjs/dayjs.min.js"></script>
+  <script src="/static/vendors/choices/choices.min.js"></script>
+  <script src="/static/vendors/flatpickr/flatpickr.min.js"></script>
+  <script src="/static/assets/js/phoenix.js"></script>
+  <script src="/static/vendors/prism/prism.js"></script>
+  <script src="/static/assets/js/menu.js"></script>
+
+  <script src="/static/assets/js/menu.js"></script>
+
+  <script>
+  document.addEventListener('DOMContentLoaded', function () {
+    // Inicializar feather icons
+    if (window.feather) {
+      feather.replace();
+    }
+
+    // Remove List.js initialization to prevent automatic search
+    // The search will now be handled by server-side API calls
+
+    // Initialize flatpickr for date filters
+    flatpickr("#initial_date", {
+      dateFormat: "Y-m-d"
+    });
+    flatpickr("#final_date", {
+      dateFormat: "Y-m-d"
+    });
+
+    // Handle unified filter form submission
+    const unifiedFilterForm = document.getElementById('unified-filter-form');
+    if (unifiedFilterForm) {
+      unifiedFilterForm.addEventListener('submit', function (event) {
+        event.preventDefault();
+        
+        const searchValue = document.getElementById('search').value;
+        const initialDate = document.getElementById('initial_date').value;
+        const finalDate = document.getElementById('final_date').value;
+
+        const url = new URL(window.location.pathname, window.location.origin);
+
+        // Add search parameter if provided
+        if (searchValue.trim()) {
+          url.searchParams.set('search', searchValue.trim());
+        }
+
+        // Add date filters if provided
+        if (initialDate) {
+          url.searchParams.set('initial_date', initialDate);
+        }
+        if (finalDate) {
+          url.searchParams.set('final_date', finalDate);
+        }
+
+        // Reset to page 1 when filtering
+        url.searchParams.delete('page');
+
+        window.location.href = url.toString();
+      });
+    }
+
+    // Handle clear filters button
+    const clearFiltersBtn = document.getElementById('clear-filters');
+    if (clearFiltersBtn) {
+      clearFiltersBtn.addEventListener('click', function () {
+        // Clear all form inputs
+        document.getElementById('search').value = '';
+        document.getElementById('initial_date').value = '';
+        document.getElementById('final_date').value = '';
+
+        // Redirect to clean URL without filters
+        const url = new URL(window.location.pathname, window.location.origin);
+        window.location.href = url.toString();
+      });
+    }
+  });
+
+  // Rest of your existing functions remain the same
+  function downloadForms() {
+    const downloadBtn = event.target.closest('button');
+    const originalContent = downloadBtn.innerHTML;
+    downloadBtn.disabled = true;
+    downloadBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Baixando...';
+
+    const requestOptions = {
+      method: "GET",
+      redirect: "follow"
+    };
+
+    fetch("https://backend.caiuas.com.br/api/reports/forms", requestOptions)
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error(`Erro HTTP: ${response.status}`);
+        }
+        return response.json();
+      })
+      .then((data) => {
+        const csvData = jsonToCsv(data.forms);
+        const blob = new Blob([csvData], { type: 'text/csv;charset=utf-8;' });
+        const filename = `formularios_${new Date().toISOString().slice(0, 10)}.csv`;
+
+        const link = document.createElement('a');
+        const url = window.URL.createObjectURL(blob);
+        link.href = url;
+        link.download = filename;
+
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+
+        window.URL.revokeObjectURL(url);
+        console.log('Download concluído:', filename);
+      })
+      .catch((error) => {
+        console.error('Erro no download:', error);
+        alert('Erro ao baixar arquivo. Tente novamente.');
+      })
+      .finally(() => {
+        downloadBtn.disabled = false;
+        downloadBtn.innerHTML = originalContent;
+      });
+  }
+
+  function jsonToCsv(jsonData) {
+    if (!jsonData || !Array.isArray(jsonData) || jsonData.length === 0) {
+      return '';
+    }
+
+    const headers = [
+      'Nome', 'Sobrenome', 'Email', 'Telefone', 'Modelo de Interesse',
+      'Origem', 'Sub-Origem', 'Status', 'Data de Criação'
+    ];
+
+    const csvRows = jsonData.map(row => {
+      const rowData = [
+        row.body.first_name,
+        row.body.last_name,
+        row.body.email,
+        row.body.mobile,
+        row.body.model_interest__c,
+        row.body.lead_source,
+        row.body.sub_source_media__c,
+        row.status,
+        row.created_at
+      ];
+
+      return rowData.map(value => {
+        const stringValue = (value === null || value === undefined) ? '' : String(value);
+        if (stringValue.includes(',') || stringValue.includes('"') || stringValue.includes('\n')) {
+          return '"' + stringValue.replace(/"/g, '""') + '"';
+        }
+        return stringValue;
+      }).join(',');
+    });
+
+    return [headers.join(','), ...csvRows].join('\n');
+  }
+
+  function executeFormAction() {
+    const bulkSelectBody = document.getElementById('bulk-select-body');
+    if (!bulkSelectBody) return;
+
+    const selectedInputs = bulkSelectBody.querySelectorAll('input[type="checkbox"]:checked');
+    const bulkActions = document.getElementById('bulk-actions-select');
+
+    if (!bulkActions || selectedInputs.length === 0) {
+      alert('Selecione pelo menos um formulário');
+      return;
+    }
+
+    const action = bulkActions.value;
+    const selectedIds = Array.from(selectedInputs)
+      .map(input => input.dataset.idForm)
+      .filter(id => id);
+
+    if (action === 'export') {
+      console.log('Exportando formulários selecionados:', selectedIds);
+    } else if (action === 'delete') {
+      console.log('Deletando formulários selecionados:', selectedIds);
+    }
+  }
+</script>
+
+
+
+
+</body>
+
+</html>
