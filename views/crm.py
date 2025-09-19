@@ -38,6 +38,7 @@ def eventos_showroom():
         response = requests.request("GET", url, headers=headers, data=payload)
         
         data = response.json()
+        context['token'] = token
         context['status_response'] = response.status_code
         context['data'] = data
         return render_template('crm/eventos_showroom.html', context=context)
