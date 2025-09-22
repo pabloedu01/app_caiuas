@@ -94,9 +94,9 @@
                       data-phoenix-toggle="offcanvas" data-phoenix-target="#productFilterColumn"><span
                         class="fa-solid fa-bars"></span></button>
                   </div>
-                  <button class="btn btn-primary px-3 px-sm-5 me-2">
+                  <button id="btnRemarcarContato" class="btn btn-primary px-3 px-sm-5 me-2">
                     <span class="fa-solid fa-calendar-check me-sm-2"></span>
-                    <span class="d-none d-sm-inline">Agendar visita</span>
+                    <span class="d-none d-sm-inline">Remarcar contato</span>
                   </button>
                   <button class="btn btn-success me-2">
                     <span class="fa-solid fa-check me-2"></span>
@@ -169,6 +169,23 @@
                           <span class="fas fa-hourglass-half me-1"></span>
                           <span id="elapsed-time">Calculando...</span>
                         </span>
+                      </div>
+                    </div>
+
+                    <!-- adiciona data para contato -->
+                    <div class="mb-4">
+                      <div class="d-flex align-items-center mb-1"><span class="me-2 uil uil-calendar-alt"></span>
+                        <h5 class="text-body-highlight mb-0">Data para contato</h5>
+                      </div>
+                      <div class="d-flex align-items-center">
+                        {% if context.data.data_contato %}
+                        <span>{{ context.data.data_contato[:10].split('-')[2] }}/{{
+                          context.data.data_contato[:10].split('-')[1]
+                          }}/{{ context.data.data_contato[:10].split('-')[0] }} às {{ context.data.data_contato[11:16]
+                          }}</span>
+                        {% else %}
+                        <span>Não informado</span>
+                        {% endif %}
                       </div>
                     </div>
 
@@ -328,7 +345,7 @@
                     </span>
                     {% elif context.data.status == 'V' %}
                     <span class="badge badge-phoenix fs-10 badge-phoenix-info">
-                      <span class="fw-bold">Visita Agendada</span>
+                      <span class="fw-bold">Remarcar contato</span>
                       <span class="ms-1 fas fa-calendar-check"></span>
                     </span>
                     {% elif context.data.status == 'R' %}
@@ -544,7 +561,7 @@
 
                       <div class="mb-3">
                         <label class="form-label" for="observacao">Observação</label>
-                        <textarea class="form-control" id="observacao" name="observacao" rows="3"
+                        <textarea class="form-control" name="observacao" rows="3"
                           placeholder="Digite sua observação..."></textarea>
                       </div>
 
@@ -663,11 +680,11 @@
                 </div>
                 <div class="row align-items-center g-0 justify-content-start mb-3">
                   <div class="col-12">
-                    <form class="border rounded-3 p-4 bg-body-emphasis">
+                    <form id="obsForm" class="border rounded-3 p-4 bg-body-emphasis">
 
                       <div class="mb-3">
                         <label class="form-label" for="observacao">Observação</label>
-                        <textarea class="form-control" id="observacao" name="observacao" rows="10"
+                        <textarea id="obsEventoTextarea" class="form-control" id="observacao" name="observacao" rows="10"
                           placeholder="Digite sua observação...">{{ context.data.obs_memo if context.data.obs_memo else '' }}</textarea>
                       </div>
 
@@ -707,6 +724,31 @@
       }
     </script>
 
+    <div class="modal fade" id="remarcarContatoModal" tabindex="-1" aria-labelledby="remarcarContatoModalLabel"
+      aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="remarcarContatoModalLabel">Remarcar Contato</h5>
+            <button class="btn btn-close p-1" type="button" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <form id="remarcarContatoForm">
+              <div class="mb-3">
+                <label for="novaDataContato" class="form-label">Nova Data para Contato</label>
+                <input type="datetime-local" class="form-control" id="novaDataContato" name="nova_data_contato"
+                  required>
+              </div>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-primary" type="submit" form="remarcarContatoForm">Salvar</button>
+            <button class="btn btn-outline-primary" type="button" data-bs-dismiss="modal">Cancelar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
   </main>
   <!-- ===============================================-->
   <!--    End of Main Content-->
@@ -730,6 +772,57 @@
   <script src="/static/vendors/dayjs/dayjs.min.js"></script>
   <script src="/static/vendors/dropzone/dropzone-min.js"></script>
   <script src="/static/assets/js/phoenix.js"></script>
+  <script src="/static/assets/js/toast.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const remarcarModal = new bootstrap.Modal(document.getElementById('remarcarContatoModal'));
+    document.getElementById('btnRemarcarContato')?.addEventListener('click', e => { e.preventDefault(); remarcarModal.show(); });
+
+    document.getElementById('remarcarContatoForm')?.addEventListener('submit', async e => {
+      e.preventDefault();
+      const btn = e.submitter, originalHTML = btn.innerHTML;
+      btn.disabled = true;
+      btn.innerHTML = `<span class="fas fa-spinner fa-spin"></span> Salvando...`;
+      try {
+        const codEvento = '{{context.data.cod_empresa}}{{ context.data.cod_evento }}';
+        const novaData = document.getElementById('novaDataContato').value;
+        const response = await fetch(`https://backend.caiuas.com.br/api/crm/eventos_showroom/remarca_contato/${codEvento}`, {
+          method: "POST", headers: { "Content-Type": "application/json", "Authorization": "Bearer {{ session.token }}" },
+          body: JSON.stringify({ "nova_data_hora": novaData.replace('T', ' ') + ':00' }), redirect: "follow"
+        });
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.message || 'Ocorreu um erro.');
+        document.getElementById('acoes-table-body').querySelector('td[colspan="8"]')?.parentElement.remove();
+        const [date, time] = novaData.split('T');
+        const [y, m, d] = date.split('-');
+        const newRow = `<tr class="hover-actions-trigger btn-reveal-trigger position-static"><td class="fs-9 align-middle px-0 py-3"><div class="form-check mb-0 fs-8"><input class="form-check-input" type="checkbox" /></div></td><td class="align-middle white-space-nowrap py-2 ps-0"><span class="fw-semibold">${d}/${m}/${y}</span><div class="fs-10 text-body-tertiary">${time}:00</div></td><td class="align-middle py-2"><span class="badge badge-phoenix fs-10 badge-phoenix-info">Contato Remarcado</span></td><td class="align-middle py-2">Contato remarcado pelo usuário.</td><td class="align-middle white-space-nowrap text-start fw-bold text-body-tertiary py-2">{{ session.get("user", {}).get("name") or 'Sistema' }}</td><td class="align-middle white-space-nowrap text-start fw-bold text-body-tertiary py-2">{{ context.data.responsavel_nome_completo or '-' }}</td><td class="align-middle white-space-nowrap py-2"><span class="badge badge-phoenix fs-10 badge-phoenix-warning">Pendente</span></td><td class="align-middle text-end white-space-nowrap pe-0 action py-2"><div class="btn-reveal-trigger position-static"><button class="btn btn-sm dropdown-toggle dropdown-caret-none transition-none btn-reveal" type="button" data-bs-toggle="dropdown" data-boundary="window" aria-haspopup="true" aria-expanded="false" data-bs-reference="parent"><span class="fas fa-ellipsis-h fs-10"></span></button><div class="dropdown-menu dropdown-menu-end py-2"></div></div></td></tr>`;
+        document.getElementById('acoes-table-body').insertAdjacentHTML('afterbegin', newRow);
+        window.showToast('Ação registrada com sucesso!', 'success');
+        remarcarModal.hide();
+      } catch (error) { window.showToast(error.message, 'error');
+      } finally { btn.disabled = false; btn.innerHTML = originalHTML; }
+    });
+
+    document.getElementById('obsForm')?.addEventListener('submit', async e => {
+      e.preventDefault();
+      const btn = e.submitter, originalHTML = btn.innerHTML;
+      btn.disabled = true;
+      btn.innerHTML = `<span class="fas fa-spinner fa-spin"></span> Salvando...`;
+      try {
+        const codEvento = '{{context.data.cod_empresa}}{{ context.data.cod_evento }}';
+        const obs = document.getElementById('obsEventoTextarea').value;
+        const response = await fetch(`https://backend.caiuas.com.br/api/crm/eventos_showroom/update_observacao/${codEvento}`, {
+          method: "POST", headers: { "Content-Type": "application/json", "Authorization": "Bearer {{ session.token }}" },
+          body: JSON.stringify({ "observacao": obs }), redirect: "follow"
+        });
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.message || 'Ocorreu um erro.');
+        window.showToast('Observação salva com sucesso!', 'success');
+      } catch (error) { window.showToast(error.message, 'error');
+      } finally { btn.disabled = false; btn.innerHTML = originalHTML; }
+    });
+  });
+</script>
 
 </body>
 
