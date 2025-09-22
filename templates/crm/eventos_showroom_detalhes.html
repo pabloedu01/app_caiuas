@@ -635,6 +635,8 @@
                           <span class="badge badge-phoenix fs-10 badge-phoenix-primary">Ativo</span>
                           {% elif acao.status == 'E' %}
                           <span class="badge badge-phoenix fs-10 badge-phoenix-success">Encerrado</span>
+                          {% elif acao.status == 'V' %}
+                          <span class="badge badge-phoenix fs-10 badge-phoenix-info">Visita Agendada</span>
                           {% else %}
                           <span class="badge badge-phoenix fs-10 badge-phoenix-secondary">{{ acao.status }}</span>
                           {% endif %}
@@ -684,7 +686,8 @@
 
                       <div class="mb-3">
                         <label class="form-label" for="observacao">Observação</label>
-                        <textarea id="obsEventoTextarea" class="form-control" id="observacao" name="observacao" rows="10"
+                        <textarea id="obsEventoTextarea" class="form-control" id="observacao" name="observacao"
+                          rows="10"
                           placeholder="Digite sua observação...">{{ context.data.obs_memo if context.data.obs_memo else '' }}</textarea>
                       </div>
 
@@ -749,6 +752,31 @@
       </div>
     </div>
 
+    <!-- Modal de update para agendamento de visita -->
+    <div class="modal fade" id="novoAgendamentoModal" tabindex="-1" aria-labelledby="novoAgendamentoModalLabel"
+      aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="novoAgendamentoModalLabel">Agendar Nova Visita</h5>
+            <button class="btn btn-close p-1" type="button" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <form id="novoAgendamentoForm">
+              <div class="mb-3">
+                <label for="dataAgendada" class="form-label">Data Agendada</label>
+                <input type="datetime-local" class="form-control" id="dataAgendada" name="data_agendada" required>
+              </div>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-primary" type="submit" form="novoAgendamentoForm">Salvar</button>
+            <button class="btn btn-outline-primary" type="button" data-bs-dismiss="modal">Cancelar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
   </main>
   <!-- ===============================================-->
   <!--    End of Main Content-->
@@ -773,56 +801,225 @@
   <script src="/static/vendors/dropzone/dropzone-min.js"></script>
   <script src="/static/assets/js/phoenix.js"></script>
   <script src="/static/assets/js/toast.js"></script>
-<script>
-  document.addEventListener('DOMContentLoaded', () => {
-    const remarcarModal = new bootstrap.Modal(document.getElementById('remarcarContatoModal'));
-    document.getElementById('btnRemarcarContato')?.addEventListener('click', e => { e.preventDefault(); remarcarModal.show(); });
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // ============================================================================
+      // CONFIGURAÇÕES GLOBAIS
+      // ============================================================================
+      const codEvento = '{{context.data.cod_empresa}}{{context.data.cod_evento}}';
+      const token = '{{ session.token }}';
 
-    document.getElementById('remarcarContatoForm')?.addEventListener('submit', async e => {
-      e.preventDefault();
-      const btn = e.submitter, originalHTML = btn.innerHTML;
-      btn.disabled = true;
-      btn.innerHTML = `<span class="fas fa-spinner fa-spin"></span> Salvando...`;
-      try {
-        const codEvento = '{{context.data.cod_empresa}}{{ context.data.cod_evento }}';
-        const novaData = document.getElementById('novaDataContato').value;
-        const response = await fetch(`https://backend.caiuas.com.br/api/crm/eventos_showroom/remarca_contato/${codEvento}`, {
-          method: "POST", headers: { "Content-Type": "application/json", "Authorization": "Bearer {{ session.token }}" },
-          body: JSON.stringify({ "nova_data_hora": novaData.replace('T', ' ') + ':00' }), redirect: "follow"
-        });
-        const result = await response.json();
-        if (!response.ok) throw new Error(result.message || 'Ocorreu um erro.');
-        document.getElementById('acoes-table-body').querySelector('td[colspan="8"]')?.parentElement.remove();
-        const [date, time] = novaData.split('T');
-        const [y, m, d] = date.split('-');
-        const newRow = `<tr class="hover-actions-trigger btn-reveal-trigger position-static"><td class="fs-9 align-middle px-0 py-3"><div class="form-check mb-0 fs-8"><input class="form-check-input" type="checkbox" /></div></td><td class="align-middle white-space-nowrap py-2 ps-0"><span class="fw-semibold">${d}/${m}/${y}</span><div class="fs-10 text-body-tertiary">${time}:00</div></td><td class="align-middle py-2"><span class="badge badge-phoenix fs-10 badge-phoenix-info">Contato Remarcado</span></td><td class="align-middle py-2">Contato remarcado pelo usuário.</td><td class="align-middle white-space-nowrap text-start fw-bold text-body-tertiary py-2">{{ session.get("user", {}).get("name") or 'Sistema' }}</td><td class="align-middle white-space-nowrap text-start fw-bold text-body-tertiary py-2">{{ context.data.responsavel_nome_completo or '-' }}</td><td class="align-middle white-space-nowrap py-2"><span class="badge badge-phoenix fs-10 badge-phoenix-warning">Pendente</span></td><td class="align-middle text-end white-space-nowrap pe-0 action py-2"><div class="btn-reveal-trigger position-static"><button class="btn btn-sm dropdown-toggle dropdown-caret-none transition-none btn-reveal" type="button" data-bs-toggle="dropdown" data-boundary="window" aria-haspopup="true" aria-expanded="false" data-bs-reference="parent"><span class="fas fa-ellipsis-h fs-10"></span></button><div class="dropdown-menu dropdown-menu-end py-2"></div></div></td></tr>`;
-        document.getElementById('acoes-table-body').insertAdjacentHTML('afterbegin', newRow);
-        window.showToast('Ação registrada com sucesso!', 'success');
-        remarcarModal.hide();
-      } catch (error) { window.showToast(error.message, 'error');
-      } finally { btn.disabled = false; btn.innerHTML = originalHTML; }
-    });
+      // ============================================================================
+      // MODAL REMARCAR CONTATO
+      // ============================================================================
+      const remarcarModal = new bootstrap.Modal(document.getElementById('remarcarContatoModal'));
+      const btnRemarcarContato = document.getElementById('btnRemarcarContato');
 
-    document.getElementById('obsForm')?.addEventListener('submit', async e => {
-      e.preventDefault();
-      const btn = e.submitter, originalHTML = btn.innerHTML;
-      btn.disabled = true;
-      btn.innerHTML = `<span class="fas fa-spinner fa-spin"></span> Salvando...`;
-      try {
-        const codEvento = '{{context.data.cod_empresa}}{{ context.data.cod_evento }}';
-        const obs = document.getElementById('obsEventoTextarea').value;
-        const response = await fetch(`https://backend.caiuas.com.br/api/crm/eventos_showroom/update_observacao/${codEvento}`, {
-          method: "POST", headers: { "Content-Type": "application/json", "Authorization": "Bearer {{ session.token }}" },
-          body: JSON.stringify({ "observacao": obs }), redirect: "follow"
+      // Capturar clique no botão remarcar contato
+      if (btnRemarcarContato) {
+        btnRemarcarContato.addEventListener('click', function (e) {
+          e.preventDefault();
+          e.stopPropagation();
+
+          // Pré-preencher com data atual + 1 hora
+          const agora = new Date();
+          agora.setHours(agora.getHours() + 1);
+          const dataFormatada = agora.toISOString().slice(0, 16);
+
+          const inputData = document.getElementById('novaDataContato');
+          if (inputData) {
+            inputData.value = dataFormatada;
+          }
+
+          // Mostrar modal
+          remarcarModal.show();
         });
-        const result = await response.json();
-        if (!response.ok) throw new Error(result.message || 'Ocorreu um erro.');
-        window.showToast('Observação salva com sucesso!', 'success');
-      } catch (error) { window.showToast(error.message, 'error');
-      } finally { btn.disabled = false; btn.innerHTML = originalHTML; }
+      }
+
+      // Capturar submit do formulário
+      const remarcarForm = document.getElementById('remarcarContatoForm');
+      if (remarcarForm) {
+        remarcarForm.addEventListener('submit', async function (e) {
+          e.preventDefault();
+
+          const btn = e.submitter;
+          const originalHTML = btn.innerHTML;
+
+          // Desabilitar botão e mostrar loading
+          btn.disabled = true;
+          btn.innerHTML = `<span class="fas fa-spinner fa-spin"></span> Salvando...`;
+
+          try {
+            const novaData = document.getElementById('novaDataContato').value;
+
+            if (!novaData) {
+              throw new Error('Por favor, selecione uma data e hora.');
+            }
+
+            const response = await fetch(`https://backend.caiuas.com.br/api/crm/eventos_showroom/remarca_contato/${codEvento}`, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${token}`
+              },
+              body: JSON.stringify({
+                "nova_data_hora": novaData.replace('T', ' ') + ':00'
+              }),
+              redirect: "follow"
+            });
+
+            const result = await response.json();
+
+            if (!response.ok) {
+              throw new Error(result.message || 'Ocorreu um erro ao remarcar o contato.');
+            }
+
+            // Remover linha "Nenhuma ação encontrada" se existir
+            const emptyRow = document.getElementById('acoes-table-body').querySelector('td[colspan="8"]');
+            if (emptyRow) {
+              emptyRow.parentElement.remove();
+            }
+
+            // Adicionar nova linha na tabela
+            const [date, time] = novaData.split('T');
+            const [y, m, d] = date.split('-');
+
+            const newRow = `
+          <tr class="hover-actions-trigger btn-reveal-trigger position-static">
+            <td class="fs-9 align-middle px-0 py-3">
+              <div class="form-check mb-0 fs-8">
+                <input class="form-check-input" type="checkbox" />
+              </div>
+            </td>
+            <td class="align-middle white-space-nowrap py-2 ps-0">
+              <span class="fw-semibold">${d}/${m}/${y}</span>
+              <div class="fs-10 text-body-tertiary">${time}:00</div>
+            </td>
+            <td class="align-middle py-2">
+              <span class="badge badge-phoenix fs-10 badge-phoenix-info">Contato Remarcado</span>
+            </td>
+            <td class="align-middle py-2">
+              Contato remarcado pelo usuário.
+            </td>
+            <td class="align-middle white-space-nowrap text-start fw-bold text-body-tertiary py-2">
+              {{ session.get("user", {}).get("name") or 'Sistema' }}
+            </td>
+            <td class="align-middle white-space-nowrap text-start fw-bold text-body-tertiary py-2">
+              {{ context.data.responsavel_nome_completo or '-' }}
+            </td>
+            <td class="align-middle white-space-nowrap py-2">
+              <span class="badge badge-phoenix fs-10 badge-phoenix-warning">Pendente</span>
+            </td>
+            <td class="align-middle text-end white-space-nowrap pe-0 action py-2">
+              <div class="btn-reveal-trigger position-static">
+                <button class="btn btn-sm dropdown-toggle dropdown-caret-none transition-none btn-reveal" type="button" data-bs-toggle="dropdown" data-boundary="window" aria-haspopup="true" aria-expanded="false" data-bs-reference="parent">
+                  <span class="fas fa-ellipsis-h fs-10"></span>
+                </button>
+                <div class="dropdown-menu dropdown-menu-end py-2"></div>
+              </div>
+            </td>
+          </tr>
+        `;
+
+            document.getElementById('acoes-table-body').insertAdjacentHTML('afterbegin', newRow);
+
+            // Mostrar toast de sucesso
+            if (window.showToast) {
+              window.showToast('Contato remarcado com sucesso!', 'success');
+            }
+
+            // Fechar modal
+            remarcarModal.hide();
+
+            // Atualizar a data para contato na sidebar (opcional)
+            updateDataContato(novaData);
+
+          } catch (error) {
+            console.error('Erro ao remarcar contato:', error);
+
+            if (window.showToast) {
+              window.showToast(error.message || 'Erro ao remarcar contato', 'error');
+            }
+          } finally {
+            // Restaurar botão
+            btn.disabled = false;
+            btn.innerHTML = originalHTML;
+          }
+        });
+      }
+
+      // ============================================================================
+      // FORMULÁRIO DE OBSERVAÇÕES
+      // ============================================================================
+      const obsForm = document.getElementById('obsForm');
+      if (obsForm) {
+        obsForm.addEventListener('submit', async function (e) {
+          e.preventDefault();
+
+          const btn = e.submitter;
+          const originalHTML = btn.innerHTML;
+
+          btn.disabled = true;
+          btn.innerHTML = `<span class="fas fa-spinner fa-spin"></span> Salvando...`;
+
+          try {
+            const obs = document.getElementById('obsEventoTextarea').value;
+
+            const response = await fetch(`https://backend.caiuas.com.br/api/crm/eventos_showroom/update_observacao/${codEvento}`, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${token}`
+              },
+              body: JSON.stringify({ "observacao": obs }),
+              redirect: "follow"
+            });
+
+            const result = await response.json();
+
+            if (!response.ok) {
+              throw new Error(result.message || 'Ocorreu um erro ao salvar a observação.');
+            }
+
+            if (window.showToast) {
+              window.showToast('Observação salva com sucesso!', 'success');
+            }
+
+          } catch (error) {
+            console.error('Erro ao salvar observação:', error);
+
+            if (window.showToast) {
+              window.showToast(error.message || 'Erro ao salvar observação', 'error');
+            }
+          } finally {
+            btn.disabled = false;
+            btn.innerHTML = originalHTML;
+          }
+        });
+      }
+
+      // ============================================================================
+      // FUNÇÕES AUXILIARES
+      // ============================================================================
+      function updateDataContato(novaData) {
+        // Encontrar e atualizar a data para contato na sidebar
+        const dataContatoElement = document.querySelector('.d-flex.align-items-center span');
+        if (dataContatoElement && dataContatoElement.textContent.includes('/')) {
+          const [date, time] = novaData.split('T');
+          const [y, m, d] = date.split('-');
+          dataContatoElement.textContent = `${d}/${m}/${y} às ${time}`;
+        }
+      }
+
+      // Debug - verificar se elementos existem
+      console.log('Elementos encontrados:', {
+        btnRemarcarContato: !!btnRemarcarContato,
+        remarcarModal: !!document.getElementById('remarcarContatoModal'),
+        remarcarForm: !!remarcarForm,
+        obsForm: !!obsForm
+      });
     });
-  });
-</script>
+  </script>
 
 </body>
 
