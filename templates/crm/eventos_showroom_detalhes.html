@@ -458,13 +458,15 @@
                     <div class="mb-3">
                       <label class="form-label" for="data-agendada">Data Agendada</label>
                       <input type="datetime-local" class="form-control" id="data-agendada" name="data_agendada"
-                        value="{{ context.data.data_agendada[:16] if context.data.data_agendada else '' }}" required>
+                        value="{{ context.data.data_agendada[:16] if context.data.data_agendada else '' }}">
+                      <div class="form-text">Campo opcional - deixe vazio para remover o agendamento</div>
                     </div>
 
                     <div class="mb-3">
                       <label class="form-label" for="data-visita">Data da Visita</label>
                       <input type="datetime-local" class="form-control" id="data-visita" name="data_visita"
                         value="{{ context.data.data_visita[:16] if context.data.data_visita else '' }}">
+                      <div class="form-text">Campo opcional - deixe vazio para remover a data da visita</div>
                     </div>
 
                     <div class="d-flex justify-content-end">
@@ -765,7 +767,13 @@
             <form id="novoAgendamentoForm">
               <div class="mb-3">
                 <label for="dataAgendada" class="form-label">Data Agendada</label>
-                <input type="datetime-local" class="form-control" id="dataAgendada" name="data_agendada" required>
+                <input type="datetime-local" class="form-control" id="dataAgendada" name="data_agendada">
+                <div class="form-text">Campo opcional - deixe vazio se não desejar agendar ainda</div>
+              </div>
+              <div class="mb-3">
+                <label for="dataVisitaModal" class="form-label">Data da Visita</label>
+                <input type="datetime-local" class="form-control" id="dataVisitaModal" name="data_visita">
+                <div class="form-text">Campo opcional - use apenas se a visita já foi realizada</div>
               </div>
             </form>
           </div>
@@ -949,6 +957,159 @@
       }
 
       // ============================================================================
+      // MODAL AGENDAMENTO DE VISITA
+      // ============================================================================
+      const novoAgendamentoModal = new bootstrap.Modal(document.getElementById('novoAgendamentoModal'));
+      const novoAgendamentoForm = document.getElementById('novoAgendamentoForm');
+      
+      // Pré-preencher data quando modal abrir (opcional)
+      const modalAgendamento = document.getElementById('novoAgendamentoModal');
+      if (modalAgendamento) {
+        modalAgendamento.addEventListener('show.bs.modal', function() {
+          // Deixar campos vazios por padrão, já que são opcionais
+          const inputDataAgendada = document.getElementById('dataAgendada');
+          const inputDataVisita = document.getElementById('dataVisitaModal');
+          
+          if (inputDataAgendada) {
+            inputDataAgendada.value = '';
+          }
+          if (inputDataVisita) {
+            inputDataVisita.value = '';
+          }
+        });
+      }
+
+      // Capturar submit do formulário de agendamento
+      if (novoAgendamentoForm) {
+        novoAgendamentoForm.addEventListener('submit', async function (e) {
+          e.preventDefault();
+
+          const btn = e.submitter;
+          const originalHTML = btn.innerHTML;
+
+          // Desabilitar botão e mostrar loading
+          btn.disabled = true;
+          btn.innerHTML = `<span class="fas fa-spinner fa-spin"></span> Salvando...`;
+
+          try {
+            const dataAgendada = document.getElementById('dataAgendada').value;
+            const dataVisitaModal = document.getElementById('dataVisitaModal').value;
+
+            // Preparar payload - se vazio, enviar null
+            const payload = {
+              "data_agendada": dataAgendada ? dataAgendada.replace('T', ' ') + ':00' : null,
+              "data_visita": dataVisitaModal ? dataVisitaModal.replace('T', ' ') + ':00' : null
+            };
+
+            const response = await fetch(`https://backend.caiuas.com.br/api/crm/eventos_showroom/agenda_visita/${codEvento}`, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${token}`
+              },
+              body: JSON.stringify(payload),
+              redirect: "follow"
+            });
+
+            const result = await response.json();
+
+            if (!response.ok) {
+              throw new Error(result.message || 'Ocorreu um erro ao salvar o agendamento.');
+            }
+
+            // Mostrar toast de sucesso
+            if (window.showToast) {
+              window.showToast('Agendamento salvo com sucesso!', 'success');
+            }
+
+            // Fechar modal
+            novoAgendamentoModal.hide();
+
+            // Recarregar página após 1.5s
+            setTimeout(() => {
+              window.location.reload();
+            }, 1500);
+
+          } catch (error) {
+            console.error('Erro ao salvar agendamento:', error);
+
+            if (window.showToast) {
+              window.showToast(error.message || 'Erro ao salvar agendamento', 'error');
+            }
+          } finally {
+            // Restaurar botão
+            btn.disabled = false;
+            btn.innerHTML = originalHTML;
+          }
+        });
+      }
+
+      // ============================================================================
+      // FORMULÁRIO DE ATUALIZAÇÃO DE AGENDAMENTO EXISTENTE
+      // ============================================================================
+      const agendamentoForm = document.getElementById('agendamentoForm');
+      if (agendamentoForm) {
+        agendamentoForm.addEventListener('submit', async function (e) {
+          e.preventDefault();
+
+          const btn = e.submitter;
+          const originalHTML = btn.innerHTML;
+
+          // Desabilitar botão e mostrar loading
+          btn.disabled = true;
+          btn.innerHTML = `<span class="fas fa-spinner fa-spin"></span> Salvando...`;
+
+          try {
+            const dataAgendada = document.getElementById('data-agendada').value;
+            const dataVisita = document.getElementById('data-visita').value;
+
+            // Preparar payload - se vazio, enviar null
+            const payload = {
+              "data_agendada": dataAgendada ? dataAgendada.replace('T', ' ') + ':00' : null,
+              "data_visita": dataVisita ? dataVisita.replace('T', ' ') + ':00' : null
+            };
+
+            const response = await fetch(`https://backend.caiuas.com.br/api/crm/eventos_showroom/agenda_visita/${codEvento}`, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${token}`
+              },
+              body: JSON.stringify(payload),
+              redirect: "follow"
+            });
+
+            const result = await response.json();
+
+            if (!response.ok) {
+              throw new Error(result.message || 'Ocorreu um erro ao atualizar o agendamento.');
+            }
+
+            // Mostrar toast de sucesso
+            if (window.showToast) {
+              window.showToast('Agendamento atualizado com sucesso!', 'success');
+            }
+
+            // Recarregar página após 1.5s
+            setTimeout(() => {
+              window.location.reload();
+            }, 1500);
+
+          } catch (error) {
+            console.error('Erro ao atualizar agendamento:', error);
+
+            if (window.showToast) {
+              window.showToast(error.message || 'Erro ao atualizar agendamento', 'error');
+            }
+          } finally {
+            // Restaurar botão
+            btn.disabled = false;
+            btn.innerHTML = originalHTML;
+          }
+        });
+      }
+
+      // ============================================================================
       // FORMULÁRIO DE OBSERVAÇÕES
       // ============================================================================
       const obsForm = document.getElementById('obsForm');
@@ -1016,6 +1177,8 @@
         btnRemarcarContato: !!btnRemarcarContato,
         remarcarModal: !!document.getElementById('remarcarContatoModal'),
         remarcarForm: !!remarcarForm,
+        novoAgendamentoForm: !!novoAgendamentoForm,
+        agendamentoForm: !!agendamentoForm,
         obsForm: !!obsForm
       });
     });
