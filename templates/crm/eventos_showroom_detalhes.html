@@ -144,6 +144,8 @@
                           <span class="fas fa-exclamation-triangle me-1"></span>
                           Cliente não cadastrado
                         </a>
+                        <!-- adicione um botão ou um icone para trocar cliente -->
+                        <button class="btn btn-link px-3" type="button" data-bs-target="#editClientModal" data-bs-toggle="modal">Edit</button>
                         {% else %}
                         <p class="mb-0">CPF ou CNPJ</p><a class="fw-bold">{{ context.data.cod_cliente }}</a>
                         {% endif %}
