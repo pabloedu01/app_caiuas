@@ -145,9 +145,12 @@
                           Cliente não cadastrado
                         </a>
                         <!-- adicione um botão ou um icone para trocar cliente -->
-                        <button class="btn btn-link px-3" type="button" data-bs-target="#editClientModal" data-bs-toggle="modal">Edit</button>
+                        <button class="btn btn-link px-3" type="button" data-bs-target="#editClientModal"
+                          data-bs-toggle="modal">Edit</button>
                         {% else %}
                         <p class="mb-0">CPF ou CNPJ</p><a class="fw-bold">{{ context.data.cod_cliente }}</a>
+                        <button class="btn btn-link px-3" type="button" data-bs-target="#editClientModal"
+                          data-bs-toggle="modal">Edit</button>
                         {% endif %}
                       </div>
                     </div>
@@ -788,7 +791,8 @@
     </div>
 
     <!-- Modal de busca de clientes -->
-    <div class="modal fade" id="editClientModal" tabindex="-1" aria-labelledby="editClientModalLabel" aria-hidden="true">
+    <div class="modal fade" id="editClientModal" tabindex="-1" aria-labelledby="editClientModalLabel"
+      aria-hidden="true">
       <div class="modal-dialog modal-xl modal-dialog-centered">
         <div class="modal-content">
           <div class="modal-header">
@@ -799,7 +803,8 @@
             <!-- Campo de busca -->
             <div class="mb-4">
               <div class="input-group">
-                <input type="text" class="form-control" id="searchClientInput" placeholder="Digite o nome ou CPF/CNPJ do cliente...">
+                <input type="text" class="form-control" id="searchClientInput"
+                  placeholder="Digite o nome ou CPF/CNPJ do cliente...">
                 <button class="btn btn-primary" type="button" id="searchClientBtn">
                   <span class="fas fa-search me-2"></span>Buscar
                 </button>
@@ -865,7 +870,8 @@
                 <span class="fa-solid fa-search fa-3x text-secondary"></span>
               </div>
               <h5 class="mb-3">Buscar Cliente</h5>
-              <p class="text-body-secondary">Digite o nome ou CPF/CNPJ do cliente no campo acima para iniciar a busca.</p>
+              <p class="text-body-secondary">Digite o nome ou CPF/CNPJ do cliente no campo acima para iniciar a busca.
+              </p>
             </div>
           </div>
           <div class="modal-footer">
@@ -1051,15 +1057,15 @@
       // ============================================================================
       const novoAgendamentoModal = new bootstrap.Modal(document.getElementById('novoAgendamentoModal'));
       const novoAgendamentoForm = document.getElementById('novoAgendamentoForm');
-      
+
       // Pré-preencher data quando modal abrir (opcional)
       const modalAgendamento = document.getElementById('novoAgendamentoModal');
       if (modalAgendamento) {
-        modalAgendamento.addEventListener('show.bs.modal', function() {
+        modalAgendamento.addEventListener('show.bs.modal', function () {
           // Deixar campos vazios por padrão, já que são opcionais
           const inputDataAgendada = document.getElementById('dataAgendada');
           const inputDataVisita = document.getElementById('dataVisitaModal');
-          
+
           if (inputDataAgendada) {
             inputDataAgendada.value = '';
           }
@@ -1388,7 +1394,7 @@
       async function searchClients(searchTerm, page = 1) {
         try {
           showClientSearchState('loading');
-          
+
           // Atualizar página atual
           currentPage = page;
 
@@ -1416,7 +1422,7 @@
         } catch (error) {
           console.error('Erro ao buscar clientes:', error);
           showClientSearchState('empty');
-          
+
           if (window.showToast) {
             window.showToast(error.message || 'Erro ao buscar clientes', 'error');
           }
@@ -1499,7 +1505,7 @@
           prevLink.className = 'page-link';
           prevLink.href = '#';
           prevLink.innerHTML = '<span class="fas fa-chevron-left"></span>';
-          prevLink.addEventListener('click', function(e) {
+          prevLink.addEventListener('click', function (e) {
             e.preventDefault();
             searchClients(currentSearch, data.current_page - 1);
           });
@@ -1519,7 +1525,7 @@
         for (let i = startPage; i <= endPage; i++) {
           const pageButton = document.createElement('li');
           pageButton.className = `page-item ${i === data.current_page ? 'active' : ''}`;
-          
+
           if (i === data.current_page) {
             const pageSpan = document.createElement('span');
             pageSpan.className = 'page-link';
@@ -1530,7 +1536,7 @@
             pageLink.className = 'page-link';
             pageLink.href = '#';
             pageLink.textContent = i;
-            pageLink.addEventListener('click', function(e) {
+            pageLink.addEventListener('click', function (e) {
               e.preventDefault();
               searchClients(currentSearch, i);
             });
@@ -1547,7 +1553,7 @@
           nextLink.className = 'page-link';
           nextLink.href = '#';
           nextLink.innerHTML = '<span class="fas fa-chevron-right"></span>';
-          nextLink.addEventListener('click', function(e) {
+          nextLink.addEventListener('click', function (e) {
             e.preventDefault();
             searchClients(currentSearch, data.current_page + 1);
           });
@@ -1587,7 +1593,7 @@
       }
 
       // Função para selecionar cliente
-      window.selectClient = async function(codCliente, nomeCliente) {
+      window.selectClient = async function (codCliente, nomeCliente) {
         try {
           // Desabilitar botões da tabela temporariamente
           const selectButtons = document.querySelectorAll('#clientTableBody button');
@@ -1618,10 +1624,10 @@
           if (window.showToast) {
             window.showToast(`Cliente "${nomeCliente}" vinculado ao evento com sucesso!`, 'success');
           }
-          
+
           // Fechar modal
           editClientModal.hide();
-          
+
           // Recarregar página após 2 segundos para mostrar as alterações
           setTimeout(() => {
             window.location.reload();
@@ -1629,7 +1635,7 @@
 
         } catch (error) {
           console.error('Erro ao alterar cliente:', error);
-          
+
           if (window.showToast) {
             window.showToast(error.message || 'Erro ao alterar cliente do evento', 'error');
           }
@@ -1645,7 +1651,7 @@
 
       // Event listeners para busca
       if (searchClientBtn) {
-        searchClientBtn.addEventListener('click', function() {
+        searchClientBtn.addEventListener('click', function () {
           const searchTerm = searchClientInput.value.trim();
           if (searchTerm.length >= 3) {
             currentSearch = searchTerm;
@@ -1660,7 +1666,7 @@
       }
 
       if (searchClientInput) {
-        searchClientInput.addEventListener('keypress', function(e) {
+        searchClientInput.addEventListener('keypress', function (e) {
           if (e.key === 'Enter') {
             e.preventDefault();
             searchClientBtn.click();
@@ -1668,7 +1674,7 @@
         });
 
         // Reset ao limpar o campo
-        searchClientInput.addEventListener('input', function() {
+        searchClientInput.addEventListener('input', function () {
           if (this.value.length === 0) {
             showClientSearchState('initial');
           }
@@ -1676,7 +1682,7 @@
       }
 
       // Reset modal ao abrir
-      document.getElementById('editClientModal').addEventListener('show.bs.modal', function() {
+      document.getElementById('editClientModal').addEventListener('show.bs.modal', function () {
         searchClientInput.value = '';
         showClientSearchState('initial');
         currentSearch = '';
