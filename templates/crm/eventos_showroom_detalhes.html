@@ -912,6 +912,28 @@
       // ============================================================================
       const codEvento = '{{context.data.cod_empresa}}{{context.data.cod_evento}}';
       const token = '{{ session.token }}';
+      const statusEvento = '{{ context.data.status }}';
+      
+      // Status que bloqueiam edições
+      const statusBloqueados = ['D', 'E', 'CP']; // Descartado, Encerrado, Contato Perdido
+      const eventoEditavel = !statusBloqueados.includes(statusEvento);
+
+      // Função para verificar se o evento pode ser editado
+      function verificarPermissaoEdicao(acao = 'esta ação') {
+        if (!eventoEditavel) {
+          const statusNomes = {
+            'D': 'Descartado',
+            'E': 'Encerrado', 
+            'CP': 'Contato Perdido'
+          };
+          
+          if (window.showToast) {
+            window.showToast(`Não é possível realizar ${acao}. O evento está ${statusNomes[statusEvento]}.`, 'warning');
+          }
+          return false;
+        }
+        return true;
+      }
 
       // ============================================================================
       // MODAL REMARCAR CONTATO
@@ -924,6 +946,11 @@
         btnRemarcarContato.addEventListener('click', function (e) {
           e.preventDefault();
           e.stopPropagation();
+
+          // Verificar se o evento pode ser editado
+          if (!verificarPermissaoEdicao('remarcar contato')) {
+            return;
+          }
 
           // Pré-preencher com data atual + 1 hora
           const agora = new Date();
@@ -1080,6 +1107,11 @@
         novoAgendamentoForm.addEventListener('submit', async function (e) {
           e.preventDefault();
 
+          // Verificar se o evento pode ser editado
+          if (!verificarPermissaoEdicao('agendar visita')) {
+            return;
+          }
+
           const btn = e.submitter;
           const originalHTML = btn.innerHTML;
 
@@ -1148,6 +1180,11 @@
         agendamentoForm.addEventListener('submit', async function (e) {
           e.preventDefault();
 
+          // Verificar se o evento pode ser editado
+          if (!verificarPermissaoEdicao('atualizar agendamento')) {
+            return;
+          }
+
           const btn = e.submitter;
           const originalHTML = btn.innerHTML;
 
@@ -1212,6 +1249,11 @@
       if (novaAcaoForm) {
         novaAcaoForm.addEventListener('submit', async function (e) {
           e.preventDefault();
+
+          // Verificar se o evento pode ser editado
+          if (!verificarPermissaoEdicao('criar nova ação')) {
+            return;
+          }
 
           const btn = e.submitter;
           const originalHTML = btn.innerHTML;
@@ -1330,6 +1372,11 @@
       if (obsForm) {
         obsForm.addEventListener('submit', async function (e) {
           e.preventDefault();
+
+          // Verificar se o evento pode ser editado
+          if (!verificarPermissaoEdicao('salvar observação')) {
+            return;
+          }
 
           const btn = e.submitter;
           const originalHTML = btn.innerHTML;
@@ -1594,6 +1641,11 @@
 
       // Função para selecionar cliente
       window.selectClient = async function (codCliente, nomeCliente) {
+        // Verificar se o evento pode ser editado
+        if (!verificarPermissaoEdicao('alterar cliente')) {
+          return;
+        }
+
         try {
           // Desabilitar botões da tabela temporariamente
           const selectButtons = document.querySelectorAll('#clientTableBody button');
@@ -1688,6 +1740,76 @@
         currentSearch = '';
         currentPage = 1;
       });
+
+      // ============================================================================
+      // DESABILITAR ELEMENTOS QUANDO EVENTO NÃO EDITÁVEL
+      // ============================================================================
+      if (!eventoEditavel) {
+        // Desabilitar botões principais
+        if (btnRemarcarContato) {
+          btnRemarcarContato.disabled = true;
+          btnRemarcarContato.classList.add('disabled');
+          btnRemarcarContato.setAttribute('title', `Evento ${statusEvento === 'D' ? 'Descartado' : statusEvento === 'E' ? 'Encerrado' : 'Contato Perdido'} - não é possível editar`);
+        }
+
+        // Desabilitar botão de edit do cliente
+        const editClientBtn = document.querySelector('[data-bs-target="#editClientModal"]');
+        if (editClientBtn) {
+          editClientBtn.disabled = true;
+          editClientBtn.classList.add('disabled');
+          editClientBtn.setAttribute('title', `Evento ${statusEvento === 'D' ? 'Descartado' : statusEvento === 'E' ? 'Encerrado' : 'Contato Perdido'} - não é possível editar`);
+        }
+
+        // Desabilitar formulários
+        const formsToDisable = ['novaAcaoForm', 'agendamentoForm', 'obsForm'];
+        formsToDisable.forEach(formId => {
+          const form = document.getElementById(formId);
+          if (form) {
+            const inputs = form.querySelectorAll('input, textarea, button[type="submit"], select');
+            inputs.forEach(input => {
+              input.disabled = true;
+              if (input.tagName === 'BUTTON') {
+                input.setAttribute('title', `Evento ${statusEvento === 'D' ? 'Descartado' : statusEvento === 'E' ? 'Encerrado' : 'Contato Perdido'} - não é possível editar`);
+              }
+            });
+          }
+        });
+
+        // Desabilitar botão de agendar nova visita
+        const agendarBtn = document.querySelector('[data-bs-target="#novoAgendamentoModal"]');
+        if (agendarBtn) {
+          agendarBtn.disabled = true;
+          agendarBtn.classList.add('disabled');
+          agendarBtn.setAttribute('title', `Evento ${statusEvento === 'D' ? 'Descartado' : statusEvento === 'E' ? 'Encerrado' : 'Contato Perdido'} - não é possível editar`);
+        }
+
+        // Adicionar estilo visual para elementos desabilitados
+        const style = document.createElement('style');
+        style.textContent = `
+          .disabled {
+            opacity: 0.6 !important;
+            cursor: not-allowed !important;
+            pointer-events: none !important;
+          }
+          form:has(input[disabled]) {
+            opacity: 0.7;
+            position: relative;
+          }
+          form:has(input[disabled])::before {
+            content: 'Evento ${statusEvento === 'D' ? 'Descartado' : statusEvento === 'E' ? 'Encerrado' : 'Contato Perdido'} - Edição bloqueada';
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            background: #f8d7da;
+            color: #721c24;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            z-index: 10;
+          }
+        `;
+        document.head.appendChild(style);
+      }
 
       // ============================================================================
       // FUNÇÕES AUXILIARES
