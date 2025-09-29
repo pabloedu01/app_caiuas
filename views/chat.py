@@ -42,7 +42,8 @@ def chat_api():
             '+5515991057976', # Marcelo
             '+5515991286831', # Andrea
             '+5515991549353',  # Doca
-            '+5515988140625'  # Mario
+            '+5515988140625',  # Mario
+            '+5515991550164'
         ]
         
         # system_instruction = """
@@ -662,4 +663,52 @@ def webhook_whatsapp():
         return json.dumps({'status': 'success', 'message': 'Webhook processed successfully'}), 200
     except Exception as e:
         return json.dumps({'error': 'Invalid JSON payload'}), 400
-    
+
+@chat_bp.route('/api/chatwoot/open_chat/<int:number>', methods=['POST'])
+def chatwoot_open_chat(number):
+    try:
+        conn, cur = postgres_chatwoot()
+        data = request.get_json()
+        name = data.get('name', 'Cliente')
+        query = f"""
+                    WITH update_result AS (
+                    UPDATE contacts
+                    SET
+                        "name" = '{str(name).upper()}',
+                        updated_at = now(),
+                        last_activity_at = now()
+                    WHERE phone_number = '+{number}'
+                    RETURNING id
+                ),
+                insert_result AS (
+                    INSERT INTO contacts
+                    ("name", email, phone_number, account_id, created_at, updated_at, additional_attributes, identifier, custom_attributes, last_activity_at, contact_type, middle_name, last_name, "location", country_code, "blocked")
+                    SELECT
+                        '{str(name).upper()}', NULL, '+{number}', 1, now(), now(), '{{}}'::jsonb, NULL, '{{}}'::jsonb, now(), 1, '', '', NULL, NULL, false
+                    WHERE NOT EXISTS (SELECT 1 FROM update_result)
+                    RETURNING id
+                )
+                SELECT id FROM update_result
+                UNION ALL
+                SELECT id FROM insert_result
+                """
+        cur.execute(query)
+        r = cur.fetchone()
+        if len(r) == 0:
+            retorno = {
+                'message': 'Contact not created/updated.'
+            }
+            cur.close()
+            conn.close()
+            return jsonify(retorno), 400
+        contact_id = r[0]
+        cur.close()
+        conn.close()
+        url = f"https://chat.caiuas.com.br/app/accounts/1/contacts/{contact_id}"
+        retorno = {}
+        retorno['url'] = url
+        return jsonify(retorno), 200
+        
+    except Exception as e:
+        return json.dumps({'error': 'Invalid JSON payload'}), 400
+        
