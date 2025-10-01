@@ -423,6 +423,25 @@ def estoque_veiculos():
     context['parametros'] = {'cod_empresa': 11}
     return render_template('veiculos/estoque.html', context=context)
 
+@app.route('/veiculos/aguardando_faturamento', methods=['GET'])
+def estoque_aguardando_faturamento():
+    token = session.get('token')
+    if not token or not token_valido(token):
+        return redirect(url_for('login_page'))
+    url = "https://backend.caiuas.com.br/api/veiculos/aguardando_faturamento"
+
+    payload = {}
+    headers = {}
+
+    response = requests.request("GET", url, headers=headers, data=payload)
+    
+    context = {}
+    context['title'] = 'Estoque aguardando faturamento'
+    context['main_menu'] = 'relatorios'
+    context['veiculos'] = response.json()['veiculos']
+    context['parametros'] = {'cod_empresa': 11}
+    return render_template('veiculos/aguardando_faturamento.html', context=context)
+
 @app.route('/forms/form_site', methods=['GET'])
 def form_site_veiculos():
     token = session.get('token')
