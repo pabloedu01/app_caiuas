@@ -428,7 +428,7 @@
                   <div class="mb-4">
                     <div class="d-flex align-items-center mb-1"><span class="me-2 uil uil-phone"> </span>
                       <h5 class="text-body-highlight mb-0">Telefone Evento</h5>
-                    </div><a href="tel:+55{{ context.data.fone_cliente_avulso }}">+55{{ context.data.fone_cliente_avulso
+                    </div><a href="tel:{{ context.data.fone_cliente_avulso }}">{{ context.data.fone_cliente_avulso
                       }}</a>
                     <a href="#" onclick="open_whatsapp('55{{ context.data.fone_cliente_avulso }}'); return false;"
                       class="ms-2 text-success" title="Enviar WhatsApp">
@@ -440,7 +440,7 @@
                   <div class="mb-4">
                     <div class="d-flex align-items-center mb-1"><span class="me-2 uil uil-phone"> </span>
                       <h5 class="text-body-highlight mb-0">Telefone Celular</h5>
-                    </div><a href="tel:+55{{ context.data.tel_cel }}">+55{{ context.data.tel_cel }}</a>
+                    </div><a href="tel:{{ context.data.tel_cel }}">{{ context.data.tel_cel }}</a>
                     <a href="#" onclick="open_whatsapp('55{{ context.data.tel_cel }}'); return false;"
                       class="ms-2 text-success" title="Enviar WhatsApp">
                       <span class="fab fa-whatsapp"></span>
@@ -451,7 +451,7 @@
                   <div class="mb-4">
                     <div class="d-flex align-items-center mb-1"><span class="me-2 uil uil-phone"> </span>
                       <h5 class="text-body-highlight mb-0">Telefone Whatsapp</h5>
-                    </div>+55{{ context.data.tel_whatsapp }}
+                    </div>{{ context.data.tel_whatsapp }}
                     <a href="#" onclick="open_whatsapp('55{{ context.data.tel_whatsapp }}'); return false;"
                       class="ms-2 text-success" title="Enviar WhatsApp">
                       <span class="fab fa-whatsapp"></span>
