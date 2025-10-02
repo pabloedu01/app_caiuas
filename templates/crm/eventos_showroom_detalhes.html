@@ -951,6 +951,57 @@
       </div>
     </div>
 
+    <!-- Modal para troca de modelo de veículo -->
+     <div class="modal fade" id="editModeloModal" tabindex="-1" aria-labelledby="editModeloModalLabel"
+      aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+          <form id="editModeloForm">
+            <div class="modal-header">
+              <h5 class="modal-title" id="editModeloModalLabel">Alterar Modelo do Veículo</h5>
+              <button class="btn btn-close p-1" type="button" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <!-- Campo de busca -->
+              <div class="mb-3">
+                <label for="searchModeloInput" class="form-label">Buscar Modelo</label>
+                <input type="text" class="form-control" id="searchModeloInput" 
+                  placeholder="Digite para filtrar modelos...">
+              </div>
+
+              <!-- Loading indicator -->
+              <div id="modeloLoadingIndicator" class="text-center py-4" style="display: none;">
+                <div class="spinner-border text-primary" role="status">
+                  <span class="visually-hidden">Carregando...</span>
+                </div>
+                <p class="mt-2 text-body-secondary">Carregando modelos...</p>
+              </div>
+
+              <!-- Select de modelos -->
+              <div id="modeloSelectContainer">
+                <div class="mb-3">
+                  <label for="modeloSelect" class="form-label">Selecione o Modelo</label>
+                  <select class="form-select" id="modeloSelect" name="cod_modelo" required size="10">
+                    <option value="">Carregando modelos...</option>
+                  </select>
+                  <div class="form-text">
+                    <span id="modeloCount">0</span> modelos disponíveis
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button class="btn btn-primary" type="submit">
+                <span class="fas fa-save me-2"></span>Salvar
+              </button>
+              <button class="btn btn-outline-primary" type="button" data-bs-dismiss="modal">Cancelar</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+
   </main>
   <!-- ===============================================-->
   <!--    End of Main Content-->
@@ -1047,6 +1098,223 @@
       }
     }
     document.addEventListener('DOMContentLoaded', () => {
+
+
+
+
+// =================== TROCA DE MODELO DE VEÍCULO ===================
+      const modeloModal = new bootstrap.Modal(document.getElementById('editModeloModal'));
+      const modeloSelect = document.getElementById('modeloSelect');
+      const searchModeloInput = document.getElementById('searchModeloInput');
+      const editModeloForm = document.getElementById('editModeloForm');
+      const modeloLoadingIndicator = document.getElementById('modeloLoadingIndicator');
+      const modeloCount = document.getElementById('modeloCount');
+      
+      let todosModelos = [];
+      let modelosFiltrados = [];
+
+      // Adicionar botão de edição ao veículo de interesse
+      const veiculoInteresseSection = document.querySelector('.mb-4:has(.uil-car)');
+      if (veiculoInteresseSection) {
+        const editBtn = veiculoInteresseSection.querySelector('button[data-bs-target="#editMidiaModal"]');
+        if (editBtn) {
+          editBtn.setAttribute('data-bs-target', '#editModeloModal');
+          editBtn.setAttribute('title', 'Editar modelo de interesse');
+        }
+      }
+
+      // Carregar modelos ao abrir o modal
+      document.getElementById('editModeloModal').addEventListener('show.bs.modal', async function() {
+        modeloLoadingIndicator.style.display = 'block';
+        document.getElementById('modeloSelectContainer').style.display = 'none';
+        
+        try {
+          const myHeaders = new Headers();
+          myHeaders.append("Authorization", `Bearer ${token}`);
+
+          const requestOptions = {
+            method: "GET",
+            headers: myHeaders,
+            redirect: "follow"
+          };
+
+          const response = await fetch("https://backend.caiuas.com.br/api/veiculos/modelos", requestOptions);
+          const result = await response.json();
+
+          if (!response.ok) {
+            throw new Error(result.message || 'Erro ao carregar modelos');
+          }
+
+          todosModelos = result.modelos || [];
+          modelosFiltrados = [...todosModelos];
+          
+          renderizarModelos(modelosFiltrados);
+          
+          modeloLoadingIndicator.style.display = 'none';
+          document.getElementById('modeloSelectContainer').style.display = 'block';
+
+        } catch (error) {
+          console.error('Erro ao carregar modelos:', error);
+          modeloLoadingIndicator.style.display = 'none';
+          modeloSelect.innerHTML = '<option value="">Erro ao carregar modelos</option>';
+          
+          if (window.showToast) {
+            window.showToast(error.message || 'Erro ao carregar modelos', 'error');
+          }
+        }
+      });
+
+      // Função para renderizar modelos no select
+      function renderizarModelos(modelos) {
+        modeloSelect.innerHTML = '';
+        
+        if (modelos.length === 0) {
+          modeloSelect.innerHTML = '<option value="">Nenhum modelo encontrado</option>';
+          modeloCount.textContent = '0';
+          return;
+        }
+
+        // Ordenar modelos alfabeticamente
+        modelos.sort((a, b) => a.descricao_modelo.localeCompare(b.descricao_modelo));
+
+        modelos.forEach(modelo => {
+          const option = document.createElement('option');
+          option.value = modelo.cod_modelo;
+          option.textContent = modelo.descricao_modelo;
+          option.dataset.codProduto = modelo.cod_produto;
+          
+          // Marcar se for o modelo atual
+          if (modelo.descricao_modelo === '{{ context.data.descricao_modelo }}') {
+            option.selected = true;
+          }
+          
+          modeloSelect.appendChild(option);
+        });
+
+        modeloCount.textContent = modelos.length;
+      }
+
+      // Filtrar modelos ao digitar
+      if (searchModeloInput) {
+        searchModeloInput.addEventListener('input', function() {
+          const searchTerm = this.value.toLowerCase().trim();
+          
+          if (searchTerm === '') {
+            modelosFiltrados = [...todosModelos];
+          } else {
+            modelosFiltrados = todosModelos.filter(modelo => 
+              modelo.descricao_modelo.toLowerCase().includes(searchTerm)
+            );
+          }
+          
+          renderizarModelos(modelosFiltrados);
+        });
+      }
+
+      // Limpar busca ao fechar modal
+      document.getElementById('editModeloModal').addEventListener('hidden.bs.modal', function() {
+        searchModeloInput.value = '';
+        modelosFiltrados = [...todosModelos];
+      });
+
+      // Submeter alteração de modelo
+      editModeloForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        if (!verificarPermissaoEdicao('alterar modelo do veículo')) {
+          return;
+        }
+
+        const btn = e.submitter;
+        const originalHTML = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = `<span class="fas fa-spinner fa-spin"></span> Salvando...`;
+
+        try {
+          const codModelo = modeloSelect.value;
+          
+          if (!codModelo) {
+            throw new Error('Selecione um modelo.');
+          }
+
+          const selectedOption = modeloSelect.options[modeloSelect.selectedIndex];
+          const descricaoModelo = selectedOption.textContent;
+          const codProduto = selectedOption.dataset.codProduto;
+
+          const payload = {
+            cod_modelo: Number(codModelo),
+            cod_produto: Number(codProduto)
+          };
+
+          const response = await fetch(
+            `https://backend.caiuas.com.br/api/crm/eventos_showroom/muda_modelo_veiculo/${codEvento}`,
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${token}`
+              },
+              body: JSON.stringify(payload),
+              redirect: "follow"
+            }
+          );
+
+          let result;
+          try {
+            result = await response.json();
+          } catch {
+            result = { message: await response.text() };
+          }
+
+          if (!response.ok) {
+            throw new Error(result.message || 'Erro ao alterar modelo do veículo.');
+          }
+
+          if (window.showToast) {
+            window.showToast('Modelo do veículo alterado com sucesso!', 'success');
+          }
+
+          modeloModal.hide();
+
+          // Atualizar a descrição do modelo na página
+          const veiculoSection = document.querySelector('.mb-4:has(.uil-car)');
+          if (veiculoSection) {
+            const descricaoElement = veiculoSection.querySelector('div:last-child');
+            if (descricaoElement) {
+              descricaoElement.childNodes[0].textContent = descricaoModelo;
+            }
+          }
+
+        } catch (error) {
+          console.error('Erro ao alterar modelo:', error);
+          
+          if (window.showToast) {
+            window.showToast(error.message || 'Erro ao alterar modelo do veículo', 'error');
+          }
+        } finally {
+          btn.disabled = false;
+          btn.innerHTML = originalHTML;
+        }
+      });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
       // ============================================================================
       // CONFIGURAÇÕES GLOBAIS
       // ============================================================================
