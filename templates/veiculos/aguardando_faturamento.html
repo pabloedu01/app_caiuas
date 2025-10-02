@@ -501,7 +501,74 @@
     }
 
     function downloadEstoque() {
-      // ...existing code from downloadEstoque function...
+      // Mostrar loading no botão
+      const downloadBtn = event.target.closest('button');
+      const originalContent = downloadBtn.innerHTML;
+      downloadBtn.disabled = true;
+      downloadBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Baixando...';
+
+      const requestOptions = {
+        method: "GET",
+        redirect: "follow"
+      };
+
+      fetch("https://backend.caiuas.com.br/api/reports/estoque?aguarda_faturamento=True", requestOptions)
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error(`Erro HTTP: ${response.status}`);
+          }
+
+          // Verificar o tipo de conteúdo
+          const contentType = response.headers.get('content-type');
+
+          if (contentType && contentType.includes('application/json')) {
+            // Se for JSON, converter para CSV
+            return response.json().then(data => {
+              return jsonToCsv(data);
+            });
+          } else {
+            // Se já for um arquivo (CSV, Excel, etc), baixar direto
+            return response.blob();
+          }
+        })
+        .then((result) => {
+          let blob, filename;
+
+          if (typeof result === 'string') {
+            // Se for CSV string
+            blob = new Blob([result], { type: 'text/csv;charset=utf-8;' });
+            filename = `estoque_veiculos_${new Date().toISOString().slice(0, 10)}.csv`;
+          } else {
+            // Se for blob (arquivo)
+            blob = result;
+            filename = `estoque_veiculos_${new Date().toISOString().slice(0, 10)}.xlsx`;
+          }
+
+          // Criar link temporário para download
+          const link = document.createElement('a');
+          const url = window.URL.createObjectURL(blob);
+          link.href = url;
+          link.download = filename;
+
+          // Adicionar ao DOM, clicar e remover
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+
+          // Limpar URL
+          window.URL.revokeObjectURL(url);
+
+          console.log('Download concluído:', filename);
+        })
+        .catch((error) => {
+          console.error('Erro no download:', error);
+          alert('Erro ao baixar arquivo. Tente novamente.');
+        })
+        .finally(() => {
+          // Restaurar botão
+          downloadBtn.disabled = false;
+          downloadBtn.innerHTML = originalContent;
+        });
     }
 
     function jsonToCsv(jsonData) {
