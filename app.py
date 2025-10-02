@@ -412,7 +412,9 @@ def estoque_veiculos():
     url = "https://backend.caiuas.com.br/api/veiculos/estoque"
 
     payload = {}
-    headers = {}
+    headers = {
+            "Authorization": f"Bearer {token}"
+        }
 
     response = requests.request("GET", url, headers=headers, data=payload)
     
@@ -441,6 +443,49 @@ def estoque_aguardando_faturamento():
     context['veiculos'] = response.json()['veiculos']
     context['parametros'] = {'cod_empresa': 11}
     return render_template('veiculos/aguardando_faturamento.html', context=context)
+
+@app.route('/veiculos/faturados', methods=['GET'])
+def veiculos_faturados():
+    try:
+        token = session.get('token')
+        if not token or not token_valido(token):
+            return redirect(url_for('login_page'))
+        url = "https://backend.caiuas.com.br/api/veiculos/faturados"
+        initial_date = request.args.get('initial_date', None)
+        final_date = request.args.get('final_date', None)
+        # se initial_date não for enviado é igual a primerio dia do mes e se final_date naõ for enviado, é igual a ultimo dia do mês
+        if not initial_date:
+            now = datetime.now()
+            initial_date = now.replace(day=1).strftime('%Y-%m-%d')
+        if not final_date:
+            now = datetime.now()
+            final_date = now.replace(day=28) + timedelta(days=4)  # Vai para o próximo mês
+            final_date = final_date - timedelta(days=final_date.day)  # Volta para o último dia do mês atual
+            final_date = final_date.strftime('%Y-%m-%d')
+        url = f"{url}?initial_date={initial_date}&final_date={final_date}"
+
+        payload = {}
+        headers = {
+                "Authorization": f"Bearer {token}"
+            }
+
+        response = requests.request("GET", url, headers=headers, data=payload)
+        if response.status_code == 200:
+            context = {}
+            context['title'] = 'Veículos faturados'
+            context['main_menu'] = 'relatorios'
+            context['veiculos'] = response.json()['veiculos']
+        
+            return render_template('veiculos/faturados.html', context=context)
+        else:
+            context = {}
+            context['title'] = 'Veículos faturados'
+            context['main_menu'] = 'relatorios'
+            context['veiculos'] = []
+            return render_template('veiculos/faturados.html', context=context)
+    except Exception as e:
+        return render_template('500.html', error=str(e))
+
 
 @app.route('/forms/form_site', methods=['GET'])
 def form_site_veiculos():
