@@ -68,7 +68,7 @@
 
             </div>
 
-            <div class="col-auto">
+            <!-- <div class="col-auto">
               <div class="d-flex">
                 <button class="btn btn-phoenix-secondary bg-body-emphasis btn-sm px-md-4 me-3"
                   onclick="downloadEstoque()">
@@ -85,178 +85,340 @@
                 placeholder="Procure por chassi ou modelo" aria-label="Search">
               <span class="fas fa-search search-box-icon"></span>
             </form>
-          </div>
+          </div> -->
 
-          <div class="table-responsive">
-            <table class="table table-sm fs-9 mb-0 overflow-hidden">
-              <thead class="text-body">
-                <tr>
-                  <th class="sort border-top border-translucent ps-3" style="max-width:20px; width:18px;">
-                    <div class="form-check mb-0 fs-8">
-                      <input class="form-check-input" id="bulk-select-example" type="checkbox"
-                        data-bulk-select='{"body":"bulk-select-body","actions":"bulk-select-actions","replacedElement":"bulk-select-replace-element"}' />
-                    </div>
-                  </th>
+            <div class="d-flex flex-column flex-xl-row justify-content-between">
+              <div class="mb-3">
+                <button class="btn btn-phoenix-secondary bg-body-emphasis btn-sm px-md-4 me-3"
+                  onclick="downloadEstoque()">
+                  <span class="fa-solid fa-download"></span>
+                  <span class="d-none d-md-inline ms-2">Download</span>
+                </button>
+              </div>
+              <div class="d-flex mb-4 flex-shrink-0">
+                <div class="search-box me-2 flex-grow-1" style="min-width: 0;">
+                  <form class="position-relative">
+                    <input class="form-control search-input search" type="search" placeholder="Procure por chassi ou modelo"
+                      aria-label="Search" />
+                    <span class="fas fa-search search-box-icon"></span>
+                  </form>
+                </div>
+                <button class="btn px-3 btn-phoenix-secondary flex-shrink-0" type="button" data-bs-toggle="modal"
+                  data-bs-target="#reportsFilterModal" aria-haspopup="true" aria-expanded="false"
+                  data-bs-reference="parent"><span class="fa-solid fa-filter text-primary"
+                    data-fa-transform="down-3"></span></button>
+              </div>
+            </div>
 
-                  <th class="sort border-top" data-sort="chassi_completo" style="min-width: 10rem;">
-                    Chassi
-                  </th>
+            <div class="table-responsive">
+              <table class="table table-sm fs-9 mb-0 overflow-hidden">
+                <thead class="text-body">
+                  <tr>
+                    <th class="sort border-top border-translucent ps-3" style="max-width:20px; width:18px;">
+                      <div class="form-check mb-0 fs-8">
+                        <input class="form-check-input" id="bulk-select-example" type="checkbox"
+                          data-bulk-select='{"body":"bulk-select-body","actions":"bulk-select-actions","replacedElement":"bulk-select-replace-element"}' />
+                      </div>
+                    </th>
 
-                  <th class="sort border-top" data-sort="modelo" style="min-width: 12rem;">
-                    Modelo
-                  </th>
+                    <th class="sort border-top" data-sort="chassi_completo" style="min-width: 10rem;">
+                      Chassi
+                    </th>
 
-                  <th class="sort border-top text-center" data-sort="ano_modelo" style="min-width: 5rem;">
-                    Ano
-                  </th>
+                    <th class="sort border-top" data-sort="modelo" style="min-width: 12rem;">
+                      Modelo
+                    </th>
 
-                  <th class="sort border-top text-center" data-sort="cor" style="min-width: 6rem;">
-                    Cor
-                  </th>
+                    <th class="sort border-top text-center" data-sort="ano_modelo" style="min-width: 5rem;">
+                      Ano
+                    </th>
 
-                  <th class="sort border-top text-center" data-sort="novo_usado" style="min-width: 5rem;">
-                    Tipo
-                  </th>
+                    <th class="sort border-top text-center" data-sort="cor" style="min-width: 6rem;">
+                      Cor
+                    </th>
 
-                  <th class="sort border-top" data-sort="patio" style="min-width: 12rem;">
-                    Pátio
-                  </th>
+                    <th class="sort border-top text-center" data-sort="novo_usado" style="min-width: 5rem;">
+                      Tipo
+                    </th>
 
-                  <th class="sort border-top" data-sort="nome_vendedor" style="min-width: 8rem;">
-                    Vendedor
-                  </th>
+                    <th class="sort border-top" data-sort="patio" style="min-width: 12rem;">
+                      Pátio
+                    </th>
 
-                  <th class="sort border-top text-center" data-sort="cod_proposta" style="min-width: 6rem;">
-                    Cód. Proposta
-                  </th>
-                </tr>
-              </thead>
+                    <th class="sort border-top" data-sort="nome_vendedor" style="min-width: 8rem;">
+                      Vendedor
+                    </th>
 
-              <tbody class="list" id="bulk-select-body">
-                {% if context.veiculos %}
-                {% for veiculo in context.veiculos %}
-                <tr class="btn-reveal-trigger">
-                  <td class="align-middle ps-3">
-                    <div class="form-check mb-0 fs-8">
-                      <input class="form-check-input" type="checkbox" data-chassi="{{ veiculo.chassi_completo }}"
-                        data-bulk-select-row='{"chassi":"{{ veiculo.chassi_completo }}"}' />
-                    </div>
-                  </td>
+                    <th class="sort border-top text-center" data-sort="cod_proposta" style="min-width: 6rem;">
+                      Cód. Proposta
+                    </th>
+                  </tr>
+                </thead>
 
-                  <td class="chassi_completo align-middle">
-                    <span class="fw-semibold text-primary">{{ veiculo.chassi_completo if veiculo.chassi_completo else
-                      '-' }}</span>
-                  </td>
+                <tbody class="list" id="bulk-select-body">
+                  {% if context.veiculos %}
+                  {% for veiculo in context.veiculos %}
+                  <tr class="btn-reveal-trigger">
+                    <td class="align-middle ps-3">
+                      <div class="form-check mb-0 fs-8">
+                        <input class="form-check-input" type="checkbox" data-chassi="{{ veiculo.chassi_completo }}"
+                          data-bulk-select-row='{"chassi":"{{ veiculo.chassi_completo }}"}' />
+                      </div>
+                    </td>
 
-                  <td class="modelo align-middle">
-                    {% if veiculo.modelo %}
-                    {% if veiculo.modelo|length > 35 %}
-                    <span title="{{ veiculo.modelo }}" class="fw-semibold text-body">{{ veiculo.modelo[:32] }}...</span>
-                    {% else %}
-                    <span class="fw-semibold text-body">{{ veiculo.modelo }}</span>
-                    {% endif %}
-                    {% else %}
-                    -
-                    {% endif %}
-                  </td>
+                    <td class="chassi_completo align-middle">
+                      <span class="fw-semibold text-primary">{{ veiculo.chassi_completo if veiculo.chassi_completo else
+                        '-' }}</span>
+                    </td>
 
-                  <td class="ano_modelo align-middle text-center">
-                    {{ veiculo.ano_modelo if veiculo.ano_modelo else '-' }}
-                  </td>
+                    <td class="modelo align-middle">
+                      {% if veiculo.modelo %}
+                      {% if veiculo.modelo|length > 35 %}
+                      <span title="{{ veiculo.modelo }}" class="fw-semibold text-body">{{ veiculo.modelo[:32]
+                        }}...</span>
+                      {% else %}
+                      <span class="fw-semibold text-body">{{ veiculo.modelo }}</span>
+                      {% endif %}
+                      {% else %}
+                      -
+                      {% endif %}
+                    </td>
 
-                  <td class="cor align-middle text-center">
-                    {{ veiculo.cor if veiculo.cor else '-' }}
-                  </td>
+                    <td class="ano_modelo align-middle text-center">
+                      {{ veiculo.ano_modelo if veiculo.ano_modelo else '-' }}
+                    </td>
 
-                  <td class="novo_usado align-middle text-center">
-                    <span class="badge fs-10 
+                    <td class="cor align-middle text-center">
+                      {{ veiculo.cor if veiculo.cor else '-' }}
+                    </td>
+
+                    <td class="novo_usado align-middle text-center">
+                      <span class="badge fs-10 
                         {% if veiculo.novo_usado == 'Novo' %}
                           badge-phoenix badge-phoenix-success
                         {% else %}
                           badge-phoenix badge-phoenix-info
                         {% endif %}">
-                      {{ veiculo.novo_usado if veiculo.novo_usado else 'N/A' }}
-                    </span>
-                  </td>
+                        {{ veiculo.novo_usado if veiculo.novo_usado else 'N/A' }}
+                      </span>
+                    </td>
 
-                  <td class="patio align-middle">
-                    {% if veiculo.patio %}
-                    {% if veiculo.patio|length > 25 %}
-                    <span title="{{ veiculo.patio }}">{{ veiculo.patio[:22] }}...</span>
-                    {% else %}
-                    {{ veiculo.patio }}
-                    {% endif %}
-                    {% else %}
-                    -
-                    {% endif %}
-                  </td>
+                    <td class="patio align-middle">
+                      {% if veiculo.patio %}
+                      {% if veiculo.patio|length > 25 %}
+                      <span title="{{ veiculo.patio }}">{{ veiculo.patio[:22] }}...</span>
+                      {% else %}
+                      {{ veiculo.patio }}
+                      {% endif %}
+                      {% else %}
+                      -
+                      {% endif %}
+                    </td>
 
-                  <td class="nome_vendedor align-middle">
-                    {% if veiculo.nome_vendedor %}
-                    {% if veiculo.nome_vendedor|length > 15 %}
-                    <span title="{{ veiculo.nome_vendedor }}">{{ veiculo.nome_vendedor[:12] }}...</span>
-                    {% else %}
-                    {{ veiculo.nome_vendedor }}
-                    {% endif %}
-                    {% else %}
-                    -
-                    {% endif %}
-                  </td>
+                    <td class="nome_vendedor align-middle">
+                      {% if veiculo.nome_vendedor %}
+                      {% if veiculo.nome_vendedor|length > 15 %}
+                      <span title="{{ veiculo.nome_vendedor }}">{{ veiculo.nome_vendedor[:12] }}...</span>
+                      {% else %}
+                      {{ veiculo.nome_vendedor }}
+                      {% endif %}
+                      {% else %}
+                      -
+                      {% endif %}
+                    </td>
 
-                  <td class="cod_proposta align-middle text-center">
-                    {% if veiculo.cod_proposta %}
-                    <span class="badge fs-10 badge-phoenix badge-phoenix-primary">{{ veiculo.cod_proposta }}</span>
-                    {% else %}
-                    -
-                    {% endif %}
-                  </td>
-                </tr>
-                {% endfor %}
-                {% else %}
-                <tr>
-                  <td colspan="9" class="text-center py-4 text-body-tertiary">
-                    Nenhum veículo encontrado
-                  </td>
-                </tr>
-                {% endif %}
-              </tbody>
-            </table>
-          </div>
-
-          <div class="row align-items-center justify-content-between py-2 pe-0 fs-9 mt-2">
-            <div class="col-auto d-flex">
-              <p class="mb-0 d-none d-sm-block me-3 fw-semibold text-body" data-list-info="data-list-info"></p><a
-                class="fw-semibold" href="#!" data-list-view="*">Ver todos<span class="fas fa-angle-right ms-1"
-                  data-fa-transform="down-1"></span></a><a class="fw-semibold d-none" href="#!" data-list-view="less">View
-                Less<span class="fas fa-angle-right ms-1" data-fa-transform="down-1"></span></a>
+                    <td class="cod_proposta align-middle text-center">
+                      {% if veiculo.cod_proposta %}
+                      <span class="badge fs-10 badge-phoenix badge-phoenix-primary">{{ veiculo.cod_proposta }}</span>
+                      {% else %}
+                      -
+                      {% endif %}
+                    </td>
+                  </tr>
+                  {% endfor %}
+                  {% else %}
+                  <tr>
+                    <td colspan="9" class="text-center py-4 text-body-tertiary">
+                      Nenhum veículo encontrado
+                    </td>
+                  </tr>
+                  {% endif %}
+                </tbody>
+              </table>
             </div>
-            <div class="col-auto d-flex">
-              <button class="page-link" data-list-pagination="prev"><span class="fas fa-chevron-left"></span></button>
-              <ul class="mb-0 pagination"></ul>
-              <button class="page-link pe-0" data-list-pagination="next"><span
-                  class="fas fa-chevron-right"></span></button>
+
+            <div class="row align-items-center justify-content-between py-2 pe-0 fs-9 mt-2">
+              <div class="col-auto d-flex">
+                <p class="mb-0 d-none d-sm-block me-3 fw-semibold text-body" data-list-info="data-list-info"></p><a
+                  class="fw-semibold" href="#!" data-list-view="*">Ver todos<span class="fas fa-angle-right ms-1"
+                    data-fa-transform="down-1"></span></a><a class="fw-semibold d-none" href="#!"
+                  data-list-view="less">View
+                  Less<span class="fas fa-angle-right ms-1" data-fa-transform="down-1"></span></a>
+              </div>
+              <div class="col-auto d-flex">
+                <button class="page-link" data-list-pagination="prev"><span class="fas fa-chevron-left"></span></button>
+                <ul class="mb-0 pagination"></ul>
+                <button class="page-link pe-0" data-list-pagination="next"><span
+                    class="fas fa-chevron-right"></span></button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <footer class="footer position-absolute">
+          <div class="row g-0 justify-content-between align-items-center h-100">
+          </div>
+        </footer>
+
+        <div id="toastMessageContainer" class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 1080;">
+          <div id="toastMessage" class="toast align-items-center text-white dark__text-gray-1100 bg-primary border-0"
+            role="alert" data-bs-autohide="true" aria-live="assertive" aria-atomic="true">
+            <div class="d-flex">
+              <div class="toast-body">
+                Hello, world! This is a toast message.
+              </div>
+              <button class="btn ms-2 p-0" type="button" data-bs-dismiss="toast" aria-label="Close"><span
+                  class="uil uil-times fs-7 text-white"></span></button>
             </div>
           </div>
         </div>
-      </div>
-      <footer class="footer position-absolute">
-        <div class="row g-0 justify-content-between align-items-center h-100">
-        </div>
-      </footer>
 
-      <div id="toastMessageContainer" class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 1080;">
-        <div id="toastMessage" class="toast align-items-center text-white dark__text-gray-1100 bg-primary border-0"
-          role="alert" data-bs-autohide="true" aria-live="assertive" aria-atomic="true">
-          <div class="d-flex">
-            <div class="toast-body">
-              Hello, world! This is a toast message.
+
+        <div class="modal fade" id="reportsFilterModal" tabindex="-1">
+          <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border border-translucent">
+              <form id="filterForm" autocomplete="off">
+                <div class="modal-header justify-content-between border-translucent p-4">
+                  <h5 class="modal-title text-body-highlight fs-6 lh-sm">Filtrar Veículos</h5>
+                  <button class="btn p-1 text-danger" type="button" data-bs-dismiss="modal" aria-label="Close">
+                    <span class="fas fa-times fs-9"></span>
+                  </button>
+                </div>
+                <div class="modal-body pt-4 pb-2 px-4">
+                  <div class="row">
+                    <div class="col-md-6">
+                      <div class="mb-3">
+                        <label class="fw-bold mb-2 text-body-highlight" for="filtroModelo">Modelo</label>
+                        <select class="form-select" id="filtroModelo" multiple>
+                          <option value="">Todos</option>
+                          {% set modelos_unicos = [] %}
+                          {% for veiculo in context.veiculos %}
+                            {% if veiculo.modelo and veiculo.modelo != '-' and veiculo.modelo not in modelos_unicos %}
+                              {% set _ = modelos_unicos.append(veiculo.modelo) %}
+                            {% endif %}
+                          {% endfor %}
+                          {% for modelo in modelos_unicos|sort %}
+                          <option value="{{ modelo }}">{{ modelo }}</option>
+                          {% endfor %}
+                        </select>
+                      </div>
+                    </div>
+                    <div class="col-md-6">
+                      <div class="mb-3">
+                        <label class="fw-bold mb-2 text-body-highlight" for="filtroAno">Ano</label>
+                        <select class="form-select" id="filtroAno" multiple>
+                          <option value="">Todos</option>
+                          {% set anos_unicos = [] %}
+                          {% for veiculo in context.veiculos %}
+                            {% if veiculo.ano_modelo and veiculo.ano_modelo != '-' and veiculo.ano_modelo not in anos_unicos %}
+                              {% set _ = anos_unicos.append(veiculo.ano_modelo) %}
+                            {% endif %}
+                          {% endfor %}
+                          {% for ano in anos_unicos|sort %}
+                          <option value="{{ ano }}">{{ ano }}</option>
+                          {% endfor %}
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div class="row">
+                    <div class="col-md-6">
+                      <div class="mb-3">
+                        <label class="fw-bold mb-2 text-body-highlight" for="filtroCor">Cor</label>
+                        <select class="form-select" id="filtroCor" multiple>
+                          <option value="">Todos</option>
+                          {% set cores_unicas = [] %}
+                          {% for veiculo in context.veiculos %}
+                            {% if veiculo.cor and veiculo.cor != '-' and veiculo.cor not in cores_unicas %}
+                              {% set _ = cores_unicas.append(veiculo.cor) %}
+                            {% endif %}
+                          {% endfor %}
+                          {% for cor in cores_unicas|sort %}
+                          <option value="{{ cor }}">{{ cor }}</option>
+                          {% endfor %}
+                        </select>
+                      </div>
+                    </div>
+                    <div class="col-md-6">
+                      <div class="mb-3">
+                        <label class="fw-bold mb-2 text-body-highlight" for="filtroTipo">Tipo</label>
+                        <select class="form-select" id="filtroTipo" multiple>
+                          <option value="">Todos</option>
+                          {% set tipos_unicos = [] %}
+                          {% for veiculo in context.veiculos %}
+                            {% if veiculo.novo_usado and veiculo.novo_usado != '-' and veiculo.novo_usado != 'N/A' and veiculo.novo_usado not in tipos_unicos %}
+                              {% set _ = tipos_unicos.append(veiculo.novo_usado) %}
+                            {% endif %}
+                          {% endfor %}
+                          {% for tipo in tipos_unicos|sort %}
+                          <option value="{{ tipo }}">{{ tipo }}</option>
+                          {% endfor %}
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div class="row">
+                    <div class="col-md-6">
+                      <div class="mb-3">
+                        <label class="fw-bold mb-2 text-body-highlight" for="filtroVendedor">Vendedor</label>
+                        <select class="form-select" id="filtroVendedor" multiple>
+                          <option value="">Todos</option>
+                          {% set vendedores_unicos = [] %}
+                          {% for veiculo in context.veiculos %}
+                            {% if veiculo.nome_vendedor and veiculo.nome_vendedor != '-' and veiculo.nome_vendedor not in vendedores_unicos %}
+                              {% set _ = vendedores_unicos.append(veiculo.nome_vendedor) %}
+                            {% endif %}
+                          {% endfor %}
+                          {% for vendedor in vendedores_unicos|sort %}
+                          <option value="{{ vendedor }}">{{ vendedor }}</option>
+                          {% endfor %}
+                        </select>
+                      </div>
+                    </div>
+                    <div class="col-md-6">
+                      <div class="mb-3">
+                        <label class="fw-bold mb-2 text-body-highlight" for="filtroPatio">Pátio</label>
+                        <select class="form-select" id="filtroPatio" multiple>
+                          <option value="">Todos</option>
+                          {% set patios_unicos = [] %}
+                          {% for veiculo in context.veiculos %}
+                            {% if veiculo.patio and veiculo.patio != '-' and veiculo.patio not in patios_unicos %}
+                              {% set _ = patios_unicos.append(veiculo.patio) %}
+                            {% endif %}
+                          {% endfor %}
+                          {% for patio in patios_unicos|sort %}
+                          <option value="{{ patio }}">{{ patio }}</option>
+                          {% endfor %}
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="modal-footer d-flex justify-content-end align-items-center px-4 pb-4 border-0 pt-3">
+                  <button class="btn btn-sm btn-phoenix-primary px-4 fs-10 my-0" type="button" onclick="resetFilters()">
+                    <span class="fas fa-arrows-rotate me-2 fs-10"></span>Limpar
+                  </button>
+                  <button class="btn btn-sm btn-primary px-9 fs-10 my-0" type="button" onclick="applyFilters()">Aplicar</button>
+                </div>
+              </form>
             </div>
-            <button class="btn ms-2 p-0" type="button" data-bs-dismiss="toast" aria-label="Close"><span
-                class="uil uil-times fs-7 text-white"></span></button>
           </div>
         </div>
-      </div>
-      </main>
+
+
+
+  </main>
   <script src="/static/vendors/popper/popper.min.js"></script>
   <script src="/static/vendors/bootstrap/bootstrap.min.js"></script>
   <script src="/static/vendors/anchorjs/anchor.min.js"></script>
@@ -272,7 +434,9 @@
   <script src="/static/vendors/prism/prism.js"></script>
   <script src="/static/assets/js/menu.js"></script>
 
-  <script>
+<script>
+    let estoqueList; // Variável global para o List.js
+
     document.addEventListener('DOMContentLoaded', function () {
       // Inicializar feather icons
       if (window.feather) {
@@ -285,7 +449,7 @@
         setTimeout(function () {
           // Inicializar List.js para estoque de veículos
           try {
-            const estoqueList = new List('estoque_table', {
+            estoqueList = new List('estoque_table', {
               valueNames: ['chassi_completo', 'modelo', 'ano_modelo', 'cor', 'novo_usado', 'patio', 'nome_vendedor', 'cod_proposta'],
               page: 200,
               pagination: {
@@ -295,24 +459,313 @@
 
             console.log('List.js inicializado para estoque de veículos');
             console.log('Total de itens encontrados:', estoqueList.items.length);
-            console.log('Páginas disponíveis:', Math.ceil(estoqueList.items.length / 10));
+            console.log('Páginas disponíveis:', Math.ceil(estoqueList.items.length / 200));
 
-            // Adicionar evento de clique na paginação
-            const paginationElement = document.querySelector('#estoque_table .pagination');
-            if (paginationElement) {
-              paginationElement.addEventListener('click', function (e) {
-                if (e.target.classList.contains('page')) {
-                  // A página é automaticamente gerenciada pelo List.js
-                  console.log('Página clicada:', e.target.textContent);
-                }
-              });
-            }
+            // Tornar estoqueList global para acesso nas funções de filtro
+            window.estoqueList = estoqueList;
+
           } catch (error) {
             console.error('Erro ao inicializar List.js:', error);
           }
         }, 500);
       }
     });
+
+    // Função para aplicar filtros
+    function applyFilters() {
+      if (!window.estoqueList) {
+        console.error('List.js não foi inicializado');
+        showToast('Erro: Sistema de filtros não inicializado', 'error');
+        return;
+      }
+
+      const filtros = {
+        modelo: Array.from(document.getElementById('filtroModelo').selectedOptions).map(o => o.value).filter(v => v),
+        ano: Array.from(document.getElementById('filtroAno').selectedOptions).map(o => o.value).filter(v => v),
+        cor: Array.from(document.getElementById('filtroCor').selectedOptions).map(o => o.value).filter(v => v),
+        tipo: Array.from(document.getElementById('filtroTipo').selectedOptions).map(o => o.value).filter(v => v),
+        vendedor: Array.from(document.getElementById('filtroVendedor').selectedOptions).map(o => o.value).filter(v => v),
+        patio: Array.from(document.getElementById('filtroPatio').selectedOptions).map(o => o.value).filter(v => v)
+      };
+
+      console.log('Filtros selecionados:', filtros);
+
+      // Aplicar filtros no List.js
+      window.estoqueList.filter(function(item) {
+        const values = item.values();
+        
+        // Função helper para normalizar texto e extrair conteúdo real da célula
+        const normalize = (text) => {
+          if (!text) return '';
+          // Remove tags HTML e espaços extras
+          return text.toString().replace(/<[^>]*>/g, '').trim().toLowerCase();
+        };
+
+        // Função para extrair texto do badge (para tipo novo/usado)
+        const extractBadgeText = (htmlContent) => {
+          if (!htmlContent) return '';
+          const match = htmlContent.match(/>([^<]+)</);
+          return match ? match[1].trim().toLowerCase() : htmlContent.toLowerCase();
+        };
+        
+        // Verificar cada filtro
+        if (filtros.modelo.length > 0) {
+          const itemModelo = normalize(values.modelo);
+          const hasMatch = filtros.modelo.some(filtro => itemModelo.includes(normalize(filtro)));
+          if (!hasMatch) return false;
+        }
+        
+        if (filtros.ano.length > 0) {
+          const itemAno = normalize(values.ano_modelo);
+          const hasMatch = filtros.ano.some(filtro => itemAno === normalize(filtro));
+          if (!hasMatch) return false;
+        }
+        
+        if (filtros.cor.length > 0) {
+          const itemCor = normalize(values.cor);
+          const hasMatch = filtros.cor.some(filtro => itemCor === normalize(filtro));
+          if (!hasMatch) return false;
+        }
+        
+        if (filtros.tipo.length > 0) {
+          const itemTipo = extractBadgeText(values.novo_usado);
+          const hasMatch = filtros.tipo.some(filtro => itemTipo === normalize(filtro));
+          if (!hasMatch) return false;
+        }
+        
+        if (filtros.vendedor.length > 0) {
+          const itemVendedor = normalize(values.nome_vendedor);
+          const hasMatch = filtros.vendedor.some(filtro => itemVendedor.includes(normalize(filtro)));
+          if (!hasMatch) return false;
+        }
+        
+        if (filtros.patio.length > 0) {
+          const itemPatio = normalize(values.patio);
+          const hasMatch = filtros.patio.some(filtro => itemPatio.includes(normalize(filtro)));
+          if (!hasMatch) return false;
+        }
+        
+        return true;
+      });
+
+      // Fechar modal
+      const modal = bootstrap.Modal.getInstance(document.getElementById('reportsFilterModal'));
+      if (modal) {
+        modal.hide();
+      }
+
+      const itemsEncontrados = window.estoqueList.visibleItems.length;
+      console.log('Filtros aplicados. Itens encontrados:', itemsEncontrados);
+
+      // Mostrar toast de confirmação
+      if (itemsEncontrados === 0) {
+        showToast('Nenhum veículo encontrado com os filtros selecionados', 'warning');
+      } else {
+        showToast(`Filtro aplicado: ${itemsEncontrados} veículo${itemsEncontrados > 1 ? 's' : ''} encontrado${itemsEncontrados > 1 ? 's' : ''}`, 'success');
+      }
+    }
+
+    // Função para limpar filtros
+    function resetFilters() {
+      if (!window.estoqueList) {
+        console.error('List.js não foi inicializado');
+        return;
+      }
+
+      // Limpar todos os selects
+      const selects = ['filtroModelo', 'filtroAno', 'filtroCor', 'filtroTipo', 'filtroVendedor', 'filtroPatio'];
+      selects.forEach(selectId => {
+        const select = document.getElementById(selectId);
+        if (select) {
+          // Limpar seleções múltiplas
+          Array.from(select.options).forEach(option => option.selected = false);
+          // Selecionar apenas a primeira opção (Todos)
+          if (select.options.length > 0) {
+            select.options[0].selected = true;
+          }
+        }
+      });
+
+      // Limpar campo de busca também
+      const searchInput = document.querySelector('.search-input');
+      if (searchInput) {
+        searchInput.value = '';
+      }
+
+      // Remover filtros do List.js
+      window.estoqueList.filter();
+      window.estoqueList.search();
+
+      console.log('Filtros limpos');
+      console.log('Total de itens:', window.estoqueList.items.length);
+
+      showToast('Filtros removidos com sucesso', 'info');
+    }
+
+    // Função para aplicar filtro combinado (busca + filtros)
+    function applyFiltersCombined() {
+      if (!window.estoqueList) {
+        return;
+      }
+
+      const searchTerm = document.querySelector('.search-input')?.value?.toLowerCase() || '';
+      
+      const filtros = {
+        modelo: Array.from(document.getElementById('filtroModelo').selectedOptions).map(o => o.value).filter(v => v),
+        ano: Array.from(document.getElementById('filtroAno').selectedOptions).map(o => o.value).filter(v => v),
+        cor: Array.from(document.getElementById('filtroCor').selectedOptions).map(o => o.value).filter(v => v),
+        tipo: Array.from(document.getElementById('filtroTipo').selectedOptions).map(o => o.value).filter(v => v),
+        vendedor: Array.from(document.getElementById('filtroVendedor').selectedOptions).map(o => o.value).filter(v => v),
+        patio: Array.from(document.getElementById('filtroPatio').selectedOptions).map(o => o.value).filter(v => v)
+      };
+
+      // Se não há filtros nem busca, mostrar todos
+      const hasFilters = Object.values(filtros).some(f => f.length > 0);
+      const hasSearch = searchTerm.length > 0;
+
+      if (!hasFilters && !hasSearch) {
+        window.estoqueList.filter();
+        return;
+      }
+
+      // Aplicar filtros combinados
+      window.estoqueList.filter(function(item) {
+        const values = item.values();
+        
+        // Função helper para normalizar texto
+        const normalize = (text) => {
+          if (!text) return '';
+          return text.toString().replace(/<[^>]*>/g, '').trim().toLowerCase();
+        };
+
+        const extractBadgeText = (htmlContent) => {
+          if (!htmlContent) return '';
+          const match = htmlContent.match(/>([^<]+)</);
+          return match ? match[1].trim().toLowerCase() : htmlContent.toLowerCase();
+        };
+
+        // Verificar busca global primeiro
+        if (hasSearch) {
+          const chassi = normalize(values.chassi_completo);
+          const modelo = normalize(values.modelo);
+          const searchMatch = chassi.includes(searchTerm) || modelo.includes(searchTerm);
+          if (!searchMatch) return false;
+        }
+        
+        // Verificar filtros específicos
+        if (filtros.modelo.length > 0) {
+          const itemModelo = normalize(values.modelo);
+          const hasMatch = filtros.modelo.some(filtro => itemModelo.includes(normalize(filtro)));
+          if (!hasMatch) return false;
+        }
+        
+        if (filtros.ano.length > 0) {
+          const itemAno = normalize(values.ano_modelo);
+          const hasMatch = filtros.ano.some(filtro => itemAno === normalize(filtro));
+          if (!hasMatch) return false;
+        }
+        
+        if (filtros.cor.length > 0) {
+          const itemCor = normalize(values.cor);
+          const hasMatch = filtros.cor.some(filtro => itemCor === normalize(filtro));
+          if (!hasMatch) return false;
+        }
+        
+        if (filtros.tipo.length > 0) {
+          const itemTipo = extractBadgeText(values.novo_usado);
+          const hasMatch = filtros.tipo.some(filtro => itemTipo === normalize(filtro));
+          if (!hasMatch) return false;
+        }
+        
+        if (filtros.vendedor.length > 0) {
+          const itemVendedor = normalize(values.nome_vendedor);
+          const hasMatch = filtros.vendedor.some(filtro => itemVendedor.includes(normalize(filtro)));
+          if (!hasMatch) return false;
+        }
+        
+        if (filtros.patio.length > 0) {
+          const itemPatio = normalize(values.patio);
+          const hasMatch = filtros.patio.some(filtro => itemPatio.includes(normalize(filtro)));
+          if (!hasMatch) return false;
+        }
+        
+        return true;
+      });
+    }
+
+    // Modificar a função applyFilters para usar a versão combinada
+    function applyFilters() {
+      if (!window.estoqueList) {
+        console.error('List.js não foi inicializado');
+        showToast('Erro: Sistema de filtros não inicializado', 'error');
+        return;
+      }
+
+      applyFiltersCombined();
+
+      // Fechar modal
+      const modal = bootstrap.Modal.getInstance(document.getElementById('reportsFilterModal'));
+      if (modal) {
+        modal.hide();
+      }
+
+      const itemsEncontrados = window.estoqueList.visibleItems.length;
+      console.log('Filtros aplicados. Itens encontrados:', itemsEncontrados);
+
+      // Mostrar toast de confirmação
+      if (itemsEncontrados === 0) {
+        showToast('Nenhum veículo encontrado com os filtros selecionados', 'warning');
+      } else {
+        showToast(`Filtro aplicado: ${itemsEncontrados} veículo${itemsEncontrados > 1 ? 's' : ''} encontrado${itemsEncontrados > 1 ? 's' : ''}`, 'success');
+      }
+    }
+
+    // Listener para o campo de busca - integrar com filtros
+    document.addEventListener('DOMContentLoaded', function() {
+      setTimeout(() => {
+        const searchInput = document.querySelector('.search-input');
+        if (searchInput) {
+          searchInput.addEventListener('input', function() {
+            // Aplicar filtros combinados quando a busca muda
+            applyFiltersCombined();
+          });
+        }
+      }, 1000);
+    });
+
+    // Função para mostrar toast
+    function showToast(message, type = 'primary') {
+      const toastContainer = document.getElementById('toastMessageContainer');
+      const toastElement = document.getElementById('toastMessage');
+      const toastBody = toastElement.querySelector('.toast-body');
+      
+      if (!toastElement || !toastBody) {
+        // Fallback para alert se toast não estiver disponível
+        alert(message);
+        return;
+      }
+      
+      // Atualizar a mensagem
+      toastBody.textContent = message;
+      
+      // Atualizar as classes de cor baseado no tipo
+      toastElement.className = `toast align-items-center text-white border-0`;
+      if (type === 'success') {
+        toastElement.classList.add('bg-success');
+      } else if (type === 'error') {
+        toastElement.classList.add('bg-danger');
+      } else if (type === 'info') {
+        toastElement.classList.add('bg-info');
+      } else if (type === 'warning') {
+        toastElement.classList.add('bg-warning');
+      } else {
+        toastElement.classList.add('bg-primary');
+      }
+      
+      // Mostrar o toast
+      const toast = new bootstrap.Toast(toastElement);
+      toast.show();
+    }
 
     function downloadEstoque() {
       // Mostrar loading no botão
@@ -373,10 +826,11 @@
           window.URL.revokeObjectURL(url);
 
           console.log('Download concluído:', filename);
+          showToast('Download concluído com sucesso!', 'success');
         })
         .catch((error) => {
           console.error('Erro no download:', error);
-          alert('Erro ao baixar arquivo. Tente novamente.');
+          showToast('Erro ao baixar arquivo. Tente novamente.', 'error');
         })
         .finally(() => {
           // Restaurar botão
@@ -428,28 +882,24 @@
       return [csvHeaders, ...csvRows].map(row => row.join(',')).join('\n');
     }
 
-    function executeVeiculoAction() {
-      const bulkSelectBody = document.getElementById('bulk-select-body');
-      if (!bulkSelectBody) return;
-
-      const selectedInputs = bulkSelectBody.querySelectorAll('input[type="checkbox"]:checked');
-      const bulkActions = document.getElementById('bulk-actions-select');
-
-      if (!bulkActions || selectedInputs.length === 0) {
-        alert('Selecione pelo menos um veículo');
-        return;
-      }
-
-      const action = bulkActions.value;
-
-      if (action === 'export') {
-        // Lógica para exportar veículos selecionados
-        console.log('Exportando veículos selecionados');
-      } else if (action === 'print') {
-        // Lógica para imprimir veículos selecionados  
-        console.log('Imprimindo veículos selecionados');
+    // Função para debug - verificar se filtros estão funcionando
+    function debugFilters() {
+      console.log('Estado atual dos filtros:');
+      ['filtroModelo', 'filtroAno', 'filtroCor', 'filtroTipo', 'filtroVendedor', 'filtroPatio'].forEach(id => {
+        const select = document.getElementById(id);
+        if (select) {
+          console.log(`${id}:`, Array.from(select.selectedOptions).map(o => o.value));
+        }
+      });
+      
+      if (window.estoqueList) {
+        console.log('Total de itens:', window.estoqueList.items.length);
+        console.log('Itens visíveis:', window.estoqueList.visibleItems.length);
       }
     }
+
+    // Expor função de debug globalmente (apenas para desenvolvimento)
+    window.debugFilters = debugFilters;
   </script>
 
 
