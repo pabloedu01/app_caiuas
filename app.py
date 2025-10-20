@@ -395,61 +395,70 @@ def relatorios_faturamento_veiculos():
 
 @app.route('/relatorios/estoque_veiculos', methods=['GET'])
 def relatorios_estoque_veiculos():
+
     token = session.get('token')
     if not token or not token_valido(token):
         return redirect(url_for('login_page'))
-
-    context = {}
-    context['title'] = 'Estoque de veículos'
-    context['main_menu'] = 'relatorios'
-    return render_template('relatorios/estoque_veiculos.html', context=context)
+    try:
+        context = {}
+        context['title'] = 'Estoque de veículos'
+        context['main_menu'] = 'relatorios'
+        return render_template('relatorios/estoque_veiculos.html', context=context)
+    except Exception as e:
+        return render_template('500.html', error=str(e))
 
 @app.route('/veiculos/estoque', methods=['GET'])
 def estoque_veiculos():
     token = session.get('token')
     if not token or not token_valido(token):
         return redirect(url_for('login_page'))
-    url = "https://backend.caiuas.com.br/api/veiculos/estoque"
+    try:
+        url = "https://backend.caiuas.com.br/api/veiculos/estoque"
 
-    payload = {}
-    headers = {
-            "Authorization": f"Bearer {token}"
-        }
+        payload = {}
+        headers = {
+                "Authorization": f"Bearer {token}"
+            }
 
-    response = requests.request("GET", url, headers=headers, data=payload)
-    
-    context = {}
-    context['title'] = 'Estoque de veículos'
-    context['main_menu'] = 'relatorios'
-    context['veiculos'] = response.json()['veiculos']
-    context['parametros'] = {'cod_empresa': 11}
-    return render_template('veiculos/estoque.html', context=context)
+        response = requests.request("GET", url, headers=headers, data=payload)
+        
+        context = {}
+        context['title'] = 'Estoque de veículos'
+        context['main_menu'] = 'relatorios'
+        context['veiculos'] = response.json()['veiculos']
+        context['parametros'] = {'cod_empresa': 11}
+        return render_template('veiculos/estoque.html', context=context)
+    except Exception as e:
+        return render_template('500.html', error=str(e))
 
 @app.route('/veiculos/aguardando_faturamento', methods=['GET'])
 def estoque_aguardando_faturamento():
     token = session.get('token')
     if not token or not token_valido(token):
         return redirect(url_for('login_page'))
-    url = "https://backend.caiuas.com.br/api/veiculos/aguardando_faturamento"
+    try:
+        url = "https://backend.caiuas.com.br/api/veiculos/aguardando_faturamento"
 
-    payload = {}
-    headers = {}
+        payload = {}
+        headers = {}
 
-    response = requests.request("GET", url, headers=headers, data=payload)
-    
-    context = {}
-    context['title'] = 'Estoque aguardando faturamento'
-    context['main_menu'] = 'relatorios'
-    context['veiculos'] = response.json()['veiculos']
-    context['parametros'] = {'cod_empresa': 11}
-    return render_template('veiculos/aguardando_faturamento.html', context=context)
+        response = requests.request("GET", url, headers=headers, data=payload)
+        
+        context = {}
+        context['title'] = 'Estoque aguardando faturamento'
+        context['main_menu'] = 'relatorios'
+        context['veiculos'] = response.json()['veiculos']
+        context['parametros'] = {'cod_empresa': 11}
+        return render_template('veiculos/aguardando_faturamento.html', context=context)
+    except Exception as e:
+        return render_template('500.html', error=str(e))
 
 @app.route('/veiculos/faturados', methods=['GET'])
 def veiculos_faturados():
+    token = session.get('token')
+    if not token or not token_valido(token):
+        return redirect(url_for('login_page'))
     try:
-        token = session.get('token')
-        if not token or not token_valido(token):
-            return redirect(url_for('login_page'))
         url = "https://backend.caiuas.com.br/api/veiculos/faturados"
         initial_date = request.args.get('initial_date', None)
         final_date = request.args.get('final_date', None)
