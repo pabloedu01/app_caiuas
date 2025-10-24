@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="pt-BR" dir="ltr" data-navigation-type="default" data-navbar-horizontal-shape="default">
+
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+  <title>{{ context.title }}</title>
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/static/assets/img/favicons/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/static/assets/img/favicons/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/static/assets/img/favicons/favicon-16x16.png">
+  <link rel="shortcut icon" type="image/x-icon" href="/static/assets/img/favicons/favicon.ico">
+  <link rel="manifest" href="/static/assets/img/favicons/manifest.json">
+  <meta name="msapplication-TileImage" content="static/assets/img/favicons/mstile-150x150.png">
+  <meta name="theme-color" content="#ffffff">
+  <script src="/static/vendors/simplebar/simplebar.min.js"></script>
+  <script src="/static/assets/js/config.js"></script>
+
+
+  <link href="/static/vendors/choices/choices.min.css" rel="stylesheet">
+  <link href="/static/vendors/flatpickr/flatpickr.min.css" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+  <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@300;400;600;700;800;900&amp;display=swap"
+    rel="stylesheet">
+  <link href="/static/vendors/simplebar/simplebar.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://unicons.iconscout.com/release/v4.0.8/css/line.css">
+  <link href="/static/assets/css/theme-rtl.min.css" type="text/css" rel="stylesheet" id="style-rtl">
+  <link href="/static/assets/css/theme.min.css" type="text/css" rel="stylesheet" id="style-default">
+  <link href="/static/assets/css/user-rtl.min.css" type="text/css" rel="stylesheet" id="user-style-rtl">
+  <link href="/static/assets/css/user.min.css" type="text/css" rel="stylesheet" id="user-style-default">
+  <script>
+    var phoenixIsRTL = window.config.config.phoenixIsRTL;
+    if (phoenixIsRTL) {
+      var linkDefault = document.getElementById('style-default');
+      var userLinkDefault = document.getElementById('user-style-default');
+      linkDefault.setAttribute('disabled', true);
+      userLinkDefault.setAttribute('disabled', true);
+      document.querySelector('html').setAttribute('dir', 'rtl');
+    } else {
+      var linkRTL = document.getElementById('style-rtl');
+      var userLinkRTL = document.getElementById('user-style-rtl');
+      linkRTL.setAttribute('disabled', true);
+      userLinkRTL.setAttribute('disabled', true);
+    }
+  </script>
+</head>
+
+
+<body>
+
+  <main class="main" id="top">
+    {% include 'menu.html' %}
+    {% include 'top_bar.html' %}
+    <div class="content">
+
+      <div class="pb-6">
+        <h2 class="mb-4">{{ context.data.total if context.data and context.data.total else 0 }} Veículos em Estoque</h2>
+        <!-- print context -->
+        <!-- <pre>{{ context|tojson(indent=2) }}</pre> -->
+        <div id="produtos_table">
+
+          <div class="row g-3 justify-content-between mb-4">
+            <div class="col-auto">
+
+            </div>
+
+            <div class="d-flex flex-column flex-xl-row justify-content-between">
+              <div class="mb-3">
+                <!-- <button class="btn btn-phoenix-secondary bg-body-emphasis btn-sm px-md-4 me-3"
+                  onclick="downloadEstoque()">
+                  <span class="fa-solid fa-download"></span>
+                  <span class="d-none d-md-inline ms-2">Download</span>
+                </button> -->
+              </div>
+              <div class="d-flex mb-4 flex-shrink-0">
+                <div class="search-box me-2 flex-grow-1" style="min-width: 0;">
+                  <form class="position-relative">
+                    <input class="form-control search-input search" type="search" id="searchInput"
+                      placeholder="Procure por produto ou modelo" aria-label="Search" />
+                    <span class="fas fa-search search-box-icon"></span>
+                  </form>
+                </div>
+                <!-- <button class="btn px-3 btn-phoenix-secondary flex-shrink-0" type="button" data-bs-toggle="modal"
+                  data-bs-target="#reportsFilterModal" aria-haspopup="true" aria-expanded="false"
+                  data-bs-reference="parent"><span class="fa-solid fa-filter text-primary"
+                    data-fa-transform="down-3"></span></button> -->
+              </div>
+            </div>
+
+            <div class="table-responsive">
+              <table class="table table-sm fs-9 mb-0 overflow-hidden table-hover">
+                <thead class="text-body">
+                  <tr>
+
+
+                    <th class="sort border-top" data-sort="chassi_completo" style="min-width: 10rem;">
+                      cod_produto
+                    </th>
+
+                    <th class="sort border-top" data-sort="modelo" style="min-width: 12rem;">
+                      Familia
+                    </th>
+
+                    <th class="sort border-top text-center" data-sort="ano_modelo" style="min-width: 5rem;">
+                      cod_modelo
+                    </th>
+
+                    <th class="sort border-top text-center" data-sort="cor" style="min-width: 6rem;">
+                      Modelo
+                    </th>
+
+                    <th class="sort border-top text-center" data-sort="novo_usado" style="min-width: 5rem;">
+                      qtd_kits
+                    </th>
+
+
+                  </tr>
+                </thead>
+
+                <tbody id="bulk-select-body">
+                  {% if context.data.veiculos %}
+                  {% for veiculo in context.data.veiculos %}
+                  <tr style="cursor: pointer;" onclick="window.location.href='/veiculos/produtos/{{ veiculo.cod_modelo }}?previous_page={{ request.url|urlencode }}'">
+
+                    <td class="cod_produto align-middle">
+                      {{ veiculo.cod_produto if veiculo.cod_produto else '-' }}
+                    </td>
+
+                    <td class="descricao_produto align-middle">
+                      {% if veiculo.descricao_produto %}
+                      {% if veiculo.descricao_produto|length > 25 %}
+                      <span title="{{ veiculo.descricao_produto }}" class="fw-semibold text-body">{{
+                        veiculo.descricao_produto[:22] }}...</span>
+                      {% else %}
+                      <span class="fw-semibold text-body">{{ veiculo.descricao_produto }}</span>
+                      {% endif %}
+                      {% else %}
+                      -
+                      {% endif %}
+                    </td>
+
+                    <td class="cod_modelo align-middle text-center">
+                      {{ veiculo.cod_modelo if veiculo.cod_modelo else '-' }}
+                    </td>
+
+                    <td class="descricao_modelo align-middle">
+                      {% if veiculo.descricao_modelo %}
+                      {% if veiculo.descricao_modelo|length > 35 %}
+                      <span title="{{ veiculo.descricao_modelo }}" class="text-body">{{ veiculo.descricao_modelo[:32]
+                        }}...</span>
+                      {% else %}
+                      <span class="text-body">{{ veiculo.descricao_modelo }}</span>
+                      {% endif %}
+                      {% else %}
+                      -
+                      {% endif %}
+                    </td>
+
+                    <td class="qtd_kits align-middle text-center">
+                      {% if veiculo.qtd_kits and veiculo.qtd_kits > 0 %}
+                      <span class="badge fs-10 badge-phoenix badge-phoenix-success">{{ veiculo.qtd_kits }}</span>
+                      {% else %}
+                      <span class="text-body-tertiary">0</span>
+                      {% endif %}
+                    </td>
+                  </tr>
+                  {% endfor %}
+                  {% else %}
+                  <tr>
+                    <td colspan="6" class="text-center py-4 text-body-tertiary">
+                      Nenhum veículo encontrado
+                    </td>
+                  </tr>
+                  {% endif %}
+                </tbody>
+              </table>
+            </div>
+
+            <div class="row align-items-center justify-content-between py-2 pe-0 fs-9 mt-2">
+              <div class="col-auto d-flex">
+                <p class="mb-0 d-none d-sm-block me-3 fw-semibold text-body" data-list-info="data-list-info"></p><a
+                  class="fw-semibold" href="#!" data-list-view="*">Ver todos<span class="fas fa-angle-right ms-1"
+                    data-fa-transform="down-1"></span></a><a class="fw-semibold d-none" href="#!"
+                  data-list-view="less">View
+                  Less<span class="fas fa-angle-right ms-1" data-fa-transform="down-1"></span></a>
+              </div>
+              <div class="col-auto d-flex">
+                <button class="page-link" data-list-pagination="prev"><span class="fas fa-chevron-left"></span></button>
+                <ul class="mb-0 pagination"></ul>
+                <button class="page-link pe-0" data-list-pagination="next"><span
+                    class="fas fa-chevron-right"></span></button>
+              </div>
+            </div>
+
+            {% if context.data.current_page %}
+            <div class="row align-items-center justify-content-end py-4 pe-0 fs-9">
+              <div class="col-auto d-flex">
+                <div class="col-auto d-flex">
+                  <nav aria-label="pagination">
+                    <ul class="pagination mb-0">
+                      {% if context.data.current_page > 1 %}
+                      <li class="page-item">
+                        <a class="page-link"
+                          href="?current_page={{ context.data.current_page - 1 }}{% if request.args.get('search') %}&search={{ request.args.get('search') }}{% endif %}">
+                          <span class="fas fa-chevron-left"></span>
+                        </a>
+                      </li>
+                      {% else %}
+                      <li class="page-item disabled">
+                        <span class="page-link">
+                          <span class="fas fa-chevron-left"></span>
+                        </span>
+                      </li>
+                      {% endif %}
+
+                      {% set start_page = [1, context.data.current_page - 2]|max %}
+                      {% set end_page = [context.data.total_pages, context.data.current_page + 2]|min %}
+
+                      {% if start_page > 1 %}
+                      <li class="page-item">
+                        <a class="page-link"
+                          href="?current_page=1{% if request.args.get('search') %}&search={{ request.args.get('search') }}{% endif %}">1</a>
+                      </li>
+                      {% if start_page > 2 %}
+                      <li class="page-item disabled">
+                        <span class="page-link">...</span>
+                      </li>
+                      {% endif %}
+                      {% endif %}
+
+                      {% for page_num in range(start_page, end_page + 1) %}
+                      {% if page_num == context.data.current_page %}
+                      <li class="page-item active">
+                        <span class="page-link">{{ page_num }}</span>
+                      </li>
+                      {% else %}
+                      <li class="page-item">
+                        <a class="page-link"
+                          href="?current_page={{ page_num }}{% if request.args.get('search') %}&search={{ request.args.get('search') }}{% endif %}">{{
+                          page_num }}</a>
+                      </li>
+                      {% endif %}
+                      {% endfor %}
+
+                      {% if end_page < context.data.total_pages %} {% if end_page < context.data.total_pages - 1 %} <li
+                        class="page-item disabled">
+                        <span class="page-link">...</span>
+                        </li>
+                        {% endif %}
+                        <li class="page-item">
+                          <a class="page-link"
+                            href="?current_page={{ context.data.total_pages }}{% if request.args.get('search') %}&search={{ request.args.get('search') }}{% endif %}">{{
+                            context.data.total_pages }}</a>
+                        </li>
+                        {% endif %}
+
+                        {% if context.data.current_page < context.data.total_pages %} <li class="page-item">
+                          <a class="page-link"
+                            href="?current_page={{ context.data.current_page + 1 }}{% if request.args.get('search') %}&search={{ request.args.get('search') }}{% endif %}">
+                            <span class="fas fa-chevron-right"></span>
+                          </a>
+                          </li>
+                          {% else %}
+                          <li class="page-item disabled">
+                            <span class="page-link">
+                              <span class="fas fa-chevron-right"></span>
+                            </span>
+                          </li>
+                          {% endif %}
+                    </ul>
+                  </nav>
+                </div>
+              </div>
+            </div>
+            {% endif %}
+          </div>
+        </div>
+        <footer class="footer position-absolute">
+          <div class="row g-0 justify-content-between align-items-center h-100">
+          </div>
+        </footer>
+
+  </main>
+  <script src="/static/vendors/popper/popper.min.js"></script>
+  <script src="/static/vendors/bootstrap/bootstrap.min.js"></script>
+  <script src="/static/vendors/anchorjs/anchor.min.js"></script>
+  <script src="/static/vendors/is/is.min.js"></script>
+  <script src="/static/vendors/fontawesome/all.min.js"></script>
+  <script src="/static/vendors/lodash/lodash.min.js"></script>
+  <script src="/static/vendors/list.js/list.min.js"></script>
+  <script src="/static/vendors/feather-icons/feather.min.js"></script>
+  <script src="/static/vendors/dayjs/dayjs.min.js"></script>
+  <script src="/static/vendors/choices/choices.min.js"></script>
+  <script src="/static/vendors/flatpickr/flatpickr.min.js"></script>
+  <script src="/static/assets/js/phoenix.js"></script>
+  <script src="/static/vendors/prism/prism.js"></script>
+  <script src="/static/assets/js/menu.js"></script>
+
+  <script>
+    let estoqueList; // Variável global para o List.js
+
+    document.addEventListener('DOMContentLoaded', function () {
+      // Inicializar feather icons
+      if (window.feather) {
+        feather.replace();
+      }
+
+      // Preencher o campo de busca com o valor da URL
+      const urlParams = new URLSearchParams(window.location.search);
+      const searchQuery = urlParams.get('search');
+      const searchInput = document.getElementById('searchInput');
+      if (searchQuery && searchInput) {
+        searchInput.value = searchQuery;
+      }
+
+      // Handle search input
+      if (searchInput) {
+        searchInput.addEventListener('keypress', function (e) {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            performSearch();
+          }
+        });
+      }
+
+      // Opcional: adicionar evento para buscar quando clicar no ícone de busca
+      const searchIcon = document.querySelector('.search-box-icon');
+      if (searchIcon) {
+        searchIcon.addEventListener('click', function () {
+          performSearch();
+        });
+        searchIcon.style.cursor = 'pointer';
+      }
+
+      // Verificar se existe dados para evitar erros
+      if (document.getElementById('produtos_table') && document.getElementById('bulk-select-body')) {
+        // Aguardar um pouco para garantir que a tabela foi renderizada
+        setTimeout(function () {
+          // Inicializar List.js para estoque de veículos
+          try {
+            estoqueList = new List('produtos_table', {
+              valueNames: ['cod_produto', 'descricao_produto', 'cod_modelo', 'descricao_modelo', 'qtd_kits'],
+              page: 200,
+              pagination: {
+                item: `<li class='page-item'><button class='page page-link' type='button'></button></li>`
+              }
+            });
+
+            console.log('List.js inicializado para estoque de veículos');
+            console.log('Total de itens encontrados:', estoqueList.items.length);
+            console.log('Páginas disponíveis:', Math.ceil(estoqueList.items.length / 200));
+
+            // Tornar estoqueList global para acesso nas funções de filtro
+            window.estoqueList = estoqueList;
+
+          } catch (error) {
+            console.error('Erro ao inicializar List.js:', error);
+          }
+        }, 500);
+      }
+    });
+
+    function performSearch() {
+      const searchInput = document.getElementById('searchInput');
+      const query = searchInput ? searchInput.value.trim() : '';
+      const urlParams = new URLSearchParams(window.location.search);
+
+      if (query) {
+        urlParams.set('search', query);
+      } else {
+        urlParams.delete('search');
+      }
+
+      urlParams.set('current_page', '1');
+      const newUrl = window.location.pathname + '?' + urlParams.toString();
+      window.location.href = newUrl;
+    }
+
+    // Função para aplicar filtros
+    function applyFilters() {
+      if (!window.estoqueList) {
+        console.error('List.js não foi inicializado');
+        showToast('Erro: Sistema de filtros não inicializado', 'error');
+        return;
+      }
+
+      const filtros = {
+        descricao_produto: Array.from(document.getElementById('filtroDescricaoProduto').selectedOptions).map(o => o.value).filter(v => v),
+        descricao_modelo: Array.from(document.getElementById('filtroDescricaoModelo').selectedOptions).map(o => o.value).filter(v => v),
+        cod_modelo: Array.from(document.getElementById('filtroCodigoModelo').selectedOptions).map(o => o.value).filter(v => v),
+        cod_produto: Array.from(document.getElementById('filtroCodigoProduto').selectedOptions).map(o => o.value).filter(v => v)
+      };
+
+      console.log('Filtros selecionados:', filtros);
+
+      // Aplicar filtros no List.js
+      window.estoqueList.filter(function (item) {
+        const values = item.values();
+
+        // Função helper para normalizar texto e extrair conteúdo real da célula
+        const normalize = (text) => {
+          if (!text) return '';
+          // Remove tags HTML e espaços extras
+          return text.toString().replace(/<[^>]*>/g, '').trim().toLowerCase();
+        };
+
+        // Verificar cada filtro
+        if (filtros.descricao_produto.length > 0) {
+          const itemDescricaoProduto = normalize(values.descricao_produto);
+          const hasMatch = filtros.descricao_produto.some(filtro => itemDescricaoProduto.includes(normalize(filtro)));
+          if (!hasMatch) return false;
+        }
+
+        if (filtros.descricao_modelo.length > 0) {
+          const itemDescricaoModelo = normalize(values.descricao_modelo);
+          const hasMatch = filtros.descricao_modelo.some(filtro => itemDescricaoModelo.includes(normalize(filtro)));
+          if (!hasMatch) return false;
+        }
+
+        if (filtros.cod_modelo.length > 0) {
+          const itemCodModelo = normalize(values.cod_modelo);
+          const hasMatch = filtros.cod_modelo.some(filtro => itemCodModelo === normalize(filtro));
+          if (!hasMatch) return false;
+        }
+
+        if (filtros.cod_produto.length > 0) {
+          const itemCodProduto = normalize(values.cod_produto);
+          const hasMatch = filtros.cod_produto.some(filtro => itemCodProduto === normalize(filtro));
+          if (!hasMatch) return false;
+        }
+
+        return true;
+      });
+
+      // Fechar modal
+      const modal = bootstrap.Modal.getInstance(document.getElementById('reportsFilterModal'));
+      if (modal) {
+        modal.hide();
+      }
+
+      const itemsEncontrados = window.estoqueList.visibleItems.length;
+      console.log('Filtros aplicados. Itens encontrados:', itemsEncontrados);
+
+      // Mostrar toast de confirmação
+      if (itemsEncontrados === 0) {
+        showToast('Nenhum veículo encontrado com os filtros selecionados', 'warning');
+      } else {
+        showToast(`Filtro aplicado: ${itemsEncontrados} veículo${itemsEncontrados > 1 ? 's' : ''} encontrado${itemsEncontrados > 1 ? 's' : ''}`, 'success');
+      }
+    }
+
+    // Função para limpar filtros
+    function resetFilters() {
+      if (!window.estoqueList) {
+        console.error('List.js não foi inicializado');
+        return;
+      }
+
+      // Limpar todos os selects
+      const selects = ['filtroDescricaoProduto', 'filtroDescricaoModelo', 'filtroCodigoModelo', 'filtroCodigoProduto'];
+      selects.forEach(selectId => {
+        const select = document.getElementById(selectId);
+        if (select) {
+          // Limpar seleções múltiplas
+          Array.from(select.options).forEach(option => option.selected = false);
+          // Selecionar apenas a primeira opção (Todos)
+          if (select.options.length > 0) {
+            select.options[0].selected = true;
+          }
+        }
+      });
+
+      // Limpar campo de busca também
+      const searchInput = document.querySelector('.search-input');
+      if (searchInput) {
+        searchInput.value = '';
+      }
+
+      // Remover filtros do List.js
+      window.estoqueList.filter();
+      window.estoqueList.search();
+
+      console.log('Filtros limpos');
+      console.log('Total de itens:', window.estoqueList.items.length);
+
+      showToast('Filtros removidos com sucesso', 'info');
+    }
+
+    // Função para aplicar filtro combinado (busca + filtros)
+    function applyFiltersCombined() {
+      if (!window.estoqueList) {
+        return;
+      }
+
+      const searchTerm = document.querySelector('.search-input')?.value?.toLowerCase() || '';
+
+      const filtros = {
+        descricao_produto: Array.from(document.getElementById('filtroDescricaoProduto').selectedOptions).map(o => o.value).filter(v => v),
+        descricao_modelo: Array.from(document.getElementById('filtroDescricaoModelo').selectedOptions).map(o => o.value).filter(v => v),
+        cod_modelo: Array.from(document.getElementById('filtroCodigoModelo').selectedOptions).map(o => o.value).filter(v => v),
+        cod_produto: Array.from(document.getElementById('filtroCodigoProduto').selectedOptions).map(o => o.value).filter(v => v)
+      };
+
+      // Se não há filtros nem busca, mostrar todos
+      const hasFilters = Object.values(filtros).some(f => f.length > 0);
+      const hasSearch = searchTerm.length > 0;
+
+      if (!hasFilters && !hasSearch) {
+        window.estoqueList.filter();
+        return;
+      }
+
+      // Aplicar filtros combinados
+      window.estoqueList.filter(function (item) {
+        const values = item.values();
+
+        // Função helper para normalizar texto
+        const normalize = (text) => {
+          if (!text) return '';
+          return text.toString().replace(/<[^>]*>/g, '').trim().toLowerCase();
+        };
+
+        // Verificar busca global primeiro
+        if (hasSearch) {
+          const codProduto = normalize(values.cod_produto);
+          const descricaoProduto = normalize(values.descricao_produto);
+          const codModelo = normalize(values.cod_modelo);
+          const descricaoModelo = normalize(values.descricao_modelo);
+
+          const searchMatch = codProduto.includes(searchTerm) ||
+            descricaoProduto.includes(searchTerm) ||
+            codModelo.includes(searchTerm) ||
+            descricaoModelo.includes(searchTerm);
+          if (!searchMatch) return false;
+        }
+
+        // Verificar filtros específicos
+        if (filtros.descricao_produto.length > 0) {
+          const itemDescricaoProduto = normalize(values.descricao_produto);
+          const hasMatch = filtros.descricao_produto.some(filtro => itemDescricaoProduto.includes(normalize(filtro)));
+          if (!hasMatch) return false;
+        }
+
+        if (filtros.descricao_modelo.length > 0) {
+          const itemDescricaoModelo = normalize(values.descricao_modelo);
+          const hasMatch = filtros.descricao_modelo.some(filtro => itemDescricaoModelo.includes(normalize(filtro)));
+          if (!hasMatch) return false;
+        }
+
+        if (filtros.cod_modelo.length > 0) {
+          const itemCodModelo = normalize(values.cod_modelo);
+          const hasMatch = filtros.cod_modelo.some(filtro => itemCodModelo === normalize(filtro));
+          if (!hasMatch) return false;
+        }
+
+        if (filtros.cod_produto.length > 0) {
+          const itemCodProduto = normalize(values.cod_produto);
+          const hasMatch = filtros.cod_produto.some(filtro => itemCodProduto === normalize(filtro));
+          if (!hasMatch) return false;
+        }
+
+        return true;
+      });
+    }
+
+    // Modificar a função applyFilters para usar a versão combinada
+    function applyFilters() {
+      if (!window.estoqueList) {
+        console.error('List.js não foi inicializado');
+        showToast('Erro: Sistema de filtros não inicializado', 'error');
+        return;
+      }
+
+      applyFiltersCombined();
+
+      // Fechar modal
+      const modal = bootstrap.Modal.getInstance(document.getElementById('reportsFilterModal'));
+      if (modal) {
+        modal.hide();
+      }
+
+      const itemsEncontrados = window.estoqueList.visibleItems.length;
+      console.log('Filtros aplicados. Itens encontrados:', itemsEncontrados);
+
+      // Mostrar toast de confirmação
+      if (itemsEncontrados === 0) {
+        showToast('Nenhum veículo encontrado com os filtros selecionados', 'warning');
+      } else {
+        showToast(`Filtro aplicado: ${itemsEncontrados} veículo${itemsEncontrados > 1 ? 's' : ''} encontrado${itemsEncontrados > 1 ? 's' : ''}`, 'success');
+      }
+    }
+
+    // Listener para o campo de busca - integrar com filtros
+    document.addEventListener('DOMContentLoaded', function () {
+      setTimeout(() => {
+        const searchInput = document.querySelector('.search-input');
+        if (searchInput) {
+          // Remover event listener duplicado se existir
+          searchInput.removeEventListener('input', applyFiltersCombined);
+
+          // Adicionar event listener apenas se List.js estiver ativo
+          searchInput.addEventListener('input', function () {
+            if (window.estoqueList) {
+              applyFiltersCombined();
+            }
+          });
+        }
+      }, 1000);
+    });
+
+    // Função para mostrar toast
+    function showToast(message, type = 'primary') {
+      const toastContainer = document.getElementById('toastMessageContainer');
+      const toastElement = document.getElementById('toastMessage');
+      const toastBody = toastElement.querySelector('.toast-body');
+
+      if (!toastElement || !toastBody) {
+        // Fallback para alert se toast não estiver disponível
+        alert(message);
+        return;
+      }
+
+      // Atualizar a mensagem
+      toastBody.textContent = message;
+
+      // Atualizar as classes de cor baseado no tipo
+      toastElement.className = `toast align-items-center text-white border-0`;
+      if (type === 'success') {
+        toastElement.classList.add('bg-success');
+      } else if (type === 'error') {
+        toastElement.classList.add('bg-danger');
+      } else if (type === 'info') {
+        toastElement.classList.add('bg-info');
+      } else if (type === 'warning') {
+        toastElement.classList.add('bg-warning');
+      } else {
+        toastElement.classList.add('bg-primary');
+      }
+
+      // Mostrar o toast
+      const toast = new bootstrap.Toast(toastElement);
+      toast.show();
+    }
+
+    function downloadEstoque() {
+      // Mostrar loading no botão
+      const downloadBtn = event.target.closest('button');
+      const originalContent = downloadBtn.innerHTML;
+      downloadBtn.disabled = true;
+      downloadBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Baixando...';
+
+      const requestOptions = {
+        method: "GET",
+        redirect: "follow"
+      };
+
+      fetch("https://backend.caiuas.com.br/api/reports/estoque", requestOptions)
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error(`Erro HTTP: ${response.status}`);
+          }
+
+          // Verificar o tipo de conteúdo
+          const contentType = response.headers.get('content-type');
+
+          if (contentType && contentType.includes('application/json')) {
+            // Se for JSON, converter para CSV
+            return response.json().then(data => {
+              return jsonToCsv(data);
+            });
+          } else {
+            // Se já for um arquivo (CSV, Excel, etc), baixar direto
+            return response.blob();
+          }
+        })
+        .then((result) => {
+          let blob, filename;
+
+          if (typeof result === 'string') {
+            // Se for CSV string
+            blob = new Blob([result], { type: 'text/csv;charset=utf-8;' });
+            filename = `estoque_veiculos_${new Date().toISOString().slice(0, 10)}.csv`;
+          } else {
+            // Se for blob (arquivo)
+            blob = result;
+            filename = `estoque_veiculos_${new Date().toISOString().slice(0, 10)}.xlsx`;
+          }
+
+          // Criar link temporário para download
+          const link = document.createElement('a');
+          const url = window.URL.createObjectURL(blob);
+          link.href = url;
+          link.download = filename;
+
+          // Adicionar ao DOM, clicar e remover
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+
+          // Limpar URL
+          window.URL.revokeObjectURL(url);
+
+          console.log('Download concluído:', filename);
+          showToast('Download concluído com sucesso!', 'success');
+        })
+        .catch((error) => {
+          console.error('Erro no download:', error);
+          showToast('Erro ao baixar arquivo. Tente novamente.', 'error');
+        })
+        .finally(() => {
+          // Restaurar botão
+          downloadBtn.disabled = false;
+          downloadBtn.innerHTML = originalContent;
+        });
+    }
+
+    function jsonToCsv(jsonData) {
+      if (!jsonData || !Array.isArray(jsonData) || jsonData.length === 0) {
+        return '';
+      }
+
+      // Obter cabeçalhos das colunas
+      const headers = Object.keys(jsonData[0]);
+
+      // Mapear nomes dos campos para português
+      const headerMapping = {
+        'chassi_completo': 'Chassi',
+        'modelo': 'Modelo',
+        'ano_modelo': 'Ano/Modelo',
+        'cor': 'Cor',
+        'novo_usado': 'Tipo',
+        'patio': 'Pátio',
+        'nome_vendedor': 'Vendedor',
+        'cod_proposta': 'Cód. Proposta'
+      };
+
+      // Criar linha de cabeçalho
+      const csvHeaders = headers.map(header => headerMapping[header] || header);
+
+      // Converter dados para CSV
+      const csvRows = jsonData.map(row => {
+        return headers.map(header => {
+          const value = row[header];
+          // Escapar aspas e adicionar aspas se necessário
+          if (value === null || value === undefined) {
+            return '';
+          }
+          const stringValue = String(value);
+          if (stringValue.includes(',') || stringValue.includes('"') || stringValue.includes('\n')) {
+            return '"' + stringValue.replace(/"/g, '""') + '"';
+          }
+          return stringValue;
+        });
+      });
+
+      // Combinar cabeçalho e linhas
+      return [csvHeaders, ...csvRows].map(row => row.join(',')).join('\n');
+    }
+
+  </script>
+
+
+
+
+</body>
+
+</html>
