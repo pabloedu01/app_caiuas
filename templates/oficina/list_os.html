@@ -62,8 +62,7 @@
 
             <div class="d-flex flex-column flex-xl-row justify-content-between">
               <div class="mb-3">
-                <!-- Botões de ação podem ser adicionados aqui -->
-              </div>
+                </div>
               <div class="d-flex mb-4 flex-shrink-0">
                 <div class="search-box me-2 flex-grow-1" style="min-width: 0;">
                   <form class="position-relative">
@@ -72,7 +71,13 @@
                     <span class="fas fa-search search-box-icon"></span>
                   </form>
                 </div>
-              </div>
+                
+                <div class="flatpickr-input-container me-2" style="min-width: 15rem;">
+                  <input class="form-control datetimepicker" id="osDateRangePicker" type="text"
+                      placeholder="Filtrar por data de emissão" name="daterange"
+                      data-options='{"mode":"range","dateFormat":"d/m/y","disableMobile":true}' />
+                </div>
+                </div>
             </div>
 
             <div class="table-responsive">
@@ -104,7 +109,6 @@
                 </thead>
 
                 <tbody id="bulk-select-body">
-                  <!-- Será preenchido via JavaScript -->
                   <tr>
                     <td colspan="7" class="text-center py-4">
                       <div class="spinner-border text-primary" role="status">
@@ -117,13 +121,11 @@
               </table>
             </div>
 
-            <!-- Paginação -->
             <div id="paginationContainer" class="row align-items-center justify-content-end py-4 pe-0 fs-9">
               <div class="col-auto d-flex">
                 <nav aria-label="pagination">
                   <ul class="pagination mb-0" id="paginationList">
-                    <!-- Será preenchido via JavaScript -->
-                  </ul>
+                    </ul>
                 </nav>
               </div>
             </div>
@@ -141,13 +143,11 @@
     </footer>
   </main>
 
-  <!-- Toast Container -->
   <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 9999;">
     <div id="toastMessage" class="toast align-items-center text-white border-0" role="alert" aria-live="assertive" aria-atomic="true">
       <div class="d-flex">
         <div class="toast-body">
-          <!-- Mensagem será inserida aqui -->
-        </div>
+          </div>
         <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
       </div>
     </div>
@@ -172,9 +172,19 @@
     // Variáveis globais
     let currentPage = 1;
     let currentSearch = '';
+    let currentInitialDate = '';
+    let currentFinalDate = '';
     let totalPages = 1;
     let totalItems = 0;
     let osList = null; // Para List.js
+
+    // *** ADICIONADO: Função helper para formatar data ***
+    function formatDateYYYYMMDD(date) {
+      const year = date.getFullYear();
+      const month = (date.getMonth() + 1).toString().padStart(2, '0'); // +1 pois getMonth() é base 0
+      const day = date.getDate().toString().padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    }
 
     document.addEventListener('DOMContentLoaded', function () {
       // Inicializar feather icons
@@ -186,6 +196,8 @@
       const urlParams = new URLSearchParams(window.location.search);
       const searchQuery = urlParams.get('search');
       const pageQuery = urlParams.get('current_page');
+      const initialDateQuery = urlParams.get('initial_date');
+      const finalDateQuery = urlParams.get('final_date');
       
       const searchInput = document.getElementById('searchInput');
       if (searchQuery && searchInput) {
@@ -193,8 +205,40 @@
         currentSearch = searchQuery;
       }
 
+      // *** LÓGICA DE DATA MODIFICADA ***
+      // Se não houver parâmetros de data na URL, definir o mês atual como padrão
+      if (!initialDateQuery || !finalDateQuery) {
+        const now = new Date();
+        const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
+        const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0); // Dia 0 do próximo mês = último dia do mês atual
+
+        currentInitialDate = formatDateYYYYMMDD(firstDay);
+        currentFinalDate = formatDateYYYYMMDD(lastDay);
+        
+        console.log('Datas padrão definidas (mês atual):', currentInitialDate, 'a', currentFinalDate);
+
+        // (Opcional) Atualizar a URL para refletir o padrão (sem recarregar)
+        // Isso fará com que o estado padrão seja "sticky" se o usuário recarregar
+        const newParams = new URLSearchParams(window.location.search);
+        newParams.set('initial_date', currentInitialDate);
+        newParams.set('final_date', currentFinalDate);
+        if(!pageQuery) newParams.set('current_page', '1');
+        const newUrl = window.location.pathname + '?' + newParams.toString();
+        // Usar replaceState para não poluir o histórico do navegador
+        window.history.replaceState({}, '', newUrl);
+
+      } else {
+        // Se houver parâmetros, usar os valores da URL
+        currentInitialDate = initialDateQuery;
+        currentFinalDate = finalDateQuery;
+      }
+      // *** FIM DA LÓGICA DE DATA ***
+
+
       if (pageQuery) {
         currentPage = parseInt(pageQuery) || 1;
+      } else {
+        currentPage = 1; // Garantir que a página seja 1 se não estiver na URL
       }
 
       // Event listeners para busca
@@ -216,16 +260,102 @@
         searchIcon.style.cursor = 'pointer';
       }
 
-      // Carregar dados iniciais
-      carregarOrdemServico(currentPage, currentSearch);
+      // Inicializar Flatpickr
+      const dateInput = document.getElementById('osDateRangePicker');
+      if (dateInput) {
+        const fp = flatpickr(dateInput, {
+          mode: "range",
+          dateFormat: "d/m/y",
+          disableMobile: true,
+          onChange: function (selectedDates, dateStr, instance) {
+            // Ao selecionar um novo range
+            if (selectedDates.length === 2) {
+              const startDate = flatpickr.formatDate(selectedDates[0], "Y-m-d");
+              const endDate = flatpickr.formatDate(selectedDates[1], "Y-m-d");
+              if (currentInitialDate !== startDate || currentFinalDate !== endDate) {
+                updateUrlAndReload(1, currentSearch, startDate, endDate);
+              }
+            }
+          },
+          onClose: function (selectedDates, dateStr, instance) {
+            // Ao limpar o campo
+            if (selectedDates.length === 0 && instance.input.value === "" && (currentInitialDate || currentFinalDate)) {
+              updateUrlAndReload(1, currentSearch, '', '');
+            }
+          },
+          onReady: function (selectedDates, dateStr, instance) {
+            // Preencher ao carregar a página
+            // Isso agora usará as datas padrão (mês atual) se nenhuma data da URL foi encontrada
+            if (currentInitialDate && currentFinalDate) {
+              const parseDate = (dateStr) => {
+                const parts = dateStr.split('-'); // YYYY-MM-DD
+                if (parts.length === 3) {
+                  return new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+                }
+                return null;
+              };
+              
+              try {
+                const startDate = parseDate(currentInitialDate);
+                const endDate = parseDate(currentFinalDate);
+                if (startDate && endDate && !isNaN(startDate.getTime()) && !isNaN(endDate.getTime())) {
+                  instance.setDate([startDate, endDate], false);
+                }
+              } catch (error) {
+                console.error('Error parsing dates:', error);
+              }
+            }
+          }
+        });
+      }
+      // FIM ADICIONADO
+
+      // Carregar dados iniciais (MODIFICADO)
+      // A chamada agora usará as datas padrão ou as da URL
+      carregarOrdemServico(currentPage, currentSearch, currentInitialDate, currentFinalDate);
     });
 
-    // Função para carregar ordens de serviço
-    function carregarOrdemServico(page = 1, search = '') {
-      console.log('Carregando OS:', { page, search });
+    // Função para atualizar URL e recarregar
+    function updateUrlAndReload(page, search, initialDate, finalDate) {
+      const urlParams = new URLSearchParams(window.location.search);
       
+      urlParams.set('current_page', page.toString());
+
+      if (search) { 
+        urlParams.set('search', search); 
+      } else { 
+        urlParams.delete('search'); 
+      }
+      
+      if (initialDate) { 
+        urlParams.set('initial_date', initialDate); 
+      } else { 
+        urlParams.delete('initial_date'); 
+      }
+      
+      if (finalDate) { 
+        urlParams.set('final_date', finalDate); 
+      } else { 
+        urlParams.delete('final_date'); 
+      }
+
+      const newUrl = window.location.pathname + '?' + urlParams.toString();
+      // Usar pushState aqui para permitir navegação "voltar"
+      window.history.pushState({}, '', newUrl);
+
+      // Apenas chama carregarOrdemServico, que já atualiza as variáveis globais
+      carregarOrdemServico(page, search, initialDate, finalDate);
+    }
+
+    // Função para carregar ordens de serviço (MODIFICADO)
+    function carregarOrdemServico(page = 1, search = '', initialDate = '', finalDate = '') {
+      console.log('Carregando OS:', { page, search, initialDate, finalDate });
+      
+      // Atualizar estado global
       currentPage = page;
       currentSearch = search;
+      currentInitialDate = initialDate;
+      currentFinalDate = finalDate;
 
       // Mostrar loading
       const tbody = document.getElementById('bulk-select-body');
@@ -250,10 +380,16 @@
         redirect: "follow"
       };
 
-      // Construir URL com parâmetros
+      // Construir URL com parâmetros (MODIFICADO)
       let url = `https://backend.caiuas.com.br/api/oficina/list_os?current_page=${page}`;
       if (search) {
         url += `&search=${encodeURIComponent(search)}`;
+      }
+      // ADICIONADO
+      // Sempre enviar datas, pois agora temos um padrão
+      if (initialDate && finalDate) {
+        url += `&initial_date=${encodeURIComponent(initialDate)}`;
+        url += `&final_date=${encodeURIComponent(finalDate)}`;
       }
 
       console.log('URL da requisição:', url);
@@ -333,7 +469,7 @@
           <tr>
             <td colspan="7" class="text-center text-muted py-4">
               <i class="fas fa-search me-2"></i>
-              ${currentSearch ? 'Nenhuma ordem de serviço encontrada para o filtro aplicado' : 'Nenhuma ordem de serviço encontrada'}
+              ${(currentSearch || currentInitialDate) ? 'Nenhuma ordem de serviço encontrada para o filtro aplicado' : 'Nenhuma ordem de serviço encontrada'}
             </td>
           </tr>
         `;
@@ -413,13 +549,13 @@
         case 1:
           return '<span class="badge fs-10 badge-phoenix badge-phoenix-primary">Aberta</span>';
         case 2:
-          return '<span class="badge fs-10 badge-phoenix badge-phoenix-warning">Em Andamento</span>';
+          return '<span class="badge fs-10 badge-phoenix badge-phoenix-success">Fechada</span>';
         case 3:
-          return '<span class="badge fs-10 badge-phoenix badge-phoenix-success">Concluída</span>';
+          return '<span class="badge fs-10 badge-phoenix badge-phoenix-danger">Cancelada</span>';
         case 4:
           return '<span class="badge fs-10 badge-phoenix badge-phoenix-danger">Cancelada</span>';
         default:
-          return '<span class="badge fs-10 badge-phoenix badge-phoenix-secondary">Indefinido</span>';
+          return '<span class="badge fs-10 badge-phoenix badge-phoenix-primary">Aberta</span>';
       }
     }
 
@@ -431,7 +567,7 @@
       }
     }
 
-    // Função para atualizar paginação
+    // Função para atualizar paginação (MODIFICADO)
     function atualizarPaginacao() {
       const paginationList = document.getElementById('paginationList');
       
@@ -441,12 +577,15 @@
       }
 
       let paginationHTML = '';
+      
+      // String de parâmetros para os botões
+      const params = `'${currentSearch}', '${currentInitialDate}', '${currentFinalDate}'`;
 
       // Botão anterior
       if (currentPage > 1) {
         paginationHTML += `
           <li class="page-item">
-            <button class="page-link" onclick="carregarOrdemServico(${currentPage - 1}, '${currentSearch}')">
+            <button class="page-link" onclick="carregarOrdemServico(${currentPage - 1}, ${params})">
               <i class="fas fa-chevron-left"></i>
             </button>
           </li>
@@ -467,7 +606,7 @@
       if (startPage > 1) {
         paginationHTML += `
           <li class="page-item">
-            <button class="page-link" onclick="carregarOrdemServico(1, '${currentSearch}')">1</button>
+            <button class="page-link" onclick="carregarOrdemServico(1, ${params})">1</button>
           </li>
         `;
         if (startPage > 2) {
@@ -490,7 +629,7 @@
         } else {
           paginationHTML += `
             <li class="page-item">
-              <button class="page-link" onclick="carregarOrdemServico(${i}, '${currentSearch}')">${i}</button>
+              <button class="page-link" onclick="carregarOrdemServico(${i}, ${params})">${i}</button>
             </li>
           `;
         }
@@ -507,7 +646,7 @@
         }
         paginationHTML += `
           <li class="page-item">
-            <button class="page-link" onclick="carregarOrdemServico(${totalPages}, '${currentSearch}')">${totalPages}</button>
+            <button class="page-link" onclick="carregarOrdemServico(${totalPages}, ${params})">${totalPages}</button>
           </li>
         `;
       }
@@ -516,7 +655,7 @@
       if (currentPage < totalPages) {
         paginationHTML += `
           <li class="page-item">
-            <button class="page-link" onclick="carregarOrdemServico(${currentPage + 1}, '${currentSearch}')">
+            <button class="page-link" onclick="carregarOrdemServico(${currentPage + 1}, ${params})">
               <i class="fas fa-chevron-right"></i>
             </button>
           </li>
@@ -532,27 +671,15 @@
       paginationList.innerHTML = paginationHTML;
     }
 
-    // Função para realizar busca
+    // Função para realizar busca (MODIFICADO)
     function performSearch() {
       const searchInput = document.getElementById('searchInput');
       const query = searchInput ? searchInput.value.trim() : '';
       
       console.log('Executando busca:', query);
       
-      // Atualizar URL
-      const urlParams = new URLSearchParams(window.location.search);
-      if (query) {
-        urlParams.set('search', query);
-      } else {
-        urlParams.delete('search');
-      }
-      urlParams.set('current_page', '1');
-      
-      const newUrl = window.location.pathname + '?' + urlParams.toString();
-      window.history.pushState({}, '', newUrl);
-      
-      // Carregar dados
-      carregarOrdemServico(1, query);
+      // Usar a nova função helper
+      updateUrlAndReload(1, query, currentInitialDate, currentFinalDate);
     }
 
     // Função para inicializar List.js (se necessário para filtros locais)
