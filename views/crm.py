@@ -94,8 +94,8 @@ def list_pesquisa_satisfacao():
         
         token = session.get('token')
 
-        url = f"https://backend.caiuas.com.br/api/crm/eventos?&tipo_evento=38,180,30{f'&search={search}' if search else ''}{f'&status={status}' if status else ''}{f'&limit={limit}' if limit else ''}{f'&current_page={current_page}' if current_page else ''}{f'&initial_date={initial_date}' if initial_date else ''}{f'&final_date={final_date}' if final_date else ''}{f'&search={search}' if search else ''}"
-        context['current_page'] = f'https://app.caiuas.com.br/crm/eventos?&tipo_evento=38,180,30{f'&search={search}' if search else ''}{f'&status={status}' if status else ''}{f'&limit={limit}' if limit else ''}{f'&current_page={current_page}' if current_page else ''}{f'&initial_date={initial_date}' if initial_date else ''}{f'&final_date={final_date}' if final_date else ''}{f'&search={search}' if search else ''}'
+        url = f"https://backend.caiuas.com.br/api/crm/eventos?&tipo_evento=38,180,30,22{f'&search={search}' if search else ''}{f'&status={status}' if status else ''}{f'&limit={limit}' if limit else ''}{f'&current_page={current_page}' if current_page else ''}{f'&initial_date={initial_date}' if initial_date else ''}{f'&final_date={final_date}' if final_date else ''}{f'&search={search}' if search else ''}"
+        context['current_page'] = f'https://app.caiuas.com.br/crm/eventos?&tipo_evento=38,180,30,22{f'&search={search}' if search else ''}{f'&status={status}' if status else ''}{f'&limit={limit}' if limit else ''}{f'&current_page={current_page}' if current_page else ''}{f'&initial_date={initial_date}' if initial_date else ''}{f'&final_date={final_date}' if final_date else ''}{f'&search={search}' if search else ''}'
         payload = {}
         headers = {
             "Authorization": f"Bearer {token}"
