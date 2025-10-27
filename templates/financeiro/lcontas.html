@@ -1,0 +1,1404 @@
+<!DOCTYPE html>
+<html lang="pt-br" dir="ltr" data-navigation-type="default" data-navbar-horizontal-shape="default">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+    <!-- ===============================================-->
+    <!--    Document Title-->
+    <!-- ===============================================-->
+    <title>{{ context.title }}</title>
+
+
+    <!-- ===============================================-->
+    <!--    Favicons-->
+    <!-- ===============================================-->
+    <link rel="apple-touch-icon" sizes="180x180" href="/static/assets/img/favicons/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/static/assets/img/favicons/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/static/assets/img/favicons/favicon-16x16.png">
+    <link rel="shortcut icon" type="image/x-icon" href="/static/assets/img/favicons/favicon.ico">
+    <link rel="manifest" href="/static/assets/img/favicons/manifest.json">
+    <meta name="msapplication-TileImage" content="/static/assets/img/favicons/mstile-150x150.png">
+    <meta name="theme-color" content="#ffffff">
+    <script src="/static/vendors/simplebar/simplebar.min.js"></script>
+    <script src="/static/assets/js/config.js"></script>
+
+
+    <!-- ===============================================-->
+    <!--    Stylesheets-->
+    <!-- ===============================================-->
+    <link href="/static/vendors/choices/choices.min.css" rel="stylesheet">
+    <link href="/static/vendors/flatpickr/flatpickr.min.css" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@300;400;600;700;800;900&amp;display=swap"
+        rel="stylesheet">
+    <link href="/static/vendors/simplebar/simplebar.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://unicons.iconscout.com/release/v4.0.8/css/line.css">
+    <link href="/static/assets/css/theme-rtl.min.css" type="text/css" rel="stylesheet" id="style-rtl">
+    <link href="/static/assets/css/theme.min.css" type="text/css" rel="stylesheet" id="style-default">
+    <link href="/static/assets/css/user-rtl.min.css" type="text/css" rel="stylesheet" id="user-style-rtl">
+    <link href="/static/assets/css/user.min.css" type="text/css" rel="stylesheet" id="user-style-default">
+    <script>
+        var phoenixIsRTL = window.config.config.phoenixIsRTL;
+        if (phoenixIsRTL) {
+            var linkDefault = document.getElementById('style-default');
+            var userLinkDefault = document.getElementById('user-style-default');
+            linkDefault.setAttribute('disabled', true);
+            userLinkDefault.setAttribute('disabled', true);
+            document.querySelector('html').setAttribute('dir', 'rtl');
+        } else {
+            var linkRTL = document.getElementById('style-rtl');
+            var userLinkRTL = document.getElementById('user-style-rtl');
+            linkRTL.setAttribute('disabled', true);
+            userLinkRTL.setAttribute('disabled', true);
+        }
+    </script>
+</head>
+
+
+<body>
+    <!-- imprimir contexto -->
+
+
+    <!-- ===============================================-->
+    <!--    Main Content-->
+    <!-- ===============================================-->
+    <main class="main" id="top">
+        <!-- MENU -->
+
+        {% include 'menu.html' %}
+        <!-- include top_bar.html -->
+        {% include 'top_bar.html' %}
+        <div class="content">
+            <nav class="mb-3" aria-label="breadcrumb">
+                <ol class="breadcrumb mb-0">
+                    <li class="breadcrumb-item"><a href="/">Home</a></li>
+                    <!-- <li class="breadcrumb-item"><a href="#!">Page 2</a></li> -->
+                    <li class="breadcrumb-item active">Lançamentos em conta corrente</li>
+                </ol>
+            </nav>
+            <div class="pb-6">
+                <h2 class="mb-4">{{ context.data.total_items if context.data else 0 }} Lançamentos</h2>
+                <div id="lealsTable">
+                    <div class="row g-3 justify-content-between mb-4">
+                        <div class="col-auto">
+                            <!-- <div class="d-md-flex justify-content-between">
+                                <div>
+                                    <button id="createLeadBtn" class="btn btn-primary me-4"><span
+                                            class="fas fa-plus me-2"></span>Create
+                                        Lead</button>
+                                </div>
+                            </div> -->
+                        </div>
+                        <div class="col-auto">
+                            <div class="d-flex">
+                                <div class="search-box me-2">
+                                    <form class="position-relative">
+                                        <input id="searchInput" class="form-control search-input search" type="search"
+                                            placeholder="Procure aqui" aria-label="Search" />
+                                        <span class="fas fa-search search-box-icon"></span>
+
+                                    </form>
+                                </div>
+                                <div class="flatpickr-input-container me-2">
+                                    <input class="form-control datetimepicker" id="timepicker2" type="text"
+                                        placeholder="d/m/y to d/m/y" name="daterange"
+                                        data-options='{"mode":"range","dateFormat":"d/m/y","disableMobile":true}'
+                                        value="{% if request.args.get('initial_date') and request.args.get('final_date') %}{% set initial_date = request.args.get('initial_date') %}{% set final_date = request.args.get('final_date') %}{% if '-' in initial_date and initial_date|length >= 8 %}{% set initial_parts = initial_date.split('-') %}{% set final_parts = final_date.split('-') %}{{ initial_parts[2] }}/{{ initial_parts[1] }}/{{ initial_parts[0][2:] }} to {{ final_parts[2] }}/{{ final_parts[1] }}/{{ final_parts[0][2:] }}{% endif %}{% endif %}" />
+                                </div>
+                                <button class="btn px-3 btn-phoenix-secondary" type="button" data-bs-toggle="modal"
+                                    data-bs-target="#filterModal" data-boundary="window" aria-haspopup="true"
+                                    aria-expanded="false" data-bs-reference="parent"><span
+                                        class="fa-solid fa-filter text-primary"
+                                        data-fa-transform="down-3"></span></button>
+                                <div class="modal fade" id="filterModal" tabindex="-1">
+                                    <div class="modal-dialog modal-dialog-centered">
+                                        <div class="modal-content border border-translucent">
+                                            <form id="addEventForm" autocomplete="off">
+                                                <div
+                                                    class="modal-header border-translucent p-4 justify-content-between">
+                                                    <h5 class="modal-title text-body-highlight fs-6 lh-sm">Filter</h5>
+                                                    <button class="btn p-1 text-danger" type="button"
+                                                        data-bs-dismiss="modal" aria-label="Close"><span
+                                                            class="fas fa-times fs-9"></span></button>
+                                                </div>
+                                                <div class="modal-body pt-4 pb-2 px-4">
+                                                    <div class="mb-3">
+                                                        <label for="organizerMultiple">Status</label>
+                                                        <select class="form-select" id="organizerMultiple" name="status"
+                                                            data-choices="data-choices" multiple="multiple"
+                                                            data-options='{"removeItemButton":true,"placeholder":true}'>
+                                                            <option value="">Select organizer...</option>
+                                                            <option value="P" {% if request.args.get('status') and 'P'
+                                                                in request.args.get('status').split(',') %}selected{%
+                                                                endif %}>Pendente</option>
+                                                            <option value="E" {% if request.args.get('status') and 'E'
+                                                                in request.args.get('status').split(',') %}selected{%
+                                                                endif %}>Encerrado</option>
+                                                            <option value="D" {% if request.args.get('status') and 'D'
+                                                                in request.args.get('status').split(',') %}selected{%
+                                                                endif %}>Descartado</option>
+                                                            <option value="CP" {% if request.args.get('status') and 'CP'
+                                                                in request.args.get('status').split(',') %}selected{%
+                                                                endif %}>Contato Perdido</option>
+                                                            <option value="V" {% if request.args.get('status') and 'V'
+                                                                in request.args.get('status').split(',') %}selected{%
+                                                                endif %}>Visita Agendada</option>
+                                                            <option value="R" {% if request.args.get('status') and 'R'
+                                                                in request.args.get('status').split(',') %}selected{%
+                                                                endif %}>Remarcou</option>
+                                                            <option value="A" {% if request.args.get('status') and 'A'
+                                                                in request.args.get('status').split(',') %}selected{%
+                                                                endif %}>Evento tem ações</option>
+
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                                <div
+                                                    class="modal-footer d-flex justify-content-end align-items-center px-4 pb-4 border-0 pt-3">
+                                                    <button class="btn btn-sm btn-phoenix-primary px-4 fs-10 my-0"
+                                                        type="button" id="resetFilters">
+                                                        <span class="fas fa-arrows-rotate me-2 fs-10"></span>Limpar
+                                                        busca
+                                                    </button>
+                                                    <button class="btn btn-sm btn-primary px-9 fs-10 my-0"
+                                                        type="submit">Buscar</button>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="table-responsive scrollbar table-sm ">
+                        <table class="table table-sm table-hover table-bordered">
+                            <thead>
+                                <tr>
+                                    <!-- <th class="white-space-nowrap fs-9 align-middle ps-0"
+                                        style="max-width:20px; width:18px;">
+                                        <div class="form-check mb-0 fs-8">
+                                            <input class="form-check-input" type="checkbox"
+                                                data-bulk-select='{"body":"leal-tables-body"}' />
+                                        </div>
+                                    </th> -->
+                                    <th scope="col">Data</th>
+                                    <th scope="col">Valor</th>
+                                    <th scope="col">Classificação</th>
+                                    <th scope="col">Centro de Custo</th>
+                                    <th scope="col">Descrição</th>
+                                    <th scope="col">Fornecedor</th>
+                                    <!-- <th class="sort text-end align-middle pe-0 ps-4" scope="col"></th> -->
+                                    <th scope="col">Conta</th>
+                                    <th scope="col">Empresa</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% if context.data.lancamentos %}
+                                {% for lancamento in context.data.lancamentos %}
+                                <tr scope="row">
+                                    <td>
+                                        {% if lancamento.data_lancamento %}
+                                        {% set data_formatada = lancamento.data_lancamento %}
+                                        {% if '-' in data_formatada and 'T' in data_formatada %}
+                                        {# Formato ISO completo com hora (YYYY-MM-DDTHH:MM:SS) #}
+                                        {% set data_partes = data_formatada.split('T')[0].split('-') %}
+                                        {% if data_partes|length == 3 %}
+                                        {{ data_partes[2] }}/{{ data_partes[1] }}/{{ data_partes[0] }}
+                                        {% else %}
+                                        {{ lancamento.data_lancamento }}
+                                        {% endif %}
+                                        {% elif '-' in data_formatada %}
+                                        {# Formato ISO apenas data (YYYY-MM-DD) #}
+                                        {% set data_partes = data_formatada.split('-') %}
+                                        {% if data_partes|length == 3 %}
+                                        {{ data_partes[2] }}/{{ data_partes[1] }}/{{ data_partes[0] }}
+                                        {% else %}
+                                        {{ lancamento.data_lancamento }}
+                                        {% endif %}
+                                        {% else %}
+                                        {{ lancamento.data_lancamento }}
+                                        {% endif %}
+                                        {% else %}
+                                        -
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if lancamento.valor %}
+                                            {% if lancamento.db_cr == 'D' %}
+                                                <span class="text-danger">- R$ {{ "%.2f"|format(lancamento.valor|float)|replace('.', ',') }}</span>
+                                            {% else %}
+                                                <span class="text-success">+ R$ {{ "%.2f"|format(lancamento.valor|float)|replace('.', ',') }}</span>
+                                            {% endif %}
+                                        {% else %}
+                                            R$ 0,00
+                                        {% endif %}
+                                    </td>
+                                    <td>Classificação</td>
+                                    <td>Centro de custo</td>
+                                    <td>{{ lancamento.historico }}</td>
+                                    <td>Fornecedor</td>
+                                    <td>{{ lancamento.num_conta if lancamento.num_conta is not none }}</td>
+                                    <td>empresa</td>
+                                    
+                                </tr>
+                                {% endfor %}
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+
+
+
+
+                    {% if context.data.current_page %}
+                    <div class="row align-items-center justify-content-end py-4 pe-0 fs-9">
+                        <div class="col-auto d-flex">
+                            <!-- <p class="mb-0 d-none d-sm-block me-3 fw-semibold text-body"
+                                data-list-info="data-list-info"></p><a class="fw-semibold" href="#!"
+                                data-list-view="*">View all<span class="fas fa-angle-right ms-1"
+                                    data-fa-transform="down-1"></span></a><a class="fw-semibold d-none" href="#!"
+                                data-list-view="less">View Less<span class="fas fa-angle-right ms-1"
+                                    data-fa-transform="down-1"></span></a> -->
+                        </div>
+                        <div class="col-auto d-flex">
+
+
+                            {% if context.data.current_page > 1 %}
+                            <a href="?current_page={{ context.data.current_page - 1 }}{% for key, value in request.args.items() %}{% if key != 'current_page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}"
+                                class="page-link">
+                                <span class="fas fa-chevron-left"></span>
+                            </a>
+                            {% else %}
+                            <button class="page-link" disabled>
+                                <span class="fas fa-chevron-left"></span>
+                            </button>
+                            {% endif %}
+
+                            <ul class="mb-0 pagination">
+                                {% set start_page = [1, context.data.current_page - 2]|max %}
+                                {% set end_page = [context.data.total_pages, context.data.current_page + 2]|min %}
+
+                                {% if start_page > 1 %}
+                                <li class="page-item">
+                                    <a class="page-link"
+                                        href="?current_page=1{% for key, value in request.args.items() %}{% if key != 'current_page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">1</a>
+                                </li>
+                                {% if start_page > 2 %}
+                                <li class="page-item disabled"><span class="page-link">...</span></li>
+                                {% endif %}
+                                {% endif %}
+
+                                {% for page_num in range(start_page, end_page + 1) %}
+                                <li class="page-item {% if page_num == context.data.current_page %}active{% endif %}">
+                                    <a class="page-link"
+                                        href="?current_page={{ page_num }}{% for key, value in request.args.items() %}{% if key != 'current_page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">{{
+                                        page_num }}</a>
+                                </li>
+                                {% endfor %}
+
+                                {% if end_page < context.data.total_pages %} {% if end_page < context.data.total_pages -
+                                    1 %} <li class="page-item disabled"><span class="page-link">...</span></li>
+                                    {% endif %}
+                                    <li class="page-item">
+                                        <a class="page-link"
+                                            href="?current_page={{ context.data.total_pages }}{% for key, value in request.args.items() %}{% if key != 'current_page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">{{
+                                            context.data.total_pages }}</a>
+                                    </li>
+                                    {% endif %}
+                            </ul>
+
+                        </div>
+                    </div>
+                    {% endif %}
+
+
+
+
+                </div>
+            </div>
+
+            <footer class="footer position-absolute">
+                <!-- <div class="row g-0 justify-content-between align-items-center h-100">
+                    <div class="col-12 col-sm-auto text-center">
+                        <p class="mb-0 mt-2 mt-sm-0 text-body">Thank you for creating with Phoenix<span
+                                class="d-none d-sm-inline-block"></span><span
+                                class="d-none d-sm-inline-block mx-1">|</span><br class="d-sm-none" />2025 &copy;<a
+                                class="mx-1" href="https://themewagon.com">Themewagon</a></p>
+                    </div>
+                    <div class="col-12 col-sm-auto text-center">
+                        <p class="mb-0 text-body-tertiary text-opacity-85">v1.23.0</p>
+                    </div>
+                </div> -->
+            </footer>
+        </div>
+        <div class="modal fade" id="searchBoxModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="true"
+            data-phoenix-modal="data-phoenix-modal" style="--phoenix-backdrop-opacity: 1;">
+            <div class="modal-dialog">
+                <div class="modal-content mt-15 rounded-pill">
+                    <div class="modal-body p-0">
+                        <div class="search-box navbar-top-search-box" data-list='{"valueNames":["title"]}'
+                            style="width: auto;">
+                            <form class="position-relative" data-bs-toggle="search" data-bs-display="static">
+                                <input class="form-control search-input fuzzy-search rounded-pill form-control-lg"
+                                    type="search" placeholder="Search..." aria-label="Search" />
+                                <span class="fas fa-search search-box-icon"></span>
+
+                            </form>
+                            <div class="btn-close position-absolute end-0 top-50 translate-middle cursor-pointer shadow-none"
+                                data-bs-dismiss="search">
+                                <button class="btn btn-link p-0" aria-label="Close"></button>
+                            </div>
+                            <div class="dropdown-menu border start-0 py-0 overflow-hidden w-100">
+                                <div class="scrollbar-overlay" style="max-height: 30rem;">
+                                    <div class="list pb-3">
+                                        <h6 class="dropdown-header text-body-highlight fs-10 py-2">24 <span
+                                                class="text-body-quaternary">results</span></h6>
+                                        <hr class="my-0" />
+                                        <h6
+                                            class="dropdown-header text-body-highlight fs-9 border-bottom border-translucent py-2 lh-sm">
+                                            Recently Searched </h6>
+                                        <div class="py-2"><a class="dropdown-item"
+                                                href="/static/apps/e-commerce/landing/product-details.html">
+                                                <div class="d-flex align-items-center">
+
+                                                    <div class="fw-normal text-body-highlight title"><span
+                                                            class="fa-solid fa-clock-rotate-left"
+                                                            data-fa-transform="shrink-2"></span> Store Macbook</div>
+                                                </div>
+                                            </a>
+                                            <a class="dropdown-item"
+                                                href="/static/apps/e-commerce/landing/product-details.html">
+                                                <div class="d-flex align-items-center">
+
+                                                    <div class="fw-normal text-body-highlight title"> <span
+                                                            class="fa-solid fa-clock-rotate-left"
+                                                            data-fa-transform="shrink-2"></span> MacBook Air - 13″</div>
+                                                </div>
+                                            </a>
+
+                                        </div>
+                                        <hr class="my-0" />
+                                        <h6
+                                            class="dropdown-header text-body-highlight fs-9 border-bottom border-translucent py-2 lh-sm">
+                                            Products</h6>
+                                        <div class="py-2"><a class="dropdown-item py-2 d-flex align-items-center"
+                                                href="/static/apps/e-commerce/landing/product-details.html">
+                                                <div class="file-thumbnail me-2"><img
+                                                        class="h-100 w-100 object-fit-cover rounded-3"
+                                                        src="/static/assets/img/products/60x60/3.png" alt="" /></div>
+                                                <div class="flex-1">
+                                                    <h6 class="mb-0 text-body-highlight title">MacBook Air - 13″</h6>
+                                                    <p class="fs-10 mb-0 d-flex text-body-tertiary"><span
+                                                            class="fw-medium text-body-tertiary text-opactity-85">8GB
+                                                            Memory - 1.6GHz - 128GB Storage</span></p>
+                                                </div>
+                                            </a>
+                                            <a class="dropdown-item py-2 d-flex align-items-center"
+                                                href="/static/apps/e-commerce/landing/product-details.html">
+                                                <div class="file-thumbnail me-2"><img class="img-fluid"
+                                                        src="/static/assets/img/products/60x60/3.png" alt="" /></div>
+                                                <div class="flex-1">
+                                                    <h6 class="mb-0 text-body-highlight title">MacBook Pro - 13″</h6>
+                                                    <p class="fs-10 mb-0 d-flex text-body-tertiary"><span
+                                                            class="fw-medium text-body-tertiary text-opactity-85">30 Sep
+                                                            at 12:30 PM</span></p>
+                                                </div>
+                                            </a>
+
+                                        </div>
+                                        <hr class="my-0" />
+                                        <h6
+                                            class="dropdown-header text-body-highlight fs-9 border-bottom border-translucent py-2 lh-sm">
+                                            Quick Links</h6>
+                                        <div class="py-2"><a class="dropdown-item"
+                                                href="/static/apps/e-commerce/landing/product-details.html">
+                                                <div class="d-flex align-items-center">
+
+                                                    <div class="fw-normal text-body-highlight title"><span
+                                                            class="fa-solid fa-link text-body"
+                                                            data-fa-transform="shrink-2"></span> Support MacBook House
+                                                    </div>
+                                                </div>
+                                            </a>
+                                            <a class="dropdown-item"
+                                                href="/static/apps/e-commerce/landing/product-details.html">
+                                                <div class="d-flex align-items-center">
+
+                                                    <div class="fw-normal text-body-highlight title"> <span
+                                                            class="fa-solid fa-link text-body"
+                                                            data-fa-transform="shrink-2"></span> Store MacBook″</div>
+                                                </div>
+                                            </a>
+
+                                        </div>
+                                        <hr class="my-0" />
+                                        <h6
+                                            class="dropdown-header text-body-highlight fs-9 border-bottom border-translucent py-2 lh-sm">
+                                            Files</h6>
+                                        <div class="py-2"><a class="dropdown-item"
+                                                href="/static/apps/e-commerce/landing/product-details.html">
+                                                <div class="d-flex align-items-center">
+
+                                                    <div class="fw-normal text-body-highlight title"><span
+                                                            class="fa-solid fa-file-zipper text-body"
+                                                            data-fa-transform="shrink-2"></span> Library MacBook
+                                                        folder.rar</div>
+                                                </div>
+                                            </a>
+                                            <a class="dropdown-item"
+                                                href="/static/apps/e-commerce/landing/product-details.html">
+                                                <div class="d-flex align-items-center">
+
+                                                    <div class="fw-normal text-body-highlight title"> <span
+                                                            class="fa-solid fa-file-lines text-body"
+                                                            data-fa-transform="shrink-2"></span> Feature MacBook
+                                                        extensions.txt</div>
+                                                </div>
+                                            </a>
+                                            <a class="dropdown-item"
+                                                href="/static/apps/e-commerce/landing/product-details.html">
+                                                <div class="d-flex align-items-center">
+
+                                                    <div class="fw-normal text-body-highlight title"> <span
+                                                            class="fa-solid fa-image text-body"
+                                                            data-fa-transform="shrink-2"></span> MacBook Pro_13.jpg
+                                                    </div>
+                                                </div>
+                                            </a>
+
+                                        </div>
+                                        <hr class="my-0" />
+                                        <h6
+                                            class="dropdown-header text-body-highlight fs-9 border-bottom border-translucent py-2 lh-sm">
+                                            Members</h6>
+                                        <div class="py-2"><a class="dropdown-item py-2 d-flex align-items-center"
+                                                href="/static/pages/members.html">
+                                                <div class="avatar avatar-l status-online  me-2 text-body">
+                                                    <img class="rounded-circle "
+                                                        src="/static/assets/img/team/40x40/10.webp" alt="" />
+
+                                                </div>
+                                                <div class="flex-1">
+                                                    <h6 class="mb-0 text-body-highlight title">Carry Anna</h6>
+                                                    <p class="fs-10 mb-0 d-flex text-body-tertiary">anna@technext.it</p>
+                                                </div>
+                                            </a>
+                                            <a class="dropdown-item py-2 d-flex align-items-center"
+                                                href="/static/pages/members.html">
+                                                <div class="avatar avatar-l  me-2 text-body">
+                                                    <img class="rounded-circle "
+                                                        src="/static/assets/img/team/40x40/12.webp" alt="" />
+
+                                                </div>
+                                                <div class="flex-1">
+                                                    <h6 class="mb-0 text-body-highlight title">John Smith</h6>
+                                                    <p class="fs-10 mb-0 d-flex text-body-tertiary">smith@technext.it
+                                                    </p>
+                                                </div>
+                                            </a>
+
+                                        </div>
+                                        <hr class="my-0" />
+                                        <h6
+                                            class="dropdown-header text-body-highlight fs-9 border-bottom border-translucent py-2 lh-sm">
+                                            Related Searches</h6>
+                                        <div class="py-2"><a class="dropdown-item"
+                                                href="/static/apps/e-commerce/landing/product-details.html">
+                                                <div class="d-flex align-items-center">
+
+                                                    <div class="fw-normal text-body-highlight title"><span
+                                                            class="fa-brands fa-firefox-browser text-body"
+                                                            data-fa-transform="shrink-2"></span> Search in the Web
+                                                        MacBook</div>
+                                                </div>
+                                            </a>
+                                            <a class="dropdown-item"
+                                                href="/static/apps/e-commerce/landing/product-details.html">
+                                                <div class="d-flex align-items-center">
+
+                                                    <div class="fw-normal text-body-highlight title"> <span
+                                                            class="fa-brands fa-chrome text-body"
+                                                            data-fa-transform="shrink-2"></span> Store MacBook″</div>
+                                                </div>
+                                            </a>
+
+                                        </div>
+                                    </div>
+                                    <div class="text-center">
+                                        <p class="fallback fw-bold fs-7 d-none">No Result Found.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <script>
+            var navbarTopStyle = window.config.config.phoenixNavbarTopStyle;
+            var navbarTop = document.querySelector('.navbar-top');
+            if (navbarTopStyle === 'darker') {
+                navbarTop.setAttribute('data-navbar-appearance', 'darker');
+            }
+
+            var navbarVerticalStyle = window.config.config.phoenixNavbarVerticalStyle;
+            var navbarVertical = document.querySelector('.navbar-vertical');
+            if (navbarVertical && navbarVerticalStyle === 'darker') {
+                navbarVertical.setAttribute('data-navbar-appearance', 'darker');
+            }
+        </script>
+
+        <!-- modal de confirmação -->
+        <div class="modal fade" id="confirmDeleteModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="confirmDeleteModalLabel">
+                            <i class="fas fa-exclamation-triangle text-warning me-2"></i>
+                            Confirmar Exclusão
+                        </h5>
+                        <button class="btn btn-close p-1" type="button" data-bs-dismiss="modal"
+                            aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p class="text-body-tertiary lh-lg mb-0">
+                            Tem certeza que deseja remover este evento?
+                            <br><br>
+                            <strong>Esta ação não pode ser desfeita.</strong>
+                        </p>
+                        <div class="mt-3">
+                            <small class="text-muted">
+                                ID do Evento: <span id="eventoIdToDelete" class="fw-bold"></span>
+                            </small>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-danger" type="button" id="confirmDeleteBtn">
+                            <i class="fas fa-trash me-2"></i>
+                            Remover
+                        </button>
+                        <button class="btn btn-outline-secondary" type="button" data-bs-dismiss="modal">
+                            <i class="fas fa-times me-2"></i>
+                            Cancelar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        // Adicione este modal após o modal de confirmação de delete (antes do fechamento do
+    </main>):
+    <!-- Modal Create Lead -->
+    <div class="modal fade" id="createLeadModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="createLeadModalLabel">
+                        <i class="fas fa-plus text-primary me-2"></i>
+                        Criar Novo Lead
+                    </h5>
+                    <button class="btn btn-close p-1" type="button" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form id="createLeadForm">
+                    <div class="modal-body">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="nomeCliente" class="form-label">Nome Cliente <span
+                                        class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="nomeCliente" name="nomeCliente" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="telefone" class="form-label">Telefone <span
+                                        class="text-danger">*</span></label>
+                                <input type="tel" class="form-control" id="telefone" name="telefone" required>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="email" class="form-label">Email</label>
+                                <input type="email" class="form-control" id="email" name="email">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="responsavel" class="form-label">Responsável <span
+                                        class="text-danger">*</span></label>
+                                <select class="form-select" id="responsavel" name="responsavel" required>
+                                    <option value="">Selecione um responsável...</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="andamento" class="form-label">Andamento <span
+                                        class="text-danger">*</span></label>
+                                <select class="form-select" id="andamento" name="andamento" required>
+                                    <option value="">Selecione um andamento...</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="tipoEvento" class="form-label">Tipo do Evento <span
+                                        class="text-danger">*</span></label>
+                                <select class="form-select" id="tipoEvento" name="tipoEvento" required>
+                                    <option value="">Selecione um tipo...</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label for="midia" class="form-label">Mídia<span class="text-danger">*</span></label>
+                                <select class="form-select" id="midia" name="midia" required>
+                                    <option value="">Selecione uma midia</option>
+                                </select>
+                            </div>
+                            <div class="col-md-8 mb-3">
+                                <label for="veiculoInteresse" class="form-label">Veículo de interesse <span
+                                        class="text-danger">*</span></label>
+                                <select class="form-select" id="veiculoInteresse" name="veiculoInteresse" required>
+                                    <option value="">Selecione um veículo...</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="observacao" class="form-label">Observação</label>
+                            <textarea class="form-control" id="observacao" name="observacao" rows="3"
+                                placeholder="Digite observações sobre o lead..."></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                            <i class="fas fa-times me-2"></i>
+                            Cancelar
+                        </button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-2"></i>
+                            Criar Lead
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    </main>
+    <!-- ===============================================-->
+    <!--    End of Main Content-->
+    <!-- ===============================================-->
+
+
+
+
+    <!-- ===============================================-->
+    <!--    JavaScripts-->
+    <!-- ===============================================-->
+    <script src="/static/vendors/popper/popper.min.js"></script>
+    <script src="/static/vendors/bootstrap/bootstrap.min.js"></script>
+    <script src="/static/vendors/anchorjs/anchor.min.js"></script>
+    <script src="/static/vendors/is/is.min.js"></script>
+    <script src="/static/vendors/fontawesome/all.min.js"></script>
+    <script src="/static/vendors/lodash/lodash.min.js"></script>
+    <script src="/static/vendors/list.js/list.min.js"></script>
+    <script src="/static/vendors/feather-icons/feather.min.js"></script>
+    <script src="/static/vendors/dayjs/dayjs.min.js"></script>
+    <script src="/static/vendors/choices/choices.min.js"></script>
+    <script src="/static/vendors/flatpickr/flatpickr.min.js"></script>
+    <script src="/static/assets/js/phoenix.js"></script>
+    <script src="/static/assets/js/toast.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const filterForm = document.getElementById('addEventForm');
+            const resetButton = document.getElementById('resetFilters');
+            const dateInput = document.getElementById('timepicker2');
+            const searchInput = document.getElementById('searchInput');
+            const createLeadBtn = document.getElementById('createLeadBtn');
+            let token = "{{ context.token }}";
+
+            // Variáveis globais para armazenar instâncias do Choices.js
+            let responsavelChoices = null;
+            let andamentoChoices = null;
+            let tipoEventoChoices = null;
+            let veiculoChoices = null;
+            let midiaChoices = null;
+
+            // Preencher o campo de busca com o valor da URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const searchQuery = urlParams.get('search');
+            if (searchQuery) {
+                searchInput.value = searchQuery;
+            }
+
+            // Initialize flatpickr with change event
+            const fp = flatpickr(dateInput, {
+                mode: "range",
+                dateFormat: "d/m/y",
+                disableMobile: true,
+                onChange: function (selectedDates, dateStr, instance) {
+                    if (selectedDates.length === 2) {
+                        const startDate = flatpickr.formatDate(selectedDates[0], "Y-m-d");
+                        const endDate = flatpickr.formatDate(selectedDates[1], "Y-m-d");
+                        const urlParams = new URLSearchParams(window.location.search);
+                        urlParams.set('initial_date', startDate);
+                        urlParams.set('final_date', endDate);
+                        urlParams.set('current_page', '1');
+                        const newUrl = window.location.pathname + '?' + urlParams.toString();
+                        window.location.href = newUrl;
+                    }
+                },
+                onReady: function (selectedDates, dateStr, instance) {
+                    const initialDate = new URLSearchParams(window.location.search).get('initial_date');
+                    const finalDate = new URLSearchParams(window.location.search).get('final_date');
+
+                    if (initialDate && finalDate) {
+                        const parseDate = (dateStr) => {
+                            const parts = dateStr.split('-');
+                            return new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+                        };
+
+                        try {
+                            const startDate = parseDate(initialDate);
+                            const endDate = parseDate(finalDate);
+
+                            if (!isNaN(startDate.getTime()) && !isNaN(endDate.getTime())) {
+                                instance.setDate([startDate, endDate], false);
+                            }
+                        } catch (error) {
+                            console.error('Error parsing dates:', error);
+                        }
+                    }
+                }
+            });
+
+            // Handle form submission (Done button)
+            filterForm.addEventListener('submit', function (e) {
+                e.preventDefault();
+                const urlParams = new URLSearchParams(window.location.search);
+                const statusSelect = document.getElementById('organizerMultiple');
+                const selectedOptions = Array.from(statusSelect.selectedOptions);
+                const selectedValues = selectedOptions.map(option => option.value).filter(value => value !== '');
+
+                if (selectedValues.length > 0) {
+                    urlParams.set('status', selectedValues.join(','));
+                } else {
+                    urlParams.delete('status');
+                }
+
+                urlParams.set('current_page', '1');
+                const newUrl = window.location.pathname + '?' + urlParams.toString();
+                window.location.href = newUrl;
+            });
+
+            // Handle reset button
+            resetButton.addEventListener('click', function (e) {
+                e.preventDefault();
+                const urlParams = new URLSearchParams(window.location.search);
+                urlParams.delete('status');
+                urlParams.delete('initial_date');
+                urlParams.delete('final_date');
+                urlParams.delete('search');
+                urlParams.set('current_page', '1');
+                fp.clear();
+                searchInput.value = '';
+                const newUrl = window.location.pathname + '?' + urlParams.toString();
+                window.location.href = newUrl;
+            });
+
+            // Handle search input
+            searchInput.addEventListener('keypress', function (e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    performSearch();
+                }
+            });
+
+            function performSearch() {
+                const query = searchInput.value.trim();
+                const urlParams = new URLSearchParams(window.location.search);
+
+                if (query) {
+                    urlParams.set('search', query);
+                } else {
+                    urlParams.delete('search');
+                }
+
+                urlParams.set('current_page', '1');
+                const newUrl = window.location.pathname + '?' + urlParams.toString();
+                window.location.href = newUrl;
+            }
+
+            // EVENT DELEGATION para botões de remover
+            document.addEventListener('click', function (e) {
+                if (e.target.classList.contains('remove-evento-btn')) {
+                    e.preventDefault();
+
+                    const codEmpresa = e.target.getAttribute('data-cod-empresa');
+                    const codEvento = e.target.getAttribute('data-cod-evento');
+                    const idEvento = codEmpresa + codEvento;
+
+                    window.currentEventToDelete = {
+                        idEvento: idEvento,
+                        buttonElement: e.target
+                    };
+
+                    document.getElementById('eventoIdToDelete').textContent = idEvento;
+                    const confirmModal = new bootstrap.Modal(document.getElementById('confirmDeleteModal'));
+                    confirmModal.show();
+                }
+            });
+
+            document.getElementById('confirmDeleteBtn').addEventListener('click', function () {
+                if (window.currentEventToDelete) {
+                    const confirmModal = bootstrap.Modal.getInstance(document.getElementById('confirmDeleteModal'));
+                    confirmModal.hide();
+
+                    deleteEvento(
+                        window.currentEventToDelete.idEvento,
+                        window.currentEventToDelete.buttonElement
+                    );
+
+                    window.currentEventToDelete = null;
+                }
+            });
+
+            async function deleteEvento(idEvento, buttonElement) {
+                try {
+                    if (!token || token === "") {
+                        showToast('Token de autenticação não encontrado. Faça login novamente.', 'error');
+                        return;
+                    }
+
+                    const myHeaders = new Headers();
+                    myHeaders.append("Authorization", `Bearer ${token}`);
+
+                    const requestOptions = {
+                        method: "DELETE",
+                        headers: myHeaders,
+                        redirect: "follow"
+                    };
+
+                    const response = await fetch(`https://backend.caiuas.com.br/api/crm/eventos_showroom/${idEvento}`, requestOptions);
+
+                    if (response.ok) {
+                        const result = await response.text();
+                        const row = buttonElement.closest('tr');
+                        if (row) {
+                            row.remove();
+                            updateEventCount();
+                            showToast('Evento removido com sucesso!', 'success');
+                        }
+                    } else {
+                        let errorMessage = 'Erro inesperado';
+
+                        try {
+                            const errorResponse = await response.json();
+                            if (errorResponse && errorResponse.message) {
+                                errorMessage = errorResponse.message;
+                            }
+                        } catch (parseError) {
+                            console.warn('Não foi possível fazer parse da resposta de erro:', parseError);
+                        }
+
+                        showToast(errorMessage, 'error');
+                    }
+
+                } catch (error) {
+                    console.error('Erro ao deletar evento:', error);
+
+                    if (error.name === 'TypeError' && error.message.includes('fetch')) {
+                        showToast('Erro de conexão. Verifique sua internet e tente novamente.', 'error');
+                    } else {
+                        showToast('Erro inesperado', 'error');
+                    }
+                }
+            }
+
+            function updateEventCount() {
+                const eventCountElement = document.querySelector('h2.mb-4');
+                if (eventCountElement) {
+                    const currentText = eventCountElement.textContent;
+                    const currentCount = parseInt(currentText.match(/\d+/));
+                    if (!isNaN(currentCount) && currentCount > 0) {
+                        const newCount = currentCount - 1;
+                        eventCountElement.textContent = `${newCount} Eventos`;
+                    }
+                }
+            }
+
+            // Função para buscar dados da API para criação de lead
+            async function fetchCreateLeadData() {
+                try {
+                    if (!token || token === "") {
+                        showToast('Token de autenticação não encontrado. Faça login novamente.', 'error');
+                        return null;
+                    }
+
+                    const myHeaders = new Headers();
+                    myHeaders.append("Authorization", `Bearer ${token}`);
+
+                    const requestOptions = {
+                        method: "GET",
+                        headers: myHeaders,
+                        redirect: "follow"
+                    };
+
+                    const response = await fetch("https://backend.caiuas.com.br/api/crm/eventos_showroom/param_create", requestOptions);
+
+                    if (response.ok) {
+                        const result = await response.json();
+                        console.log('Dados da API carregados:', result);
+                        return result;
+                    } else {
+                        let errorMessage = 'Erro inesperado ao carregar dados';
+
+                        try {
+                            const errorResponse = await response.json();
+                            if (errorResponse && errorResponse.message) {
+                                errorMessage = errorResponse.message;
+                            }
+                        } catch (parseError) {
+                            console.warn('Erro ao fazer parse da resposta de erro:', parseError);
+                        }
+
+                        showToast(errorMessage, 'error');
+                        return null;
+                    }
+
+                } catch (error) {
+                    console.error('Erro ao buscar dados da API:', error);
+
+                    if (error.name === 'TypeError' && error.message.includes('fetch')) {
+                        showToast('Erro de conexão. Verifique sua internet e tente novamente.', 'error');
+                    } else {
+                        showToast('Erro inesperado', 'error');
+                    }
+                    return null;
+                }
+            }
+
+            // Função para popular os selects do modal
+            function populateSelects(data) {
+                console.log('Populando selects com dados:', data);
+
+                // Popular select de responsáveis
+                const responsavelSelect = document.getElementById('responsavel');
+                if (responsavelSelect && data.usuarios && Array.isArray(data.usuarios)) {
+                    // Limpar options existentes
+                    responsavelSelect.innerHTML = '<option value="">Selecione um responsável...</option>';
+                    data.usuarios.forEach(usuario => {
+                        const option = document.createElement('option');
+                        option.value = usuario.nome_usuario;
+                        option.textContent = `${usuario.nome_completo} (${usuario.empresa})`;
+                        responsavelSelect.appendChild(option);
+                    });
+                    console.log('Responsáveis populados:', data.usuarios.length);
+                }
+
+                // Popular select de andamentos com pré-seleção de "Pendente"
+                const andamentoSelect = document.getElementById('andamento');
+                if (andamentoSelect && data.andamentos && Array.isArray(data.andamentos)) {
+                    // Limpar options existentes
+                    andamentoSelect.innerHTML = '<option value="">Selecione um andamento...</option>';
+                    let andamentoPendenteCod = null;
+
+                    data.andamentos.forEach(andamento => {
+                        const option = document.createElement('option');
+                        option.value = andamento.cod_andamento;
+                        option.textContent = andamento.andamento;
+
+                        // Verificar se é "Pendente" e marcar como selecionado
+                        if (andamento.andamento === 'Pendente') {
+                            option.selected = true;
+                            andamentoPendenteCod = andamento.cod_andamento;
+                            console.log('Andamento "Pendente" pré-selecionado:', andamento.cod_andamento);
+                        }
+
+                        andamentoSelect.appendChild(option);
+                    });
+                    console.log('Andamentos populados:', data.andamentos.length);
+                }
+
+                // Popular select de tipos de evento com pré-seleção de "Showroom - Fluxo de Loja - Receptivo"
+                const tipoEventoSelect = document.getElementById('tipoEvento');
+                if (tipoEventoSelect && data.tipos_evento && Array.isArray(data.tipos_evento)) {
+                    // Limpar options existentes
+                    tipoEventoSelect.innerHTML = '<option value="">Selecione um tipo...</option>';
+                    let showroomFluxoCod = null;
+
+                    data.tipos_evento.forEach(tipo => {
+                        const option = document.createElement('option');
+                        option.value = tipo.cod_tipo_evento;
+                        option.textContent = tipo.desc_tipo_evento;
+
+                        // Verificar se é "Showroom - Fluxo de Loja - Receptivo" e marcar como selecionado
+                        if (tipo.desc_tipo_evento === 'Showroom - Fluxo de Loja - Receptivo') {
+                            option.selected = true;
+                            showroomFluxoCod = tipo.cod_tipo_evento;
+                            console.log('Tipo "Showroom - Fluxo de Loja - Receptivo" pré-selecionado:', tipo.cod_tipo_evento);
+                        }
+
+                        tipoEventoSelect.appendChild(option);
+                    });
+                    console.log('Tipos de evento populados:', data.tipos_evento.length);
+                }
+
+                // Popular select de veículos/modelos
+                const veiculoSelect = document.getElementById('veiculoInteresse');
+                if (veiculoSelect && data.produtos_modelos && Array.isArray(data.produtos_modelos)) {
+                    // Limpar options existentes
+                    veiculoSelect.innerHTML = '<option value="">Selecione um veículo...</option>';
+
+                    data.produtos_modelos.forEach(modelo => {
+                        const option = document.createElement('option');
+                        option.value = modelo.cod_modelo;
+                        // Limpar espaços em branco extras da descrição
+                        option.textContent = modelo.descricao_modelo.trim();
+                        veiculoSelect.appendChild(option);
+                    });
+                    console.log('Veículos populados:', data.produtos_modelos.length);
+                }
+
+                // Popular select de mídias
+                const midiaSelect = document.getElementById('midia');
+                if (midiaSelect && data.midias && Array.isArray(data.midias)) {
+                    // Limpar options existentes
+                    midiaSelect.innerHTML = '<option value="">Selecione uma mídia...</option>';
+
+                    data.midias.forEach(midia => {
+                        const option = document.createElement('option');
+                        option.value = midia.cod_midia;
+                        option.textContent = midia.descricao;
+                        midiaSelect.appendChild(option);
+                    });
+                    console.log('Mídias populadas:', data.midias.length);
+                }
+            }
+
+            // Função para limpar instâncias existentes do Choices.js
+            function destroyChoicesInstances() {
+                console.log('Destruindo instâncias do Choices.js...');
+
+                if (responsavelChoices) {
+                    try {
+                        responsavelChoices.destroy();
+                        console.log('responsavelChoices destruído');
+                    } catch (e) {
+                        console.warn('Erro ao destruir responsavelChoices:', e);
+                    }
+                    responsavelChoices = null;
+                }
+                if (andamentoChoices) {
+                    try {
+                        andamentoChoices.destroy();
+                        console.log('andamentoChoices destruído');
+                    } catch (e) {
+                        console.warn('Erro ao destruir andamentoChoices:', e);
+                    }
+                    andamentoChoices = null;
+                }
+                if (tipoEventoChoices) {
+                    try {
+                        tipoEventoChoices.destroy();
+                        console.log('tipoEventoChoices destruído');
+                    } catch (e) {
+                        console.warn('Erro ao destruir tipoEventoChoices:', e);
+                    }
+                    tipoEventoChoices = null;
+                }
+                if (veiculoChoices) {
+                    try {
+                        veiculoChoices.destroy();
+                        console.log('veiculoChoices destruído');
+                    } catch (e) {
+                        console.warn('Erro ao destruir veiculoChoices:', e);
+                    }
+                    veiculoChoices = null;
+                }
+                if (midiaChoices) {
+                    try {
+                        midiaChoices.destroy();
+                        console.log('midiaChoices destruído');
+                    } catch (e) {
+                        console.warn('Erro ao destruir midiaChoices:', e);
+                    }
+                    midiaChoices = null;
+                }
+            }
+
+            // Função para verificar se o elemento já tem Choices.js inicializado
+            function hasChoicesInstance(element) {
+                return element && (element.classList.contains('choices__input') || element.hasAttribute('data-choice'));
+            }
+
+            // Função para inicializar Choices.js nos selects
+            function initializeChoices() {
+                console.log('Inicializando Choices.js...');
+
+                // Verificar se os elementos existem antes de inicializar
+                const responsavelElement = document.getElementById('responsavel');
+                const andamentoElement = document.getElementById('andamento');
+                const tipoEventoElement = document.getElementById('tipoEvento');
+                const veiculoElement = document.getElementById('veiculoInteresse');
+                const midiaElement = document.getElementById('midia');
+
+                console.log('Elementos encontrados:', {
+                    responsavel: !!responsavelElement,
+                    andamento: !!andamentoElement,
+                    tipoEvento: !!tipoEventoElement,
+                    veiculo: !!veiculoElement,
+                    midia: !!midiaElement
+                });
+
+                // Verificar se já existem instâncias
+                console.log('Verificando instâncias existentes:', {
+                    responsavelHasInstance: hasChoicesInstance(responsavelElement),
+                    andamentoHasInstance: hasChoicesInstance(andamentoElement),
+                    tipoEventoHasInstance: hasChoicesInstance(tipoEventoElement),
+                    veiculoHasInstance: hasChoicesInstance(veiculoElement),
+                    midiaHasInstance: hasChoicesInstance(midiaElement)
+                });
+
+                if (responsavelElement && !hasChoicesInstance(responsavelElement)) {
+                    try {
+                        responsavelChoices = new Choices(responsavelElement, {
+                            removeItemButton: true,
+                            placeholder: true,
+                            placeholderValue: 'Selecione um responsável...',
+                            searchEnabled: true,
+                            searchPlaceholderValue: 'Pesquisar responsável...',
+                            shouldSort: false
+                        });
+                        console.log('responsavelChoices inicializado com sucesso');
+                    } catch (e) {
+                        console.error('Erro ao inicializar responsavelChoices:', e);
+                    }
+                }
+
+                if (andamentoElement && !hasChoicesInstance(andamentoElement)) {
+                    try {
+                        andamentoChoices = new Choices(andamentoElement, {
+                            removeItemButton: true,
+                            placeholder: true,
+                            placeholderValue: 'Selecione um andamento...',
+                            searchEnabled: true,
+                            searchPlaceholderValue: 'Pesquisar andamento...',
+                            shouldSort: false
+                        });
+
+                        // Após inicializar o Choices.js, verificar se há valor pré-selecionado
+                        const selectedValue = andamentoElement.value;
+                        if (selectedValue) {
+                            andamentoChoices.setChoiceByValue(selectedValue);
+                            console.log('Valor pré-selecionado aplicado no Choices.js:', selectedValue);
+                        }
+
+                        console.log('andamentoChoices inicializado com sucesso');
+                    } catch (e) {
+                        console.error('Erro ao inicializar andamentoChoices:', e);
+                    }
+                }
+
+                if (tipoEventoElement && !hasChoicesInstance(tipoEventoElement)) {
+                    try {
+                        tipoEventoChoices = new Choices(tipoEventoElement, {
+                            removeItemButton: true,
+                            placeholder: true,
+                            placeholderValue: 'Selecione um tipo...',
+                            searchEnabled: true,
+                            searchPlaceholderValue: 'Pesquisar tipo de evento...',
+                            shouldSort: false
+                        });
+
+                        // Após inicializar o Choices.js, verificar se há valor pré-selecionado
+                        const selectedValue = tipoEventoElement.value;
+                        if (selectedValue) {
+                            tipoEventoChoices.setChoiceByValue(selectedValue);
+                            console.log('Valor pré-selecionado aplicado no Choices.js:', selectedValue);
+                        }
+
+                        console.log('tipoEventoChoices inicializado com sucesso');
+                    } catch (e) {
+                        console.error('Erro ao inicializar tipoEventoChoices:', e);
+                    }
+                }
+
+                if (veiculoElement && !hasChoicesInstance(veiculoElement)) {
+                    try {
+                        veiculoChoices = new Choices(veiculoElement, {
+                            removeItemButton: true,
+                            placeholder: true,
+                            placeholderValue: 'Selecione um veículo...',
+                            searchEnabled: true,
+                            searchPlaceholderValue: 'Pesquisar veículo...',
+                            shouldSort: false
+                        });
+                        console.log('veiculoChoices inicializado com sucesso');
+                    } catch (e) {
+                        console.error('Erro ao inicializar veiculoChoices:', e);
+                    }
+                }
+
+                if (midiaElement && !hasChoicesInstance(midiaElement)) {
+                    try {
+                        midiaChoices = new Choices(midiaElement, {
+                            removeItemButton: true,
+                            placeholder: true,
+                            placeholderValue: 'Selecione uma mídia...',
+                            searchEnabled: true,
+                            searchPlaceholderValue: 'Pesquisar mídia...',
+                            shouldSort: false
+                        });
+                        console.log('midiaChoices inicializado com sucesso');
+                    } catch (e) {
+                        console.error('Erro ao inicializar midiaChoices:', e);
+                    }
+                }
+
+
+            }
+
+            // Event listener para o botão "Create Lead"
+            if (createLeadBtn) {
+                createLeadBtn.addEventListener('click', async function (e) {
+                    e.preventDefault();
+                    console.log('Botão Create Lead clicado');
+
+                    // Buscar dados da API
+                    const data = await fetchCreateLeadData();
+
+                    if (data) {
+                        console.log('Dados recebidos da API:', data);
+
+                        // Limpar instâncias anteriores antes de mostrar o modal
+                        destroyChoicesInstances();
+
+                        // Mostrar o modal primeiro
+                        const createLeadModal = new bootstrap.Modal(document.getElementById('createLeadModal'));
+                        createLeadModal.show();
+
+                        // Aguardar o modal estar completamente visível
+                        const modalElement = document.getElementById('createLeadModal');
+                        modalElement.addEventListener('shown.bs.modal', function () {
+                            console.log('Modal visível, populando selects...');
+
+                            // Popular os selects
+                            populateSelects(data);
+
+                            // Aguardar um pouco antes de inicializar o Choices.js
+                            setTimeout(() => {
+                                console.log('Inicializando Choices.js após popular selects...');
+                                initializeChoices();
+                            }, 500);
+
+                        }, { once: true });
+                    }
+                });
+            }
+
+            // Event listener para o formulário de criação de lead
+            const createLeadForm = document.getElementById('createLeadForm');
+            if (createLeadForm) {
+                createLeadForm.addEventListener('submit', async function (e) {
+                    e.preventDefault();
+                    console.log('Formulário submetido');
+
+                    // Obter valores dos campos
+                    const leadData = {
+                        nome_cliente: document.getElementById('nomeCliente').value.trim(),
+                        telefone: document.getElementById('telefone').value.trim(),
+                        email: document.getElementById('email').value.trim(),
+                        responsavel: responsavelChoices ? responsavelChoices.getValue(true) : document.getElementById('responsavel').value,
+                        cod_andamento: andamentoChoices ? andamentoChoices.getValue(true) : document.getElementById('andamento').value,
+                        cod_tipo_evento: tipoEventoChoices ? tipoEventoChoices.getValue(true) : document.getElementById('tipoEvento').value,
+                        cod_modelo: veiculoChoices ? veiculoChoices.getValue(true) : document.getElementById('veiculoInteresse').value,
+                        cod_midia: midiaChoices ? midiaChoices.getValue(true) : document.getElementById('midia').value,
+                        observacao: document.getElementById('observacao').value.trim()
+                    };
+
+                    console.log('Dados do lead a serem enviados:', leadData);
+
+                    // Validação básica
+                    if (!leadData.nome_cliente || !leadData.telefone || !leadData.responsavel || !leadData.cod_andamento || !leadData.cod_tipo_evento) {
+                        showToast('Por favor, preencha todos os campos obrigatórios.', 'error');
+                        return;
+                    }
+
+                    // Enviar dados para API
+                    try {
+                        const myHeaders = new Headers();
+                        myHeaders.append("Authorization", `Bearer ${token}`);
+                        myHeaders.append("Content-Type", "application/json");
+
+                        const requestOptions = {
+                            method: "POST",
+                            headers: myHeaders,
+                            body: JSON.stringify(leadData),
+                            redirect: "follow"
+                        };
+
+                        const response = await fetch("https://backend.caiuas.com.br/api/crm/eventos_showroom", requestOptions);
+
+                        if (response.ok) {
+                            const result = await response.json();
+                            console.log('Lead criado com sucesso:', result);
+
+                            // Fechar o modal
+                            const createLeadModal = bootstrap.Modal.getInstance(document.getElementById('createLeadModal'));
+                            createLeadModal.hide();
+
+                            // Mostrar mensagem de sucesso
+                            showToast('Lead criado com sucesso!', 'success');
+
+                            // Recarregar a página após um pequeno delay
+                            setTimeout(() => {
+                                window.location.reload();
+                            }, 1500);
+
+                        } else {
+                            let errorMessage = 'Erro ao criar lead';
+
+                            try {
+                                const errorResponse = await response.json();
+                                if (errorResponse && errorResponse.message) {
+                                    errorMessage = errorResponse.message;
+                                }
+                            } catch (parseError) {
+                                console.warn('Erro ao fazer parse da resposta de erro:', parseError);
+                            }
+
+                            showToast(errorMessage, 'error');
+                        }
+
+                    } catch (error) {
+                        console.error('Erro ao criar lead:', error);
+                        showToast('Erro de conexão. Tente novamente.', 'error');
+                    }
+                });
+            }
+
+            // Limpar Choices.js quando o modal for fechado
+            document.getElementById('createLeadModal').addEventListener('hidden.bs.modal', function () {
+                console.log('Modal fechado, limpando instâncias...');
+                destroyChoicesInstances();
+
+                // Limpar formulário
+                const form = document.getElementById('createLeadForm');
+                if (form) {
+                    form.reset();
+                }
+            });
+
+            // Opcional: adicionar evento para buscar quando clicar no ícone de busca
+            const searchIcon = document.querySelector('.search-box-icon');
+            if (searchIcon) {
+                searchIcon.addEventListener('click', function () {
+                    performSearch();
+                });
+                searchIcon.style.cursor = 'pointer';
+            }
+        });
+    </script>
+</body>
+
+</html>
