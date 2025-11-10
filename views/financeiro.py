@@ -15,11 +15,13 @@ financeiro_bp = Blueprint('financeiro', __name__)
 @token_required
 def list_lcontas():
     try:
+        # Capturar todos os parâmetros da URL
         initial_date = request.args.get('initial_date', None)
         final_date = request.args.get('final_date', None)
         current_page = request.args.get('current_page', None)
         search = request.args.get('search', None)
         limit = request.args.get('limit', None)
+        consiliado = request.args.get('consiliado', None)
         
         context = {}
         context['token_data'] = request.token_data
@@ -27,7 +29,25 @@ def list_lcontas():
         
         token = session.get('token')
 
-        url = f"https://backend.caiuas.com.br/api/financeiro/lcontas{f'?search={search}' if search else '?'}{f'&limit={limit}' if limit else ''}{f'&current_page={current_page}' if current_page else ''}{f'&initial_date={initial_date}' if initial_date else ''}{f'&final_date={final_date}' if final_date else ''}"
+        # Construir URL de forma mais limpa
+        base_url = "https://backend.caiuas.com.br/api/financeiro/lcontas"
+        params = []
+        
+        if search:
+            params.append(f"search={search}")
+        if limit:
+            params.append(f"limit={limit}")
+        if current_page:
+            params.append(f"current_page={current_page}")
+        if initial_date:
+            params.append(f"initial_date={initial_date}")
+        if final_date:
+            params.append(f"final_date={final_date}")
+        if consiliado:
+            params.append(f"consiliado={consiliado}")
+        
+        url = base_url + ("?" + "&".join(params) if params else "")
+        
         payload = {}
         headers = {
             "Authorization": f"Bearer {token}"
