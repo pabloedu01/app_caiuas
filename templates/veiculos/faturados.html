@@ -202,6 +202,8 @@
                     <span class="badge fs-10 
                         {% if veiculo.novo_usado == 'Novo' %}
                           badge-phoenix badge-phoenix-success
+                        {% elif veiculo.novo_usado == 'Direta' %}
+                          badge-phoenix badge-phoenix-warning
                         {% else %}
                           badge-phoenix badge-phoenix-info
                         {% endif %}">
