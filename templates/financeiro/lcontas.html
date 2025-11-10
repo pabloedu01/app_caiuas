@@ -110,6 +110,12 @@
                                         data-options='{"mode":"range","dateFormat":"d/m/y","disableMobile":true}'
                                         value="{% if request.args.get('initial_date') and request.args.get('final_date') %}{% set initial_date = request.args.get('initial_date') %}{% set final_date = request.args.get('final_date') %}{% if '-' in initial_date and initial_date|length >= 8 %}{% set initial_parts = initial_date.split('-') %}{% set final_parts = final_date.split('-') %}{{ initial_parts[2] }}/{{ initial_parts[1] }}/{{ initial_parts[0][2:] }} to {{ final_parts[2] }}/{{ final_parts[1] }}/{{ final_parts[0][2:] }}{% endif %}{% endif %}" />
                                 </div>
+                                <!-- add button "consiliado" with success or pending -->
+                                <button class="btn btn-success me-2" type="button">Conciliado</button>
+                                <button class="btn btn-warning me-2" type="button">Pendente</button>
+                                <button class="btn btn-secondary me-2" type="button">Todos</button>
+
+
                                 <button class="btn px-3 btn-phoenix-secondary" type="button" data-bs-toggle="modal"
                                     data-bs-target="#filterModal" data-boundary="window" aria-haspopup="true"
                                     aria-expanded="false" data-bs-reference="parent"><span
@@ -186,6 +192,7 @@
                                                 data-bulk-select='{"body":"leal-tables-body"}' />
                                         </div>
                                     </th> -->
+                                    <th scope="col">Conta</th>
                                     <th scope="col">Data</th>
                                     <th scope="col">Valor</th>
                                     <th scope="col">Classificação</th>
@@ -193,7 +200,7 @@
                                     <th scope="col">Descrição</th>
                                     <th scope="col">Fornecedor</th>
                                     <!-- <th class="sort text-end align-middle pe-0 ps-4" scope="col"></th> -->
-                                    <th scope="col">Conta</th>
+                                    <!-- <th scope="col">Conta</th> -->
                                     <th scope="col">Empresa</th>
                                 </tr>
                             </thead>
@@ -201,16 +208,17 @@
                                 {% if context.data.lancamentos %}
                                 {% for lancamento in context.data.lancamentos %}
                                 <tr scope="row">
+                                    <td>{{ lancamento.cod_conta_corrente }}-{{ lancamento.nome_conta }}</td>
                                     <td>
-                                        {% if lancamento.data_lancamento %}
-                                        {% set data_formatada = lancamento.data_lancamento %}
+                                        {% if lancamento.data %}
+                                        {% set data_formatada = lancamento.data %}
                                         {% if '-' in data_formatada and 'T' in data_formatada %}
                                         {# Formato ISO completo com hora (YYYY-MM-DDTHH:MM:SS) #}
                                         {% set data_partes = data_formatada.split('T')[0].split('-') %}
                                         {% if data_partes|length == 3 %}
                                         {{ data_partes[2] }}/{{ data_partes[1] }}/{{ data_partes[0] }}
                                         {% else %}
-                                        {{ lancamento.data_lancamento }}
+                                        {{ lancamento.data }}
                                         {% endif %}
                                         {% elif '-' in data_formatada %}
                                         {# Formato ISO apenas data (YYYY-MM-DD) #}
@@ -218,10 +226,10 @@
                                         {% if data_partes|length == 3 %}
                                         {{ data_partes[2] }}/{{ data_partes[1] }}/{{ data_partes[0] }}
                                         {% else %}
-                                        {{ lancamento.data_lancamento }}
+                                        {{ lancamento.data }}
                                         {% endif %}
                                         {% else %}
-                                        {{ lancamento.data_lancamento }}
+                                        {{ lancamento.data }}
                                         {% endif %}
                                         {% else %}
                                         -
@@ -229,21 +237,22 @@
                                     </td>
                                     <td>
                                         {% if lancamento.valor %}
-                                            {% if lancamento.db_cr == 'D' %}
-                                                <span class="text-danger">- R$ {{ "%.2f"|format(lancamento.valor|float)|replace('.', ',') }}</span>
+                                            {% set valor_float = lancamento.valor|float %}
+                                            {% if valor_float < 0 %}
+                                                <span class="text-danger">R$ {{ "%.2f"|format(valor_float|abs)|replace('.', ',') }}</span>
                                             {% else %}
-                                                <span class="text-success">+ R$ {{ "%.2f"|format(lancamento.valor|float)|replace('.', ',') }}</span>
+                                                <span class="text-success">R$ {{ "%.2f"|format(valor_float)|replace('.', ',') }}</span>
                                             {% endif %}
                                         {% else %}
                                             R$ 0,00
                                         {% endif %}
-                                    </td>
+                                    </td>                                    
                                     <td>Classificação</td>
                                     <td>Centro de custo</td>
                                     <td>{{ lancamento.historico }}</td>
-                                    <td>Fornecedor</td>
-                                    <td>{{ lancamento.num_conta if lancamento.num_conta is not none }}</td>
-                                    <td>empresa</td>
+                                    <td>{{ lancamento.nome_cliente}}</td>
+                                    <!-- <td>{{ lancamento.num_conta if lancamento.num_conta is not none }}</td> -->
+                                    <td>{{ lancamento.nome_empresa}}</td>
                                     
                                 </tr>
                                 {% endfor %}
