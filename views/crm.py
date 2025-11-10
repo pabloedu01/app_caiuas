@@ -45,6 +45,40 @@ def eventos_showroom():
     except Exception as e:
         return render_template('500.html', error=str(e))
 
+@crm_bp.route('/crm/eventos', methods=['GET'])
+@token_required
+def eventos():
+    try:
+        status = request.args.get('status', None)
+        initial_date = request.args.get('initial_date', None)
+        final_date = request.args.get('final_date', None)
+        current_page = request.args.get('current_page', None)
+        search = request.args.get('search', None)
+        limit = request.args.get('limit', None)
+
+        context = {}
+        context['token_data'] = request.token_data
+        context['title'] = "Eventos Showroom"
+        
+        token = session.get('token')
+
+        url = f"https://backend.caiuas.com.br/api/crm/eventos?&{f'&search={search}' if search else ''}{f'&status={status}' if status else ''}{f'&limit={limit}' if limit else ''}{f'&current_page={current_page}' if current_page else ''}{f'&initial_date={initial_date}' if initial_date else ''}{f'&final_date={final_date}' if final_date else ''}{f'&search={search}' if search else ''}"
+        context['current_page'] = f'https://app.caiuas.com.br/crm/eventos?&{f'&search={search}' if search else ''}{f'&status={status}' if status else ''}{f'&limit={limit}' if limit else ''}{f'&current_page={current_page}' if current_page else ''}{f'&initial_date={initial_date}' if initial_date else ''}{f'&final_date={final_date}' if final_date else ''}{f'&search={search}' if search else ''}'
+        payload = {}
+        headers = {
+            "Authorization": f"Bearer {token}"
+        }
+        response = requests.request("GET", url, headers=headers, data=payload)
+        
+        data = response.json()
+        context['token'] = token
+        context['status_response'] = response.status_code
+        context['data'] = data
+        return render_template('crm/eventos.html', context=context)
+    except Exception as e:
+        return render_template('500.html', error=str(e))
+
+
 @crm_bp.route('/crm/eventos_showroom/<int:evento_id>', methods=['GET'])
 @token_required
 def show_eventos_showroom(evento_id):
