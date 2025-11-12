@@ -684,7 +684,7 @@
                     </div>
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label class="form-label fw-bold">Classificação:</label>
+                            <label for="modalSelectClassificacao" class="form-label fw-bold">Classificação:</label>
                             <select class="form-select" id="modalSelectClassificacao">
                                 <option value="">Selecione uma classificação...</option>
                                 {% if context.data.classificacoes %}
@@ -695,7 +695,7 @@
                             </select>
                         </div>
                         <div class="col-md-6 mb-3">
-                            <label class="form-label fw-bold">Centro de Custo:</label>
+                            <label for="modalSelectCentroCusto" class="form-label fw-bold">Centro de Custo:</label>
                             <select class="form-select" id="modalSelectCentroCusto">
                                 <option value="">Selecione um centro de custo...</option>
                                 {% if context.data.centros_custo %}
@@ -904,6 +904,8 @@
             let tipoEventoChoices = null;
             let veiculoChoices = null;
             let midiaChoices = null;
+            let classificacaoChoices = null;
+            let centroCustoChoices = null;
 
             // EVENT LISTENER para cliques nas linhas da tabela
             document.addEventListener('click', function (e) {
@@ -937,6 +939,12 @@
                     popularModalDetalhes(dadosLancamento);
                     const modal = new bootstrap.Modal(document.getElementById('detalhesLancamentoModal'));
                     modal.show();
+                    
+                    // Aguardar o modal estar completamente visível para inicializar Choices.js
+                    const modalElement = document.getElementById('detalhesLancamentoModal');
+                    modalElement.addEventListener('shown.bs.modal', function () {
+                        initializeModalChoices(dadosLancamento);
+                    }, { once: true });
                 }
             });
 
@@ -1032,36 +1040,79 @@
                 // Responsável
                 document.getElementById('modalResponsavel').textContent = lancamento.responsavel || '-';
                 
-                // Popular select de classificação
+                // Selecionar classificação se houver
                 const classificacaoSelect = document.getElementById('modalSelectClassificacao');
-                classificacaoSelect.innerHTML = '<option value="">Selecione uma classificação</option>';
-                if (context && context.data && context.data.classificacoes) {
-                    context.data.classificacoes.forEach(classificacao => {
-                        const option = document.createElement('option');
-                        option.value = classificacao.cod_classificacao;
-                        option.textContent = `${classificacao.cod_classificacao} - ${classificacao.nome}`;
-                        // Marcar como selecionado se for a classificação atual
-                        if (classificacao.cod_classificacao == lancamento.codClassificacao) {
-                            option.selected = true;
-                        }
-                        classificacaoSelect.appendChild(option);
-                    });
+                if (lancamento.codClassificacao) {
+                    classificacaoSelect.value = lancamento.codClassificacao;
+                } else {
+                    classificacaoSelect.value = '';
                 }
                 
-                // Popular select de centro de custo
+                // Selecionar centro de custo se houver
                 const centroCustoSelect = document.getElementById('modalSelectCentroCusto');
-                centroCustoSelect.innerHTML = '<option value="">Selecione um centro de custo</option>';
-                if (context && context.data && context.data.centros_custo) {
-                    context.data.centros_custo.forEach(centro => {
-                        const option = document.createElement('option');
-                        option.value = centro.centro_custo;
-                        option.textContent = `${centro.centro_custo} - ${centro.nome}`;
-                        // Marcar como selecionado se for o centro de custo atual
-                        if (centro.centro_custo == lancamento.codCentroCusto) {
-                            option.selected = true;
-                        }
-                        centroCustoSelect.appendChild(option);
+                if (lancamento.codCentroCusto) {
+                    centroCustoSelect.value = lancamento.codCentroCusto;
+                } else {
+                    centroCustoSelect.value = '';
+                }
+            }
+
+            // Função para inicializar Choices.js no modal de detalhes
+            function initializeModalChoices(lancamento) {
+                console.log('Inicializando Choices.js no modal...');
+                
+                // Destruir instâncias anteriores se existirem
+                if (classificacaoChoices) {
+                    try {
+                        classificacaoChoices.destroy();
+                    } catch (e) {
+                        console.warn('Erro ao destruir classificacaoChoices:', e);
+                    }
+                }
+                if (centroCustoChoices) {
+                    try {
+                        centroCustoChoices.destroy();
+                    } catch (e) {
+                        console.warn('Erro ao destruir centroCustoChoices:', e);
+                    }
+                }
+                
+                // Inicializar Choices.js para Classificação
+                const classificacaoSelect = document.getElementById('modalSelectClassificacao');
+                if (classificacaoSelect) {
+                    classificacaoChoices = new Choices(classificacaoSelect, {
+                        removeItemButton: true,
+                        placeholder: true,
+                        placeholderValue: 'Selecione uma classificação...',
+                        searchEnabled: true,
+                        searchPlaceholderValue: 'Pesquisar classificação...',
+                        shouldSort: false
                     });
+                    
+                    // Definir valor selecionado se houver
+                    if (lancamento.codClassificacao) {
+                        classificacaoChoices.setChoiceByValue(lancamento.codClassificacao.toString());
+                        console.log('Classificação selecionada:', lancamento.codClassificacao);
+                    }
+                }
+                
+                // Inicializar Choices.js para Centro de Custo
+                const centroCustoSelect = document.getElementById('modalSelectCentroCusto');
+                if (centroCustoSelect) {
+                    centroCustoChoices = new Choices(centroCustoSelect, {
+                        removeItemButton: true,
+                        placeholder: true,
+                        placeholderValue: 'Selecione um centro de custo...',
+                        searchEnabled: true,
+                        searchPlaceholderValue: 'Pesquisar centro de custo...',
+                        shouldSort: false
+                    });
+                    
+                    // Definir valor selecionado se houver
+                    if (lancamento.codCentroCusto) {
+                        centroCustoChoices.setChoiceByValue(lancamento.codCentroCusto.toString());
+                        console.log('Centro de custo selecionado:', lancamento.codCentroCusto);
+                    }
                 }
             }
 
@@ -1086,8 +1137,8 @@
                     // Coletar dados do modal
                     const codEmpresa = document.getElementById('modalSelectEmpresa').value;
                     const nomeCliente = document.getElementById('modalNomeCliente').value.trim();
-                    const codClassificacao = document.getElementById('modalSelectClassificacao').value;
-                    const codCentroCusto = document.getElementById('modalSelectCentroCusto').value;
+                    const codClassificacao = classificacaoChoices ? classificacaoChoices.getValue(true) : document.getElementById('modalSelectClassificacao').value;
+                    const codCentroCusto = centroCustoChoices ? centroCustoChoices.getValue(true) : document.getElementById('modalSelectCentroCusto').value;
 
                     console.log('Dados coletados do modal:', {
                         codEmpresa,
@@ -2350,6 +2401,32 @@
                 if (form) {
                     form.reset();
                 }
+            });
+
+            // Limpar Choices.js quando o modal de detalhes for fechado
+            document.getElementById('detalhesLancamentoModal').addEventListener('hidden.bs.modal', function () {
+                console.log('Modal de detalhes fechado, limpando instâncias...');
+                
+                // Destruir instâncias de Choices.js
+                if (classificacaoChoices) {
+                    try {
+                        classificacaoChoices.destroy();
+                        classificacaoChoices = null;
+                    } catch (e) {
+                        console.warn('Erro ao destruir classificacaoChoices:', e);
+                    }
+                }
+                if (centroCustoChoices) {
+                    try {
+                        centroCustoChoices.destroy();
+                        centroCustoChoices = null;
+                    } catch (e) {
+                        console.warn('Erro ao destruir centroCustoChoices:', e);
+                    }
+                }
+                
+                // Limpar dados do lançamento atual
+                dadosLancamentoAtual = null;
             });
 
             // Opcional: adicionar evento para buscar quando clicar no ícone de busca
