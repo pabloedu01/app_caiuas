@@ -1,0 +1,841 @@
+<!DOCTYPE html>
+<html lang="pt-BR" dir="ltr" data-navigation-type="default" data-navbar-horizontal-shape="default">
+
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+  <title>{{ context.title }}</title>
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/static/assets/img/favicons/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/static/assets/img/favicons/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/static/assets/img/favicons/favicon-16x16.png">
+  <link rel="shortcut icon" type="image/x-icon" href="/static/assets/img/favicons/favicon.ico">
+  <link rel="manifest" href="/static/assets/img/favicons/manifest.json">
+  <meta name="msapplication-TileImage" content="static/assets/img/favicons/mstile-150x150.png">
+  <meta name="theme-color" content="#ffffff">
+  <script src="/static/vendors/simplebar/simplebar.min.js"></script>
+  <script src="/static/assets/js/config.js"></script>
+
+
+  <link href="/static/vendors/choices/choices.min.css" rel="stylesheet">
+  <link href="/static/vendors/flatpickr/flatpickr.min.css" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+  <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@300;400;600;700;800;900&amp;display=swap"
+    rel="stylesheet">
+  <link href="/static/vendors/simplebar/simplebar.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://unicons.iconscout.com/release/v4.0.8/css/line.css">
+  <link href="/static/assets/css/theme-rtl.min.css" type="text/css" rel="stylesheet" id="style-rtl">
+  <link href="/static/assets/css/theme.min.css" type="text/css" rel="stylesheet" id="style-default">
+  <link href="/static/assets/css/user-rtl.min.css" type="text/css" rel="stylesheet" id="user-style-rtl">
+  <link href="/static/assets/css/user.min.css" type="text/css" rel="stylesheet" id="user-style-default">
+  <script>
+    var phoenixIsRTL = window.config.config.phoenixIsRTL;
+    if (phoenixIsRTL) {
+      var linkDefault = document.getElementById('style-default');
+      var userLinkDefault = document.getElementById('user-style-default');
+      linkDefault.setAttribute('disabled', true);
+      userLinkDefault.setAttribute('disabled', true);
+      document.querySelector('html').setAttribute('dir', 'rtl');
+    } else {
+      var linkRTL = document.getElementById('style-rtl');
+      var userLinkRTL = document.getElementById('user-style-rtl');
+      linkRTL.setAttribute('disabled', true);
+      userLinkRTL.setAttribute('disabled', true);
+    }
+  </script>
+</head>
+
+
+<body>
+
+  <main class="main" id="top">
+    {% include 'menu.html' %}
+    {% include 'top_bar.html' %}
+    <div class="content">
+
+      <div class="pb-6">
+        <h2 class="mb-4">{{ context.total if context.total else 0 }} Processos</h2>
+
+        <div id="estoque_table">
+
+          <div class="row g-3 justify-content-between mb-4">
+            <div class="col-auto">
+
+            </div>
+
+            <!-- <div class="col-auto">
+              <div class="d-flex">
+                <button class="btn btn-phoenix-secondary bg-body-emphasis btn-sm px-md-4 me-3"
+                  onclick="downloadEstoque()">
+                  <span class="fa-solid fa-download"></span>
+                  <span class="d-none d-md-inline ms-2">Download</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="search-box mb-3 mx-auto">
+            <form class="position-relative" onsubmit="return false;">
+              <input class="form-control search-input search form-control-sm" type="search"
+                placeholder="Procure por chassi ou modelo" aria-label="Search">
+              <span class="fas fa-search search-box-icon"></span>
+            </form>
+          </div> -->
+
+            <div class="d-flex flex-column flex-xl-row justify-content-between">
+              <div class="mb-3">
+                <button class="btn btn-primary me-4" type="button" data-bs-toggle="modal" data-bs-target="#createProcesso"><span
+                    class="fas fa-plus me-2"></span>Novo Processo</button>
+              </div>
+              <div class="d-flex mb-4 flex-shrink-0">
+                <div class="search-box me-2 flex-grow-1" style="min-width: 0;">
+                  <form class="position-relative">
+                    <input class="form-control search-input search" type="search" placeholder="Procure por aqui"
+                      aria-label="Search" />
+                    <span class="fas fa-search search-box-icon"></span>
+                  </form>
+                </div>
+                <button class="btn px-3 btn-phoenix-secondary flex-shrink-0" type="button" data-bs-toggle="modal"
+                  data-bs-target="#reportsFilterModal" aria-haspopup="true" aria-expanded="false"
+                  data-bs-reference="parent"><span class="fa-solid fa-filter text-primary"
+                    data-fa-transform="down-3"></span></button>
+              </div>
+            </div>
+
+            <div class="table-responsive">
+              <table class="table table-sm fs-9 mb-0 overflow-hidden">
+                <thead class="text-body">
+                  <tr>
+                    <th class="sort border-top border-translucent ps-3" style="max-width:20px; width:18px;">
+                      <div class="form-check mb-0 fs-8">
+                        <input class="form-check-input" id="bulk-select-example" type="checkbox"
+                          data-bulk-select='{"body":"bulk-select-body","actions":"bulk-select-actions","replacedElement":"bulk-select-replace-element"}' />
+                      </div>
+                    </th>
+
+                    <th class="sort border-top text-center" data-sort="id_processo" style="min-width: 5rem;">
+                      ID
+                    </th>
+
+                    <th class="sort border-top text-center" data-sort="id_processo" style="min-width: 5rem;">
+                      COD_PROPOSTA
+                    </th>
+
+                    <th class="sort border-top" data-sort="cliente_nome" style="min-width: 14rem;">
+                      Cliente
+                    </th>
+
+                    <th class="sort border-top" data-sort="cliente_telefone" style="min-width: 10rem;">
+                      Telefone
+                    </th>
+
+                    <th class="sort border-top text-center" data-sort="tipo_descricao" style="min-width: 8rem;">
+                      Tipo
+                    </th>
+
+                    <th class="sort border-top" data-sort="responsavel" style="min-width: 8rem;">
+                      Responsável
+                    </th>
+
+                    <th class="sort border-top text-center" data-sort="status" style="min-width: 6rem;">
+                      Status
+                    </th>
+
+                    <th class="sort border-top text-center" data-sort="created_at" style="min-width: 10rem;">
+                      Data Criação
+                    </th>
+                  </tr>
+                </thead>
+
+                <tbody class="list" id="bulk-select-body">
+                  {% if context.processos %}
+                  {% for processo in context.processos %}
+                  <tr class="btn-reveal-trigger">
+                    <td class="align-middle ps-3">
+                      <div class="form-check mb-0 fs-8">
+                        <input class="form-check-input" type="checkbox" data-id="{{ processo.id_processo }}"
+                          data-bulk-select-row='{"id":"{{ processo.id_processo }}"}' />
+                      </div>
+                    </td>
+
+                    <td class="id_processo align-middle text-center">
+                      <span class="fw-semibold text-primary">#{{ processo.id_processo if processo.id_processo else '-'
+                        }}</span>
+                    </td>
+
+                    <td class="id_processo align-middle text-center">
+                      <span class="fw-semibold text-primary">{{ processo.cod_proposta if processo.cod_proposta else '-'
+                        }}</span>
+                    </td>
+
+                    <td class="cliente_nome align-middle">
+                      {% if processo.cliente and processo.cliente.nome %}
+                      {% if processo.cliente.nome|length > 30 %}
+                      <span title="{{ processo.cliente.nome }}" class="fw-semibold text-body">{{
+                        processo.cliente.nome[:27] }}...</span>
+                      {% else %}
+                      <span class="fw-semibold text-body">{{ processo.cliente.nome }}</span>
+                      {% endif %}
+                      {% else %}
+                      -
+                      {% endif %}
+                    </td>
+
+                    <td class="cliente_telefone align-middle">
+                      {{ processo.cliente.tel_whatsapp or processo.cliente.tel_residencial or
+                      processo.cliente.tel_comercial if processo.cliente else '-' }}
+                    </td>
+
+                    <td class="tipo_descricao align-middle text-center">
+                      <span class="badge fs-10 
+                        {% if processo.tipo == 1 %}
+                          badge-phoenix badge-phoenix-success
+                        {% else %}
+                          badge-phoenix badge-phoenix-info
+                        {% endif %}">
+                        {{ processo.tipo_descricao if processo.tipo_descricao else 'N/A' }}
+                      </span>
+                    </td>
+
+                    <td class="responsavel align-middle">
+                      {% if processo.responsible and processo.responsible.nome_responsavel %}
+                      {{ processo.responsible.nome_responsavel }}
+                      {% else %}
+                      -
+                      {% endif %}
+                    </td>
+
+                    <td class="status align-middle text-center">
+                      {% if processo.status %}
+                      <span class="badge fs-10 badge-phoenix badge-phoenix-warning">{{ processo.status }}</span>
+                      {% else %}
+                      <span class="badge fs-10 badge-phoenix badge-phoenix-secondary">Pendente</span>
+                      {% endif %}
+                    </td>
+
+                    <td class="created_at align-middle text-center">
+                      {% if processo.created_at %}
+                      {{ processo.created_at[8:10] }}/{{ processo.created_at[5:7] }}/{{ processo.created_at[0:4] }}
+                      {% else %}
+                      -
+                      {% endif %}
+                    </td>
+                  </tr>
+                  {% endfor %}
+                  {% else %}
+                  <tr>
+                    <td colspan="8" class="text-center py-4 text-body-tertiary">
+                      Nenhum processo encontrado
+                    </td>
+                  </tr>
+                  {% endif %}
+                </tbody>
+              </table>
+            </div>
+
+            <div class="row align-items-center justify-content-between py-2 pe-0 fs-9 mt-2">
+              <div class="col-auto d-flex">
+                <p class="mb-0 d-none d-sm-block me-3 fw-semibold text-body" data-list-info="data-list-info"></p><a
+                  class="fw-semibold" href="#!" data-list-view="*">Ver todos<span class="fas fa-angle-right ms-1"
+                    data-fa-transform="down-1"></span></a><a class="fw-semibold d-none" href="#!"
+                  data-list-view="less">View
+                  Less<span class="fas fa-angle-right ms-1" data-fa-transform="down-1"></span></a>
+              </div>
+              <div class="col-auto d-flex">
+                <button class="page-link" data-list-pagination="prev"><span class="fas fa-chevron-left"></span></button>
+                <ul class="mb-0 pagination"></ul>
+                <button class="page-link pe-0" data-list-pagination="next"><span
+                    class="fas fa-chevron-right"></span></button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <footer class="footer position-absolute">
+          <div class="row g-0 justify-content-between align-items-center h-100">
+          </div>
+        </footer>
+
+        <div id="toastMessageContainer" class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 1080;">
+          <div id="toastMessage" class="toast align-items-center text-white dark__text-gray-1100 bg-primary border-0"
+            role="alert" data-bs-autohide="true" aria-live="assertive" aria-atomic="true">
+            <div class="d-flex">
+              <div class="toast-body">
+                Hello, world! This is a toast message.
+              </div>
+              <button class="btn ms-2 p-0" type="button" data-bs-dismiss="toast" aria-label="Close"><span
+                  class="uil uil-times fs-7 text-white"></span></button>
+            </div>
+          </div>
+        </div>
+
+
+        <div class="modal fade" id="reportsFilterModal" tabindex="-1">
+          <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border border-translucent">
+              <form id="filterForm" autocomplete="off">
+                <div class="modal-header justify-content-between border-translucent p-4">
+                  <h5 class="modal-title text-body-highlight fs-6 lh-sm">Filtrar Veículos</h5>
+                  <button class="btn p-1 text-danger" type="button" data-bs-dismiss="modal" aria-label="Close">
+                    <span class="fas fa-times fs-9"></span>
+                  </button>
+                </div>
+                <div class="modal-body pt-4 pb-2 px-4">
+                  <div class="row">
+                    <div class="col-md-6">
+                      <div class="mb-3">
+                        <label class="fw-bold mb-2 text-body-highlight" for="filtroTipo">Tipo</label>
+                        <select class="form-select" id="filtroTipo" multiple>
+                          <option value="">Todos</option>
+                          {% set tipos_unicos = [] %}
+                          {% for processo in context.processos %}
+                          {% if processo.tipo_descricao and processo.tipo_descricao not in tipos_unicos %}
+                          {% set _ = tipos_unicos.append(processo.tipo_descricao) %}
+                          {% endif %}
+                          {% endfor %}
+                          {% for tipo in tipos_unicos|sort %}
+                          <option value="{{ tipo }}">{{ tipo }}</option>
+                          {% endfor %}
+                        </select>
+                      </div>
+                    </div>
+                    <div class="col-md-6">
+                      <div class="mb-3">
+                        <label class="fw-bold mb-2 text-body-highlight" for="filtroResponsavel">Responsável</label>
+                        <select class="form-select" id="filtroResponsavel" multiple>
+                          <option value="">Todos</option>
+                          {% set responsaveis_unicos = [] %}
+                          {% for processo in context.processos %}
+                          {% if processo.responsible and processo.responsible.nome_responsavel and
+                          processo.responsible.nome_responsavel not in responsaveis_unicos %}
+                          {% set _ = responsaveis_unicos.append(processo.responsible.nome_responsavel) %}
+                          {% endif %}
+                          {% endfor %}
+                          {% for responsavel in responsaveis_unicos|sort %}
+                          <option value="{{ responsavel }}">{{ responsavel }}</option>
+                          {% endfor %}
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="row">
+                    <div class="col-md-6">
+                      <div class="mb-3">
+                        <label class="fw-bold mb-2 text-body-highlight" for="filtroStatus">Status</label>
+                        <select class="form-select" id="filtroStatus" multiple>
+                          <option value="">Todos</option>
+                          <option value="Pendente">Pendente</option>
+                          {% set status_unicos = [] %}
+                          {% for processo in context.processos %}
+                          {% if processo.status and processo.status not in status_unicos %}
+                          {% set _ = status_unicos.append(processo.status) %}
+                          {% endif %}
+                          {% endfor %}
+                          {% for status in status_unicos|sort %}
+                          <option value="{{ status }}">{{ status }}</option>
+                          {% endfor %}
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="modal-footer d-flex justify-content-end align-items-center px-4 pb-4 border-0 pt-3">
+                  <button class="btn btn-sm btn-phoenix-primary px-4 fs-10 my-0" type="button" onclick="resetFilters()">
+                    <span class="fas fa-arrows-rotate me-2 fs-10"></span>Limpar
+                  </button>
+                  <button class="btn btn-sm btn-primary px-9 fs-10 my-0" type="button"
+                    onclick="applyFilters()">Aplicar</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal fade" id="createProcesso" tabindex="-1">
+          <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border border-translucent">
+              <!-- adicione um formulario com campos Tipo onde 1 = veículo novo 2 = veículo usado 3 - PCD, adicione uma opção para selecionar o cliente e um botão salvar -->
+              <div class="modal-header justify-content-between border-translucent p-4">
+                <h5 class="modal-title text-body-highlight fs-6 lh-sm">Novo Processo</h5>
+                <button class="btn p-1 text-danger" type="button" data-bs-dismiss="modal" aria-label="Close">
+                  <span class="fas fa-times fs-9"></span>
+                </button>
+              </div>
+              <div class="modal-body">
+                <form id="createProcessoForm">
+                  <div class="mb-3">
+                    <label for="tipo" class="form-label">Tipo</label>
+                    <select class="form-select" id="tipo" name="tipo" required>
+                      <option value="1">Veículo Novo</option>
+                      <option value="2">Veículo Usado</option>
+                      <option value="3">PCD</option>
+                    </select>
+                  </div>
+                  <div class="mb-3">
+                    <label for="cliente" class="form-label">Cliente</label>
+                    <input type="text" class="form-control" id="cliente" name="cliente" required>
+                  </div>
+                  <button type="submit" class="btn btn-primary">Salvar</button>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+
+
+  </main>
+  <script src="/static/vendors/popper/popper.min.js"></script>
+  <script src="/static/vendors/bootstrap/bootstrap.min.js"></script>
+  <script src="/static/vendors/anchorjs/anchor.min.js"></script>
+  <script src="/static/vendors/is/is.min.js"></script>
+  <script src="/static/vendors/fontawesome/all.min.js"></script>
+  <script src="/static/vendors/lodash/lodash.min.js"></script>
+  <script src="/static/vendors/list.js/list.min.js"></script>
+  <script src="/static/vendors/feather-icons/feather.min.js"></script>
+  <script src="/static/vendors/dayjs/dayjs.min.js"></script>
+  <script src="/static/vendors/choices/choices.min.js"></script>
+  <script src="/static/vendors/flatpickr/flatpickr.min.js"></script>
+  <script src="/static/assets/js/phoenix.js"></script>
+  <script src="/static/vendors/prism/prism.js"></script>
+  <script src="/static/assets/js/menu.js"></script>
+
+  <script>
+    let estoqueList; // Variável global para o List.js
+
+    document.addEventListener('DOMContentLoaded', function () {
+      // Inicializar feather icons
+      if (window.feather) {
+        feather.replace();
+      }
+
+      // Verificar se existe dados para evitar erros
+      if (document.getElementById('estoque_table') && document.getElementById('bulk-select-body')) {
+        // Aguardar um pouco para garantir que a tabela foi renderizada
+        setTimeout(function () {
+          // Inicializar List.js para estoque de veículos
+          try {
+            estoqueList = new List('estoque_table', {
+              valueNames: ['id_processo', 'cliente_nome', 'cliente_telefone', 'tipo_descricao', 'responsavel', 'status', 'created_at'],
+              page: 200,
+              pagination: {
+                item: `<li class='page-item'><button class='page page-link' type='button'></button></li>`
+              }
+            });
+
+            console.log('List.js inicializado para estoque de veículos');
+            console.log('Total de itens encontrados:', estoqueList.items.length);
+            console.log('Páginas disponíveis:', Math.ceil(estoqueList.items.length / 200));
+
+            // Tornar estoqueList global para acesso nas funções de filtro
+            window.estoqueList = estoqueList;
+
+          } catch (error) {
+            console.error('Erro ao inicializar List.js:', error);
+          }
+        }, 500);
+      }
+    });
+
+    // Função para aplicar filtros
+    function applyFilters() {
+      if (!window.estoqueList) {
+        console.error('List.js não foi inicializado');
+        showToast('Erro: Sistema de filtros não inicializado', 'error');
+        return;
+      }
+
+      const filtros = {
+        modelo: Array.from(document.getElementById('filtroModelo').selectedOptions).map(o => o.value).filter(v => v),
+        ano: Array.from(document.getElementById('filtroAno').selectedOptions).map(o => o.value).filter(v => v),
+        cor: Array.from(document.getElementById('filtroCor').selectedOptions).map(o => o.value).filter(v => v),
+        tipo: Array.from(document.getElementById('filtroTipo').selectedOptions).map(o => o.value).filter(v => v),
+        vendedor: Array.from(document.getElementById('filtroVendedor').selectedOptions).map(o => o.value).filter(v => v),
+        patio: Array.from(document.getElementById('filtroPatio').selectedOptions).map(o => o.value).filter(v => v)
+      };
+
+      console.log('Filtros selecionados:', filtros);
+
+      // Aplicar filtros no List.js
+      window.estoqueList.filter(function (item) {
+        const values = item.values();
+
+        // Função helper para normalizar texto e extrair conteúdo real da célula
+        const normalize = (text) => {
+          if (!text) return '';
+          // Remove tags HTML e espaços extras
+          return text.toString().replace(/<[^>]*>/g, '').trim().toLowerCase();
+        };
+
+        // Função para extrair texto do badge (para tipo novo/usado)
+        const extractBadgeText = (htmlContent) => {
+          if (!htmlContent) return '';
+          const match = htmlContent.match(/>([^<]+)</);
+          return match ? match[1].trim().toLowerCase() : htmlContent.toLowerCase();
+        };
+
+        // Verificar cada filtro
+        if (filtros.tipo.length > 0) {
+          const itemTipo = extractBadgeText(values.tipo_descricao);
+          const hasMatch = filtros.tipo.some(filtro => itemTipo.includes(normalize(filtro)));
+          if (!hasMatch) return false;
+        }
+
+        if (filtros.responsavel.length > 0) {
+          const itemResponsavel = normalize(values.responsavel);
+          const hasMatch = filtros.responsavel.some(filtro => itemResponsavel.includes(normalize(filtro)));
+          if (!hasMatch) return false;
+        }
+
+        if (filtros.status.length > 0) {
+          const itemStatus = extractBadgeText(values.status);
+          const hasMatch = filtros.status.some(filtro => itemStatus.includes(normalize(filtro)));
+          if (!hasMatch) return false;
+        }
+
+        return true;
+      });
+
+      // Fechar modal
+      const modal = bootstrap.Modal.getInstance(document.getElementById('reportsFilterModal'));
+      if (modal) {
+        modal.hide();
+      }
+
+      const itemsEncontrados = window.estoqueList.visibleItems.length;
+      console.log('Filtros aplicados. Itens encontrados:', itemsEncontrados);
+
+      // Mostrar toast de confirmação
+      if (itemsEncontrados === 0) {
+        showToast('Nenhum veículo encontrado com os filtros selecionados', 'warning');
+      } else {
+        showToast(`Filtro aplicado: ${itemsEncontrados} veículo${itemsEncontrados > 1 ? 's' : ''} encontrado${itemsEncontrados > 1 ? 's' : ''}`, 'success');
+      }
+    }
+
+    // Função para limpar filtros
+    function resetFilters() {
+      if (!window.estoqueList) {
+        console.error('List.js não foi inicializado');
+        return;
+      }
+
+      // Limpar todos os selects
+      const selects = ['filtroTipo', 'filtroResponsavel', 'filtroStatus'];
+      selects.forEach(selectId => {
+        const select = document.getElementById(selectId);
+        if (select) {
+          // Limpar seleções múltiplas
+          Array.from(select.options).forEach(option => option.selected = false);
+          // Selecionar apenas a primeira opção (Todos)
+          if (select.options.length > 0) {
+            select.options[0].selected = true;
+          }
+        }
+      });
+
+      // Limpar campo de busca também
+      const searchInput = document.querySelector('.search-input');
+      if (searchInput) {
+        searchInput.value = '';
+      }
+
+      // Remover filtros do List.js
+      window.estoqueList.filter();
+      window.estoqueList.search();
+
+      console.log('Filtros limpos');
+      console.log('Total de itens:', window.estoqueList.items.length);
+
+      showToast('Filtros removidos com sucesso', 'info');
+    }
+
+    // Função para aplicar filtro combinado (busca + filtros)
+    function applyFiltersCombined() {
+      if (!window.estoqueList) {
+        return;
+      }
+
+      const searchTerm = document.querySelector('.search-input')?.value?.toLowerCase() || '';
+
+      const filtros = {
+        tipo: Array.from(document.getElementById('filtroTipo')?.selectedOptions || []).map(o => o.value).filter(v => v),
+        responsavel: Array.from(document.getElementById('filtroResponsavel')?.selectedOptions || []).map(o => o.value).filter(v => v),
+        status: Array.from(document.getElementById('filtroStatus')?.selectedOptions || []).map(o => o.value).filter(v => v)
+      };
+
+      // Se não há filtros nem busca, mostrar todos
+      const hasFilters = Object.values(filtros).some(f => f.length > 0);
+      const hasSearch = searchTerm.length > 0;
+
+      if (!hasFilters && !hasSearch) {
+        window.estoqueList.filter();
+        return;
+      }
+
+      // Aplicar filtros combinados
+      window.estoqueList.filter(function (item) {
+        const values = item.values();
+
+        // Função helper para normalizar texto
+        const normalize = (text) => {
+          if (!text) return '';
+          return text.toString().replace(/<[^>]*>/g, '').trim().toLowerCase();
+        };
+
+        const extractBadgeText = (htmlContent) => {
+          if (!htmlContent) return '';
+          const match = htmlContent.match(/>([^<]+)</);
+          return match ? match[1].trim().toLowerCase() : htmlContent.toLowerCase();
+        };
+
+        // Verificar busca global primeiro
+        if (hasSearch) {
+          const clienteNome = normalize(values.cliente_nome);
+          const idProcesso = normalize(values.id_processo);
+          const searchMatch = clienteNome.includes(searchTerm) || idProcesso.includes(searchTerm);
+          if (!searchMatch) return false;
+        }
+
+        // Verificar filtros específicos
+        if (filtros.tipo.length > 0) {
+          const itemTipo = extractBadgeText(values.tipo_descricao);
+          const hasMatch = filtros.tipo.some(filtro => itemTipo.includes(normalize(filtro)));
+          if (!hasMatch) return false;
+        }
+
+        if (filtros.responsavel.length > 0) {
+          const itemResponsavel = normalize(values.responsavel);
+          const hasMatch = filtros.responsavel.some(filtro => itemResponsavel.includes(normalize(filtro)));
+          if (!hasMatch) return false;
+        }
+
+        if (filtros.status.length > 0) {
+          const itemStatus = extractBadgeText(values.status);
+          const hasMatch = filtros.status.some(filtro => itemStatus.includes(normalize(filtro)));
+          if (!hasMatch) return false;
+        }
+
+        return true;
+      });
+    }
+
+    // Modificar a função applyFilters para usar a versão combinada
+    function applyFilters() {
+      if (!window.estoqueList) {
+        console.error('List.js não foi inicializado');
+        showToast('Erro: Sistema de filtros não inicializado', 'error');
+        return;
+      }
+
+      applyFiltersCombined();
+
+      // Fechar modal
+      const modal = bootstrap.Modal.getInstance(document.getElementById('reportsFilterModal'));
+      if (modal) {
+        modal.hide();
+      }
+
+      const itemsEncontrados = window.estoqueList.visibleItems.length;
+      console.log('Filtros aplicados. Itens encontrados:', itemsEncontrados);
+
+      // Mostrar toast de confirmação
+      if (itemsEncontrados === 0) {
+        showToast('Nenhum veículo encontrado com os filtros selecionados', 'warning');
+      } else {
+        showToast(`Filtro aplicado: ${itemsEncontrados} veículo${itemsEncontrados > 1 ? 's' : ''} encontrado${itemsEncontrados > 1 ? 's' : ''}`, 'success');
+      }
+    }
+
+    // Listener para o campo de busca - integrar com filtros
+    document.addEventListener('DOMContentLoaded', function () {
+      setTimeout(() => {
+        const searchInput = document.querySelector('.search-input');
+        if (searchInput) {
+          searchInput.addEventListener('input', function () {
+            // Aplicar filtros combinados quando a busca muda
+            applyFiltersCombined();
+          });
+        }
+      }, 1000);
+    });
+
+    // Função para mostrar toast
+    function showToast(message, type = 'primary') {
+      const toastContainer = document.getElementById('toastMessageContainer');
+      const toastElement = document.getElementById('toastMessage');
+      const toastBody = toastElement.querySelector('.toast-body');
+
+      if (!toastElement || !toastBody) {
+        // Fallback para alert se toast não estiver disponível
+        alert(message);
+        return;
+      }
+
+      // Atualizar a mensagem
+      toastBody.textContent = message;
+
+      // Atualizar as classes de cor baseado no tipo
+      toastElement.className = `toast align-items-center text-white border-0`;
+      if (type === 'success') {
+        toastElement.classList.add('bg-success');
+      } else if (type === 'error') {
+        toastElement.classList.add('bg-danger');
+      } else if (type === 'info') {
+        toastElement.classList.add('bg-info');
+      } else if (type === 'warning') {
+        toastElement.classList.add('bg-warning');
+      } else {
+        toastElement.classList.add('bg-primary');
+      }
+
+      // Mostrar o toast
+      const toast = new bootstrap.Toast(toastElement);
+      toast.show();
+    }
+
+    function downloadEstoque() {
+      // Mostrar loading no botão
+      const downloadBtn = event.target.closest('button');
+      const originalContent = downloadBtn.innerHTML;
+      downloadBtn.disabled = true;
+      downloadBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Baixando...';
+
+      const requestOptions = {
+        method: "GET",
+        redirect: "follow"
+      };
+
+      fetch("https://backend.caiuas.com.br/api/reports/estoque", requestOptions)
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error(`Erro HTTP: ${response.status}`);
+          }
+
+          // Verificar o tipo de conteúdo
+          const contentType = response.headers.get('content-type');
+
+          if (contentType && contentType.includes('application/json')) {
+            // Se for JSON, converter para CSV
+            return response.json().then(data => {
+              return jsonToCsv(data);
+            });
+          } else {
+            // Se já for um arquivo (CSV, Excel, etc), baixar direto
+            return response.blob();
+          }
+        })
+        .then((result) => {
+          let blob, filename;
+
+          if (typeof result === 'string') {
+            // Se for CSV string
+            blob = new Blob([result], { type: 'text/csv;charset=utf-8;' });
+            filename = `estoque_veiculos_${new Date().toISOString().slice(0, 10)}.csv`;
+          } else {
+            // Se for blob (arquivo)
+            blob = result;
+            filename = `estoque_veiculos_${new Date().toISOString().slice(0, 10)}.xlsx`;
+          }
+
+          // Criar link temporário para download
+          const link = document.createElement('a');
+          const url = window.URL.createObjectURL(blob);
+          link.href = url;
+          link.download = filename;
+
+          // Adicionar ao DOM, clicar e remover
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+
+          // Limpar URL
+          window.URL.revokeObjectURL(url);
+
+          console.log('Download concluído:', filename);
+          showToast('Download concluído com sucesso!', 'success');
+        })
+        .catch((error) => {
+          console.error('Erro no download:', error);
+          showToast('Erro ao baixar arquivo. Tente novamente.', 'error');
+        })
+        .finally(() => {
+          // Restaurar botão
+          downloadBtn.disabled = false;
+          downloadBtn.innerHTML = originalContent;
+        });
+    }
+
+    function jsonToCsv(jsonData) {
+      if (!jsonData || !Array.isArray(jsonData) || jsonData.length === 0) {
+        return '';
+      }
+
+      // Obter cabeçalhos das colunas
+      const headers = Object.keys(jsonData[0]);
+
+      // Mapear nomes dos campos para português
+      const headerMapping = {
+        'chassi_completo': 'Chassi',
+        'modelo': 'Modelo',
+        'ano_modelo': 'Ano/Modelo',
+        'cor': 'Cor',
+        'novo_usado': 'Tipo',
+        'patio': 'Pátio',
+        'nome_vendedor': 'Vendedor',
+        'cod_proposta': 'Cód. Proposta'
+      };
+
+      // Criar linha de cabeçalho
+      const csvHeaders = headers.map(header => headerMapping[header] || header);
+
+      // Converter dados para CSV
+      const csvRows = jsonData.map(row => {
+        return headers.map(header => {
+          const value = row[header];
+          // Escapar aspas e adicionar aspas se necessário
+          if (value === null || value === undefined) {
+            return '';
+          }
+          const stringValue = String(value);
+          if (stringValue.includes(',') || stringValue.includes('"') || stringValue.includes('\n')) {
+            return '"' + stringValue.replace(/"/g, '""') + '"';
+          }
+          return stringValue;
+        });
+      });
+
+      // Combinar cabeçalho e linhas
+      return [csvHeaders, ...csvRows].map(row => row.join(',')).join('\n');
+    }
+
+    // Função para debug - verificar se filtros estão funcionando
+    function debugFilters() {
+      console.log('Estado atual dos filtros:');
+      ['filtroTipo', 'filtroResponsavel', 'filtroStatus'].forEach(id => {
+        const select = document.getElementById(id);
+        if (select) {
+          console.log(`${id}:`, Array.from(select.selectedOptions).map(o => o.value));
+        }
+      });
+
+      if (window.estoqueList) {
+        console.log('Total de itens:', window.estoqueList.items.length);
+        console.log('Itens visíveis:', window.estoqueList.visibleItems.length);
+      }
+    }
+
+    // Expor função de debug globalmente (apenas para desenvolvimento)
+    window.debugFilters = debugFilters;
+  </script>
+
+
+
+
+</body>
+
+</html>
