@@ -357,9 +357,8 @@
         </div>
 
         <div class="modal fade" id="createProcesso" tabindex="-1">
-          <div class="modal-dialog modal-dialog-centered">
+          <div class="modal-dialog modal-dialog-centered modal-lg">
             <div class="modal-content border border-translucent">
-              <!-- adicione um formulario com campos Tipo onde 1 = veículo novo 2 = veículo usado 3 - PCD, adicione uma opção para selecionar o cliente e um botão salvar -->
               <div class="modal-header justify-content-between border-translucent p-4">
                 <h5 class="modal-title text-body-highlight fs-6 lh-sm">Novo Processo</h5>
                 <button class="btn p-1 text-danger" type="button" data-bs-dismiss="modal" aria-label="Close">
@@ -367,21 +366,35 @@
                 </button>
               </div>
               <div class="modal-body">
-                <form id="createProcessoForm">
-                  <div class="mb-3">
-                    <label for="tipo" class="form-label">Tipo</label>
-                    <select class="form-select" id="tipo" name="tipo" required>
-                      <option value="1">Veículo Novo</option>
-                      <option value="2">Veículo Usado</option>
-                      <option value="3">PCD</option>
-                    </select>
+                <!-- Step 1: Buscar Cliente -->
+                <div id="step1">
+                  <div class="input-group mb-3">
+                    <input type="text" class="form-control" id="searchCliente" placeholder="Buscar por CPF/CNPJ ou nome...">
+                    <button class="btn btn-primary" type="button" onclick="buscarClientes()"><span class="fas fa-search"></span></button>
                   </div>
-                  <div class="mb-3">
-                    <label for="cliente" class="form-label">Cliente</label>
-                    <input type="text" class="form-control" id="cliente" name="cliente" required>
+                  <div class="table-responsive" style="max-height: 300px; overflow-y: auto;">
+                    <table class="table table-sm fs-9">
+                      <thead><tr><th></th><th>Código</th><th>Nome</th><th>Telefone</th></tr></thead>
+                      <tbody id="clientesTable"></tbody>
+                    </table>
                   </div>
-                  <button type="submit" class="btn btn-primary">Salvar</button>
-                </form>
+                  <div class="text-end mt-3">
+                    <button class="btn btn-primary" onclick="nextStep()" id="btnNext" disabled>Próximo</button>
+                  </div>
+                </div>
+                <!-- Step 2: Tipo e Salvar -->
+                <div id="step2" style="display:none;">
+                  <p class="mb-2">Cliente: <strong id="selectedClienteName"></strong></p>
+                  <select class="form-select mb-3" id="tipoProcesso">
+                    <option value="1">Veículo Novo</option>
+                    <option value="2">Veículo Usado</option>
+                    <option value="3">PCD</option>
+                  </select>
+                  <div class="d-flex justify-content-between">
+                    <button class="btn btn-secondary" onclick="prevStep()">Voltar</button>
+                    <button class="btn btn-success" onclick="salvarProcesso()">Salvar</button>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -405,7 +418,50 @@
   <script src="/static/assets/js/menu.js"></script>
 
   <script>
-    let estoqueList; // Variável global para o List.js
+    let estoqueList, selectedCliente = null;
+    const token = '{{ context.token }}';
+
+    function buscarClientes() {
+      const search = document.getElementById('searchCliente').value;
+      if (!search) return;
+      fetch(`https://backend.caiuas.com.br/api/clients?search=${search}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      }).then(r => r.json()).then(data => {
+        const tbody = document.getElementById('clientesTable');
+        tbody.innerHTML = data.clients?.map(c => `
+          <tr onclick="selectCliente(${c.cod_cliente}, '${c.nome}')" style="cursor:pointer" class="hover-bg">
+            <td><input type="radio" name="cliente" value="${c.cod_cliente}"></td>
+            <td>${c.cod_cliente}</td><td>${c.nome}</td><td>${c.tel_whatsapp || c.tel_residencial || '-'}</td>
+          </tr>`).join('') || '<tr><td colspan="4" class="text-center">Nenhum cliente encontrado</td></tr>';
+      }).catch(() => document.getElementById('clientesTable').innerHTML = '<tr><td colspan="4" class="text-center text-danger">Erro na busca</td></tr>');
+    }
+
+    function selectCliente(cod, nome) {
+      selectedCliente = { cod, nome };
+      document.getElementById('btnNext').disabled = false;
+      document.querySelectorAll('#clientesTable tr').forEach(tr => tr.classList.remove('table-primary'));
+      event.currentTarget.classList.add('table-primary');
+      event.currentTarget.querySelector('input').checked = true;
+    }
+
+    function nextStep() { document.getElementById('step1').style.display = 'none'; document.getElementById('step2').style.display = 'block'; document.getElementById('selectedClienteName').textContent = selectedCliente.nome; }
+    function prevStep() { document.getElementById('step2').style.display = 'none'; document.getElementById('step1').style.display = 'block'; }
+
+    function salvarProcesso() {
+      fetch('https://backend.caiuas.com.br/api/veiculos/processos', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ cod_cliente: String(selectedCliente.cod), tipo: parseInt(document.getElementById('tipoProcesso').value) })
+      }).then(r => r.json()).then(() => { showToast('Processo criado com sucesso!', 'success'); setTimeout(() => location.reload(), 1000); })
+        .catch(() => showToast('Erro ao criar processo', 'error'));
+    }
+
+    document.getElementById('createProcesso').addEventListener('hidden.bs.modal', () => {
+      selectedCliente = null; document.getElementById('step1').style.display = 'block'; document.getElementById('step2').style.display = 'none';
+      document.getElementById('searchCliente').value = ''; document.getElementById('clientesTable').innerHTML = ''; document.getElementById('btnNext').disabled = true;
+    });
+
+    document.getElementById('searchCliente').addEventListener('keypress', e => { if (e.key === 'Enter') { e.preventDefault(); buscarClientes(); } });
 
     document.addEventListener('DOMContentLoaded', function () {
       // Inicializar feather icons
