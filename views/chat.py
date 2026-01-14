@@ -466,6 +466,62 @@ def chat_api():
             f.write(json.dumps(retorno, indent=4, ensure_ascii=False))
         return jsonify(retorno), 400
 
+@chat_bp.route('/api/chat_corretora', methods=['POST'])
+def chat_corretora_api():
+    try:
+        data = request.get_json()
+        now = datetime.now() - timedelta(hours=3)
+        now_iso = now.isoformat()
+        now = datetime.now() - timedelta(hours=3)
+        
+        with open(f'log/chat_corretora_{now_iso}.json', 'w') as f:
+            f.write(json.dumps(data, indent=4, ensure_ascii=False))
+        # return jsonify({'message': 'Recebido com sucesso'}), 200
+        
+        
+        
+        if 1==1:#data['meta']['sender']['phone_number'] in numeros_teste and data['messages'][0]['message_type']== 0:
+            inbox_id = data['inbox_id']
+            contact_id = data['contact_inbox']['contact_id']
+            conversation_id = data['id']
+            sender = data['meta']['sender']['phone_number']
+            user_message = data['messages'][0]['content']
+            
+            
+            # Envia a resposta de volta para o Chatwoot
+            url = f"https://chat.caiuas.com.br/api/v1/accounts/{inbox_id}/conversations/{conversation_id}/messages"
+            
+            payload = json.dumps({
+                'content': 'dsads',
+            })
+            
+            headers = {
+                'api_access_token': f'{os.getenv("CHATWOOT_TOKEN")}',
+                'Content-Type': 'application/json'
+            }
+            
+            response = requests.request("POST", url, headers=headers, data=payload)
+            
+            retorno = {
+                'chatwoot_response_status': response.status_code,
+                'message': 'Chat processed and response sent.'
+            }
+            return jsonify(retorno), 200
+        else:
+            retorno = {
+                'message': 'Chat data not processed due to conditions not met.'
+            }
+            return jsonify(retorno), 200
+            
+    except Exception as e:
+        retorno = {
+            'error': str(e)
+        }
+        with open(f'log/error_chat_{now_iso}.json', 'w') as f:
+            f.write(json.dumps(retorno, indent=4, ensure_ascii=False))
+        return jsonify(retorno), 400
+
+
 def get_chatbot_information(id_bot: int = 1):
     """Busca informações do chatbot diretamente no banco (evita chamada HTTP interna)."""
     try:
@@ -590,89 +646,124 @@ def webhook_whatsapp():
         payload = request.get_json()
         # with open(f"{formatted_date}_webhookwhatsapp.json", 'w') as f:
         #     json.dump(payload, f, ensure_ascii=False, indent=2)
+        numero = str(payload['entry'][0]['changes'][0]['value']['metadata']['display_phone_number'])
+        
         # if payload['entry'][0]['changes'][0]['value']['messages'][0]['from']:
         #     phone_number = payload['entry'][0]['changes'][0]['value']['messages'][0]['from']
         #     if str(phone_number) == '5515988272755':
         #         with open(f"{formatted_date}_webhookwhatsapp.json", 'w') as f:
         #             json.dump(payload, f, ensure_ascii=False, indent=2)
             
-        
-        try:
-
-            pesquisa = payload['entry'][0]['changes'][0]['value']['messages'][0]['interactive']['nfm_reply']['response_json']
-            pesquisa = json.loads(pesquisa)
-            pesquisa_tratada = {}
-            flow_token = pesquisa['flow_token']
-            # print(flow_token)
-            flow_token = str(flow_token).split('-')
-            
-            cod_form = flow_token[0]
-            cod_empresa = flow_token[1]
-            cod_evento = flow_token[2]
-            # with open(f"flow_token-pesquisa.json", 'w') as f:
-            #     json.dump(pesquisa, f, ensure_ascii=False, indent=2)
-            # is_posvendas = 'screen_0_Escolha_uma_das_opes_0' in pesquisa
-            # is_vendas = 'screen_0_Nossas_instalaes_0' in pesquisa
-            if cod_form == 'PV':
-
-                pesquisa_tratada['evento'] = pesquisa['flow_token']
-
-                pesquisa_tratada['Como você avalia sua satisfação geral com nosso pós-vendas ?'] = pesquisa['screen_0_Escolha_uma_das_opes_0'].split("_")[-1] #faça um aplit por "_" e capture a ultima posição
-                pesquisa_tratada['Como avalia o agendamento de serviços ?'] = pesquisa['screen_1_Escolha_uma_das_opes_0'].split("_")[-1]
-                pesquisa_tratada['Como você avalia a recepção de serviços ?'] = pesquisa['screen_2_Escolha_uma_das_opes_0'].split("_")[-1]
-                pesquisa_tratada['Como você avalia nossas instalações ?'] = pesquisa['screen_3_Escolha_uma_das_opes_0'].split("_")[-1]
-                pesquisa_tratada['Como você avalia o atendimento do nosso consultor de serviços ?'] = pesquisa['screen_4_Escolha_uma_das_opes_0'].split("_")[-1]
-                pesquisa_tratada['Como você avalia a qualidade do serviço realizado ?'] = pesquisa['screen_5_Escolha_uma_das_opes_0'].split("_")[-1]
-                pesquisa_tratada['Como você avalia o custo-benefício ?'] = pesquisa['screen_6_Escolha_uma_das_opes_0'].split("_")[-1]
-                pesquisa_tratada['Recomendaria a concessionaria a um amigo ou familiar ?'] = pesquisa['screen_7_Escolha_uma_das_opes_0'].split("_")[-1]
+        if numero == '551530336400':
+            with open(f"{formatted_date}_webhookwhatsapp.json", 'w') as f:
+                json.dump(payload, f, ensure_ascii=False, indent=2)
+            try:
+                pesquisa = payload['entry'][0]['changes'][0]['value']['messages'][0]['interactive']['nfm_reply']['response_json']
+                pesquisa = json.loads(pesquisa)
+                pesquisa_tratada = {}
+                flow_token = pesquisa['flow_token']
+                flow_token = str(flow_token).split('-')
+                cod_form = flow_token[0]
+                pesquisa_tratada['Nome do cliente'] = pesquisa['screen_0_Informe_seu_nome_0'].split("_")[-1] #faça um aplit por "_" e capture a ultima posição
+                pesquisa_tratada['Tipo do atendimento'] = pesquisa['screen_0_Sel_seu_atendimento_1'].split("_")[-1]
                 payload['entry'][0]['changes'][0]['value']['messages'][0]['text'] = {}
                 payload['entry'][0]['changes'][0]['value']['messages'][0]['type'] = 'text'
-                # # adiciona em uma mensagem só todas as respostas das perguntas
                 payload['entry'][0]['changes'][0]['value']['messages'][0]['text']['body'] = '\n'.join([f"{k}: {v}" for k, v in pesquisa_tratada.items()])
-                body_lines = ["Resposta sobre pesquisa de satisfação Pós Vendas"] + [
+                body_lines = ["PRIMEIRO CONTATO!"] + [
                     f"{k}: {v}" for k, v in pesquisa_tratada.items()
                 ]
                 payload['entry'][0]['changes'][0]['value']['messages'][0]['text']['body'] = '\n'.join(body_lines)
-                # payload['entry'][0]['changes'][0]['value']['messages'][0]['text']['body'] = 'Posvendas'
-                # with open('pesquisa.json','w') as f:
-                #     json.dump(payload, f, ensure_ascii=False, indent=2)
-            elif cod_form == 'SW':
-                pesquisa_tratada['evento'] = pesquisa['flow_token']
-                pesquisa_tratada['Instalações'] = pesquisa.get('screen_0_Nossas_instalaes_0', '').split("_")[-1]
-                pesquisa_tratada['Atendimento Vendedor'] = pesquisa.get('screen_0_Atendimento_Vendedor_1', '').split("_")[-1]
-                pesquisa_tratada['Entrega Veículo'] = pesquisa.get('screen_0_Entrega_do_Veculo_2', '').split("_")[-1]
-                pesquisa_tratada['Oferecido Teste Drive'] = pesquisa.get('screen_0_Foi_oferecido_teste_drive_3', '').split("_")[-1]
-                pesquisa_tratada['Realizou Teste Drive'] = pesquisa.get('screen_0_Realizou_o_teste_drive_4', '').split("_")[-1]
-                pesquisa_tratada['Exp. Teste Drive'] = pesquisa.get('screen_0_Exp_Teste_Drive_5', '').split("_")[-1]
-                pesquisa_tratada['Recomendaria'] = pesquisa.get('screen_0_Recomendaria_a_concessionria__6', '').split("_")[-1]
-                pesquisa_tratada['Gerente Participou'] = pesquisa.get('screen_0_O_gerente_participou_7', '').split("_")[-1]
                 
-                payload['entry'][0]['changes'][0]['value']['messages'][0]['text'] = {}
-                payload['entry'][0]['changes'][0]['value']['messages'][0]['type'] = 'text'
-                
-                body_lines = ["📋 Pesquisa Showroom"] + [
-                    f"{k}: {v}" for k, v in pesquisa_tratada.items() if v
-                ]
-                payload['entry'][0]['changes'][0]['value']['messages'][0]['text']['body'] = '\n'.join(body_lines)
-                # payload['entry'][0]['changes'][0]['value']['messages'][0]['text']['body'] = 'Posvendas'
-        except Exception as e:
-            # with open(f"{formatted_date}_falhou.json", 'w') as f:
-            #     json.dump({'error': str(e), 'payload': payload}, f, ensure_ascii=False, indent=2)
-            pass
+            except Exception as e:
+                pass
+            # grava payload em json
+            # with open(f'webhookwhatsapp{formatted_date}.json', 'w') as f:
+            #     json.dump(payload, f)
+            url = "https://chat.caiuas.com.br/webhooks/whatsapp/+551530336400"
+            headers = {
+            'Content-Type': 'application/json'
+            }
+            payload = json.dumps(payload)
+            
+            response = requests.request("POST", url, headers=headers, data=payload)
+        else:    
+            try:
+                # if pay
 
-        # with open(f'log/{formatted_date}.json', 'w') as f:
-        #     json.dump(payload, f)
-        url = "https://chat.caiuas.com.br/webhooks/whatsapp/+551533315555"
-        headers = {
-        'Content-Type': 'application/json'
-        }
-        # grava payload em json
-        # with open(f'webhookwhatsapp{formatted_date}.json', 'w') as f:
-        #     json.dump(payload, f)
-        payload = json.dumps(payload)
-        
-        response = requests.request("POST", url, headers=headers, data=payload)
-        print (str(response))
+                pesquisa = payload['entry'][0]['changes'][0]['value']['messages'][0]['interactive']['nfm_reply']['response_json']
+                pesquisa = json.loads(pesquisa)
+                pesquisa_tratada = {}
+                flow_token = pesquisa['flow_token']
+                # print(flow_token)
+                flow_token = str(flow_token).split('-')
+                
+                cod_form = flow_token[0]
+                cod_empresa = flow_token[1]
+                cod_evento = flow_token[2]
+                # with open(f"flow_token-pesquisa.json", 'w') as f:
+                #     json.dump(pesquisa, f, ensure_ascii=False, indent=2)
+                # is_posvendas = 'screen_0_Escolha_uma_das_opes_0' in pesquisa
+                # is_vendas = 'screen_0_Nossas_instalaes_0' in pesquisa
+                if cod_form == 'PV':
+
+                    pesquisa_tratada['evento'] = pesquisa['flow_token']
+
+                    pesquisa_tratada['Como você avalia sua satisfação geral com nosso pós-vendas ?'] = pesquisa['screen_0_Escolha_uma_das_opes_0'].split("_")[-1] #faça um aplit por "_" e capture a ultima posição
+                    pesquisa_tratada['Como avalia o agendamento de serviços ?'] = pesquisa['screen_1_Escolha_uma_das_opes_0'].split("_")[-1]
+                    pesquisa_tratada['Como você avalia a recepção de serviços ?'] = pesquisa['screen_2_Escolha_uma_das_opes_0'].split("_")[-1]
+                    pesquisa_tratada['Como você avalia nossas instalações ?'] = pesquisa['screen_3_Escolha_uma_das_opes_0'].split("_")[-1]
+                    pesquisa_tratada['Como você avalia o atendimento do nosso consultor de serviços ?'] = pesquisa['screen_4_Escolha_uma_das_opes_0'].split("_")[-1]
+                    pesquisa_tratada['Como você avalia a qualidade do serviço realizado ?'] = pesquisa['screen_5_Escolha_uma_das_opes_0'].split("_")[-1]
+                    pesquisa_tratada['Como você avalia o custo-benefício ?'] = pesquisa['screen_6_Escolha_uma_das_opes_0'].split("_")[-1]
+                    pesquisa_tratada['Recomendaria a concessionaria a um amigo ou familiar ?'] = pesquisa['screen_7_Escolha_uma_das_opes_0'].split("_")[-1]
+                    payload['entry'][0]['changes'][0]['value']['messages'][0]['text'] = {}
+                    payload['entry'][0]['changes'][0]['value']['messages'][0]['type'] = 'text'
+                    # # adiciona em uma mensagem só todas as respostas das perguntas
+                    payload['entry'][0]['changes'][0]['value']['messages'][0]['text']['body'] = '\n'.join([f"{k}: {v}" for k, v in pesquisa_tratada.items()])
+                    body_lines = ["Resposta sobre pesquisa de satisfação Pós Vendas"] + [
+                        f"{k}: {v}" for k, v in pesquisa_tratada.items()
+                    ]
+                    payload['entry'][0]['changes'][0]['value']['messages'][0]['text']['body'] = '\n'.join(body_lines)
+                    # payload['entry'][0]['changes'][0]['value']['messages'][0]['text']['body'] = 'Posvendas'
+                    # with open('pesquisa.json','w') as f:
+                    #     json.dump(payload, f, ensure_ascii=False, indent=2)
+                elif cod_form == 'SW':
+                    pesquisa_tratada['evento'] = pesquisa['flow_token']
+                    pesquisa_tratada['Instalações'] = pesquisa.get('screen_0_Nossas_instalaes_0', '').split("_")[-1]
+                    pesquisa_tratada['Atendimento Vendedor'] = pesquisa.get('screen_0_Atendimento_Vendedor_1', '').split("_")[-1]
+                    pesquisa_tratada['Entrega Veículo'] = pesquisa.get('screen_0_Entrega_do_Veculo_2', '').split("_")[-1]
+                    pesquisa_tratada['Oferecido Teste Drive'] = pesquisa.get('screen_0_Foi_oferecido_teste_drive_3', '').split("_")[-1]
+                    pesquisa_tratada['Realizou Teste Drive'] = pesquisa.get('screen_0_Realizou_o_teste_drive_4', '').split("_")[-1]
+                    pesquisa_tratada['Exp. Teste Drive'] = pesquisa.get('screen_0_Exp_Teste_Drive_5', '').split("_")[-1]
+                    pesquisa_tratada['Recomendaria'] = pesquisa.get('screen_0_Recomendaria_a_concessionria__6', '').split("_")[-1]
+                    pesquisa_tratada['Gerente Participou'] = pesquisa.get('screen_0_O_gerente_participou_7', '').split("_")[-1]
+                    
+                    payload['entry'][0]['changes'][0]['value']['messages'][0]['text'] = {}
+                    payload['entry'][0]['changes'][0]['value']['messages'][0]['type'] = 'text'
+                    
+                    body_lines = ["📋 Pesquisa Showroom"] + [
+                        f"{k}: {v}" for k, v in pesquisa_tratada.items() if v
+                    ]
+                    payload['entry'][0]['changes'][0]['value']['messages'][0]['text']['body'] = '\n'.join(body_lines)
+                    # payload['entry'][0]['changes'][0]['value']['messages'][0]['text']['body'] = 'Posvendas'
+            except Exception as e:
+                # with open(f"{formatted_date}_falhou.json", 'w') as f:
+                #     json.dump({'error': str(e), 'payload': payload}, f, ensure_ascii=False, indent=2)
+                pass
+
+            # with open(f'log/{formatted_date}.json', 'w') as f:
+            #     json.dump(payload, f)
+            url = "https://chat.caiuas.com.br/webhooks/whatsapp/+551533315555"
+            headers = {
+            'Content-Type': 'application/json'
+            }
+            # grava payload em json
+            # with open(f'webhookwhatsapp{formatted_date}.json', 'w') as f:
+            #     json.dump(payload, f)
+            payload = json.dumps(payload)
+            
+            response = requests.request("POST", url, headers=headers, data=payload)
+            print (str(response))
 
         return json.dumps({'status': 'success', 'message': 'Webhook processed successfully'}), 200
     except Exception as e:
