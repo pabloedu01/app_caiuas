@@ -2685,7 +2685,7 @@
   docReady(topCouponsChartInit);
   docReady(projectionVsActualChartInit);
   docReady(returningCustomerChartInit);
-  docReady(payingCustomerChartInit);
+  // docReady(payingCustomerChartInit); // Comentado - substituído por agendamentos DES
   docReady(totalOrdersChartInit);
   docReady(leafletInit);
 

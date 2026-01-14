@@ -11,7 +11,8 @@ function showToast(message, type) {
     toastEl.setAttribute('role', 'alert');
     toastEl.setAttribute('aria-live', 'assertive');
     toastEl.setAttribute('aria-atomic', 'true');
-    toastEl.setAttribute('data-bs-autohide', 'false');
+    toastEl.setAttribute('data-bs-autohide', 'true');
+    toastEl.setAttribute('data-bs-delay', '3000');
 
     // Definir cores e ícones baseados no tipo
     let toastClass, headerClass, iconClass, title;

@@ -84,260 +84,142 @@
             <div class="pb-6">
                 <h2 class="mb-4">{{ context.data.total_items if context.data else 0 }} Lançamentos</h2>
                 <div id="lealsTable">
-                    <div class="row g-3 justify-content-between mb-4">
-                        <div class="col-auto">
-                            <!-- <div class="d-md-flex justify-content-between">
-                                <div>
-                                    <button id="createLeadBtn" class="btn btn-primary me-4"><span
-                                            class="fas fa-plus me-2"></span>Create
-                                        Lead</button>
+                    <div id="tableExample3" data-list='{"valueNames":["conta","data","valor","classificacao","centro-custo","descricao","fornecedor","empresa"],"page":30,"pagination":true}'>
+                        <div class="row g-3 justify-content-between mb-4">
+                            <div class="col-auto">
+                                <div class="d-flex">
+                                    <!-- add button "consiliado" with success or pending -->
+                                    <button class="btn btn-success me-2" type="button" id="btnConciliado">Conciliado</button>
+                                    <button class="btn btn-warning me-2" type="button" id="btnPendente">Pendente</button>
+                                    <button class="btn btn-secondary me-2" type="button" id="btnTodos">Todos</button>
                                 </div>
-                            </div> -->
-                        </div>
-                        <div class="col-auto">
-                            <div class="d-flex">
-                                <div class="search-box me-2">
-                                    <form class="position-relative">
-                                        <input id="searchInput" class="form-control search-input search" type="search"
-                                            placeholder="Procure aqui" aria-label="Search" />
-                                        <span class="fas fa-search search-box-icon"></span>
-
-                                    </form>
-                                </div>
-                                <div class="flatpickr-input-container me-2">
-                                    <input class="form-control datetimepicker" id="timepicker2" type="text"
-                                        placeholder="d/m/y to d/m/y" name="daterange"
-                                        data-options='{"mode":"range","dateFormat":"d/m/y","disableMobile":true}'
-                                        value="{% if request.args.get('initial_date') and request.args.get('final_date') %}{% set initial_date = request.args.get('initial_date') %}{% set final_date = request.args.get('final_date') %}{% if '-' in initial_date and initial_date|length >= 8 %}{% set initial_parts = initial_date.split('-') %}{% set final_parts = final_date.split('-') %}{{ initial_parts[2] }}/{{ initial_parts[1] }}/{{ initial_parts[0][2:] }} to {{ final_parts[2] }}/{{ final_parts[1] }}/{{ final_parts[0][2:] }}{% endif %}{% endif %}" />
-                                </div>
-                                <!-- add button "consiliado" with success or pending -->
-                                <button class="btn btn-success me-2" type="button" id="btnConciliado">Conciliado</button>
-                                <button class="btn btn-warning me-2" type="button" id="btnPendente">Pendente</button>
-                                <button class="btn btn-secondary me-2" type="button" id="btnTodos">Todos</button>
-
-
-                                <button class="btn px-3 btn-phoenix-secondary" type="button" id="downloadBtn" title="Download Planilha">
-                                    <span class="fa-solid fa-download text-primary" data-fa-transform="down-3"></span>
-                                </button>
-                                <div class="modal fade" id="filterModal" tabindex="-1">
-                                    <div class="modal-dialog modal-dialog-centered">
-                                        <div class="modal-content border border-translucent">
-                                            <form id="addEventForm" autocomplete="off">
-                                                <div
-                                                    class="modal-header border-translucent p-4 justify-content-between">
-                                                    <h5 class="modal-title text-body-highlight fs-6 lh-sm">Filter</h5>
-                                                    <button class="btn p-1 text-danger" type="button"
-                                                        data-bs-dismiss="modal" aria-label="Close"><span
-                                                            class="fas fa-times fs-9"></span></button>
-                                                </div>
-                                                <div class="modal-body pt-4 pb-2 px-4">
-                                                    <div class="mb-3">
-                                                        <label for="organizerMultiple">Status</label>
-                                                        <select class="form-select" id="organizerMultiple" name="status"
-                                                            data-choices="data-choices" multiple="multiple"
-                                                            data-options='{"removeItemButton":true,"placeholder":true}'>
-                                                            <option value="">Select organizer...</option>
-                                                            <option value="P" {% if request.args.get('status') and 'P'
-                                                                in request.args.get('status').split(',') %}selected{%
-                                                                endif %}>Pendente</option>
-                                                            <option value="E" {% if request.args.get('status') and 'E'
-                                                                in request.args.get('status').split(',') %}selected{%
-                                                                endif %}>Encerrado</option>
-                                                            <option value="D" {% if request.args.get('status') and 'D'
-                                                                in request.args.get('status').split(',') %}selected{%
-                                                                endif %}>Descartado</option>
-                                                            <option value="CP" {% if request.args.get('status') and 'CP'
-                                                                in request.args.get('status').split(',') %}selected{%
-                                                                endif %}>Contato Perdido</option>
-                                                            <option value="V" {% if request.args.get('status') and 'V'
-                                                                in request.args.get('status').split(',') %}selected{%
-                                                                endif %}>Visita Agendada</option>
-                                                            <option value="R" {% if request.args.get('status') and 'R'
-                                                                in request.args.get('status').split(',') %}selected{%
-                                                                endif %}>Remarcou</option>
-                                                            <option value="A" {% if request.args.get('status') and 'A'
-                                                                in request.args.get('status').split(',') %}selected{%
-                                                                endif %}>Evento tem ações</option>
-
-                                                        </select>
-                                                    </div>
-                                                </div>
-                                                <div
-                                                    class="modal-footer d-flex justify-content-end align-items-center px-4 pb-4 border-0 pt-3">
-                                                    <button class="btn btn-sm btn-phoenix-primary px-4 fs-10 my-0"
-                                                        type="button" id="resetFilters">
-                                                        <span class="fas fa-arrows-rotate me-2 fs-10"></span>Limpar
-                                                        busca
-                                                    </button>
-                                                    <button class="btn btn-sm btn-primary px-9 fs-10 my-0"
-                                                        type="submit">Buscar</button>
-                                                </div>
-                                            </form>
-                                        </div>
+                            </div>
+                            <div class="col-auto">
+                                <div class="d-flex">
+                                    <div class="flatpickr-input-container me-2">
+                                        <input class="form-control datetimepicker" id="timepicker2" type="text"
+                                            placeholder="d/m/y to d/m/y" name="daterange"
+                                            data-options='{"mode":"range","dateFormat":"d/m/y","disableMobile":true}'
+                                            value="{% if request.args.get('initial_date') and request.args.get('final_date') %}{% set initial_date = request.args.get('initial_date') %}{% set final_date = request.args.get('final_date') %}{% if '-' in initial_date and initial_date|length >= 8 %}{% set initial_parts = initial_date.split('-') %}{% set final_parts = final_date.split('-') %}{{ initial_parts[2] }}/{{ initial_parts[1] }}/{{ initial_parts[0][2:] }} to {{ final_parts[2] }}/{{ final_parts[1] }}/{{ final_parts[0][2:] }}{% endif %}{% endif %}" />
                                     </div>
+                                    <button class="btn px-3 btn-phoenix-secondary" type="button" id="downloadBtn" title="Download Planilha">
+                                        <span class="fa-solid fa-download text-primary" data-fa-transform="down-3"></span>
+                                    </button>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                    <div class="table-responsive scrollbar table-sm ">
-                        <table class="table table-sm table-hover table-bordered">
-                            <thead>
-                                <tr>
-                                    <!-- <th class="white-space-nowrap fs-9 align-middle ps-0"
-                                        style="max-width:20px; width:18px;">
-                                        <div class="form-check mb-0 fs-8">
-                                            <input class="form-check-input" type="checkbox"
-                                                data-bulk-select='{"body":"leal-tables-body"}' />
-                                        </div>
-                                    </th> -->
-                                    <th scope="col">Conta</th>
-                                    <th scope="col">Data</th>
-                                    <th scope="col">Valor</th>
-                                    <th scope="col">Classificação</th>
-                                    <th scope="col">Centro de Custo</th>
-                                    <th scope="col">Descrição</th>
-                                    <th scope="col">Fornecedor</th>
-                                    <!-- <th class="sort text-end align-middle pe-0 ps-4" scope="col"></th> -->
-                                    <!-- <th scope="col">Conta</th> -->
-                                    <th scope="col">Empresa</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% if context.data.lancamentos %}
-                                {% for lancamento in context.data.lancamentos %}
-                                <tr scope="row" class="clickable-row{% if lancamento.consiliado == 'S' %} table-success{% endif %}" style="cursor: pointer;" title="Clique para ver detalhes"
-                                    data-cod-empresa="{{ lancamento.cod_empresa }}"
-                                    data-cod-empresa-real="{{ lancamento.cod_empresa_real if lancamento.cod_empresa_real else lancamento.cod_empresa }}"
-                                    data-nome-empresa="{{ lancamento.nome }}"
-                                    data-data="{{ lancamento.data }}"
-                                    data-valor="{{ lancamento.valor }}"
-                                    data-historico="{{ lancamento.historico }}"
-                                    data-nome-cliente="{{ lancamento.nome_cliente if lancamento.nome_cliente else '' }}"
-                                    data-num-lanc="{{ lancamento.num_lanc }}"
-                                    data-origem-lanc="{{ lancamento.origem_lancamento if lancamento.origem_lancamento else '' }}"
-                                    data-responsavel="{{ lancamento.responsavel if lancamento.responsavel else '' }}"
-                                    data-consiliado="{{ lancamento.consiliado }}"
-                                    data-cod-conta-corrente="{{ lancamento.cod_conta_corrente }}"
-                                    data-cod-classificacao="{{ lancamento.cod_classificacao if lancamento.cod_classificacao else '' }}"
-                                    data-classificacao="{{ lancamento.classificacao if lancamento.classificacao else '' }}"
-                                    data-cod-centro-custo="{{ lancamento.cod_centro_custo if lancamento.cod_centro_custo else '' }}"
-                                    data-centro-custo="{{ lancamento.centro_custo if lancamento.centro_custo else '' }}">
-                                    <td>{{ lancamento.cod_conta_corrente }}-{{ lancamento.nome_conta }}</td>
-                                    <td>
-                                        {% if lancamento.data %}
-                                        {% set data_formatada = lancamento.data %}
-                                        {% if '-' in data_formatada and 'T' in data_formatada %}
-                                        {# Formato ISO completo com hora (YYYY-MM-DDTHH:MM:SS) #}
-                                        {% set data_partes = data_formatada.split('T')[0].split('-') %}
-                                        {% if data_partes|length == 3 %}
-                                        {{ data_partes[2] }}/{{ data_partes[1] }}/{{ data_partes[0] }}
-                                        {% else %}
-                                        {{ lancamento.data }}
-                                        {% endif %}
-                                        {% elif '-' in data_formatada %}
-                                        {# Formato ISO apenas data (YYYY-MM-DD) #}
-                                        {% set data_partes = data_formatada.split('-') %}
-                                        {% if data_partes|length == 3 %}
-                                        {{ data_partes[2] }}/{{ data_partes[1] }}/{{ data_partes[0] }}
-                                        {% else %}
-                                        {{ lancamento.data }}
-                                        {% endif %}
-                                        {% else %}
-                                        {{ lancamento.data }}
-                                        {% endif %}
-                                        {% else %}
-                                        -
-                                        {% endif %}
-                                    </td>
-                                    <td>
-                                        {% if lancamento.valor %}
-                                            {% set valor_float = lancamento.valor|float %}
-                                            {% if valor_float < 0 %}
-                                                <span class="text-danger">R$ {{ "%.2f"|format(valor_float|abs)|replace('.', ',') }}</span>
+                        <div class="search-box mb-3 mx-auto">
+                            <form class="position-relative">
+                                <input class="form-control search-input search form-control-sm" type="search" placeholder="Buscar" aria-label="Search">
+                                <svg class="svg-inline--fa fa-magnifying-glass search-box-icon" aria-hidden="true" focusable="false" data-prefix="fas" data-icon="magnifying-glass" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" data-fa-i2svg=""><path fill="currentColor" d="M416 208c0 45.9-14.9 88.3-40 122.7L502.6 457.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L330.7 376c-34.4 25.2-76.8 40-122.7 40C93.1 416 0 322.9 0 208S93.1 0 208 0S416 93.1 416 208zM208 352a144 144 0 1 0 0-288 144 144 0 1 0 0 288z"></path></svg>
+                            </form>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-striped table-sm fs-9 mb-0">
+                                <thead>
+                                    <tr>
+                                        <th class="sort border-top border-translucent ps-3" data-sort="conta">Conta</th>
+                                        <th class="sort border-top" data-sort="data">Data</th>
+                                        <th class="sort border-top" data-sort="valor">Valor</th>
+                                        <th class="sort border-top" data-sort="classificacao">Classificação</th>
+                                        <th class="sort border-top" data-sort="centro-custo">Centro de Custo</th>
+                                        <th class="sort border-top" data-sort="descricao">Descrição</th>
+                                        <th class="sort border-top" data-sort="fornecedor">Fornecedor</th>
+                                        <th class="sort border-top" data-sort="empresa">Empresa</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="list">
+                                    {% if context.data.lancamentos %}
+                                    {% for lancamento in context.data.lancamentos %}
+                                    <tr class="clickable-row{% if lancamento.consiliado == 'S' %} table-success{% endif %}" style="cursor: pointer;" title="Clique para ver detalhes"
+                                        data-cod-empresa="{{ lancamento.cod_empresa }}"
+                                        data-cod-empresa-real="{{ lancamento.cod_empresa_real if lancamento.cod_empresa_real else lancamento.cod_empresa }}"
+                                        data-nome-empresa="{{ lancamento.nome }}"
+                                        data-data="{{ lancamento.data }}"
+                                        data-valor="{{ lancamento.valor }}"
+                                        data-historico="{{ lancamento.historico }}"
+                                        data-nome-cliente="{{ lancamento.nome_cliente if lancamento.nome_cliente else '' }}"
+                                        data-num-lanc="{{ lancamento.num_lanc }}"
+                                        data-origem-lanc="{{ lancamento.origem_lancamento if lancamento.origem_lancamento else '' }}"
+                                        data-responsavel="{{ lancamento.responsavel if lancamento.responsavel else '' }}"
+                                        data-consiliado="{{ lancamento.consiliado }}"
+                                        data-cod-conta-corrente="{{ lancamento.cod_conta_corrente }}"
+                                        data-cod-classificacao="{{ lancamento.cod_classificacao if lancamento.cod_classificacao else '' }}"
+                                        data-classificacao="{{ lancamento.classificacao if lancamento.classificacao else '' }}"
+                                        data-cod-centro-custo="{{ lancamento.cod_centro_custo if lancamento.cod_centro_custo else '' }}"
+                                        data-centro-custo="{{ lancamento.centro_custo if lancamento.centro_custo else '' }}">
+                                        <td class="align-middle ps-3 conta">{{ lancamento.cod_conta_corrente }}-{{ lancamento.nome_conta }}</td>
+                                        <td class="align-middle data">
+                                            {% if lancamento.data %}
+                                            {% set data_formatada = lancamento.data %}
+                                            {% if '-' in data_formatada and 'T' in data_formatada %}
+                                            {# Formato ISO completo com hora (YYYY-MM-DDTHH:MM:SS) #}
+                                            {% set data_partes = data_formatada.split('T')[0].split('-') %}
+                                            {% if data_partes|length == 3 %}
+                                            {{ data_partes[2] }}/{{ data_partes[1] }}/{{ data_partes[0] }}
                                             {% else %}
-                                                <span class="text-success">R$ {{ "%.2f"|format(valor_float)|replace('.', ',') }}</span>
+                                            {{ lancamento.data }}
                                             {% endif %}
-                                        {% else %}
-                                            R$ 0,00
-                                        {% endif %}
-                                    </td>                                    
-                                    <td>{{ lancamento.centro_custo if lancamento.centro_custo }}</td>
-                                    <td>{{ lancamento.classificacao if lancamento.classificacao }}</td>
-                                    <td>{{ lancamento.historico }}</td>
-                                    <td>{{ lancamento.nome_cliente if lancamento.nome_cliente }}</td>
-                                    <!-- <td>{{ lancamento.num_conta if lancamento.num_conta is not none }}</td> -->
-                                    <td>{{ lancamento.nome}}</td>
-                                    
-                                </tr>
-                                {% endfor %}
-                                {% endif %}
-                            </tbody>
-                        </table>
-                    </div>
-
-
-
-
-                    {% if context.data.current_page %}
-                    <div class="row align-items-center justify-content-end py-4 pe-0 fs-9">
-                        <div class="col-auto d-flex">
-                            <!-- <p class="mb-0 d-none d-sm-block me-3 fw-semibold text-body"
-                                data-list-info="data-list-info"></p><a class="fw-semibold" href="#!"
-                                data-list-view="*">View all<span class="fas fa-angle-right ms-1"
-                                    data-fa-transform="down-1"></span></a><a class="fw-semibold d-none" href="#!"
-                                data-list-view="less">View Less<span class="fas fa-angle-right ms-1"
-                                    data-fa-transform="down-1"></span></a> -->
+                                            {% elif '-' in data_formatada %}
+                                            {# Formato ISO apenas data (YYYY-MM-DD) #}
+                                            {% set data_partes = data_formatada.split('-') %}
+                                            {% if data_partes|length == 3 %}
+                                            {{ data_partes[2] }}/{{ data_partes[1] }}/{{ data_partes[0] }}
+                                            {% else %}
+                                            {{ lancamento.data }}
+                                            {% endif %}
+                                            {% else %}
+                                            {{ lancamento.data }}
+                                            {% endif %}
+                                            {% else %}
+                                            -
+                                            {% endif %}
+                                        </td>
+                                        <td class="align-middle valor">
+                                            {% if lancamento.valor %}
+                                                {% set valor_float = lancamento.valor|float %}
+                                                {% if valor_float < 0 %}
+                                                    <span class="text-danger">R$ {{ "%.2f"|format(valor_float|abs)|replace('.', ',') }}</span>
+                                                {% else %}
+                                                    <span class="text-success">R$ {{ "%.2f"|format(valor_float)|replace('.', ',') }}</span>
+                                                {% endif %}
+                                            {% else %}
+                                                R$ 0,00
+                                            {% endif %}
+                                        </td>
+                                        <td class="align-middle classificacao">{{ lancamento.classificacao if lancamento.classificacao else '-' }}</td>
+                                        <td class="align-middle centro-custo">{{ lancamento.centro_custo if lancamento.centro_custo else '-' }}</td>
+                                        <td class="align-middle descricao">{{ lancamento.historico if lancamento.historico else '-' }}</td>
+                                        <td class="align-middle fornecedor">{{ lancamento.nome_cliente if lancamento.nome_cliente else '-' }}</td>
+                                        <td class="align-middle empresa">{{ lancamento.nome if lancamento.nome else '-' }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                    {% else %}
+                                    <tr>
+                                        <td colspan="8" class="text-center py-4">
+                                            <i class="fas fa-inbox fa-2x mb-3 text-muted"></i><br>
+                                            <span class="text-muted">Nenhum lançamento encontrado</span>
+                                        </td>
+                                    </tr>
+                                    {% endif %}
+                                </tbody>
+                            </table>
                         </div>
-                        <div class="col-auto d-flex">
-
-
-                            {% if context.data.current_page > 1 %}
-                            <a href="?current_page={{ context.data.current_page - 1 }}{% for key, value in request.args.items() %}{% if key != 'current_page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}"
-                                class="page-link">
-                                <span class="fas fa-chevron-left"></span>
-                            </a>
-                            {% else %}
-                            <button class="page-link" disabled>
-                                <span class="fas fa-chevron-left"></span>
-                            </button>
-                            {% endif %}
-
-                            <ul class="mb-0 pagination">
-                                {% set start_page = [1, context.data.current_page - 2]|max %}
-                                {% set end_page = [context.data.total_pages, context.data.current_page + 2]|min %}
-
-                                {% if start_page > 1 %}
-                                <li class="page-item">
-                                    <a class="page-link"
-                                        href="?current_page=1{% for key, value in request.args.items() %}{% if key != 'current_page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">1</a>
-                                </li>
-                                {% if start_page > 2 %}
-                                <li class="page-item disabled"><span class="page-link">...</span></li>
-                                {% endif %}
-                                {% endif %}
-
-                                {% for page_num in range(start_page, end_page + 1) %}
-                                <li class="page-item {% if page_num == context.data.current_page %}active{% endif %}">
-                                    <a class="page-link"
-                                        href="?current_page={{ page_num }}{% for key, value in request.args.items() %}{% if key != 'current_page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">{{
-                                        page_num }}</a>
-                                </li>
-                                {% endfor %}
-
-                                {% if end_page < context.data.total_pages %} {% if end_page < context.data.total_pages -
-                                    1 %} <li class="page-item disabled"><span class="page-link">...</span></li>
-                                    {% endif %}
-                                    <li class="page-item">
-                                        <a class="page-link"
-                                            href="?current_page={{ context.data.total_pages }}{% for key, value in request.args.items() %}{% if key != 'current_page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">{{
-                                            context.data.total_pages }}</a>
-                                    </li>
-                                    {% endif %}
-                            </ul>
-
+                        <div class="d-flex justify-content-between mt-3">
+                            <span class="d-none d-sm-inline-block" data-list-info="data-list-info"></span>
+                            <div class="d-flex">
+                                <button class="page-link" data-list-pagination="prev">
+                                    <svg class="svg-inline--fa fa-chevron-left" aria-hidden="true" focusable="false" data-prefix="fas" data-icon="chevron-left" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512" data-fa-i2svg=""><path fill="currentColor" d="M9.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l192 192c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L77.3 256 246.6 86.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-192 192z"></path></svg>
+                                </button>
+                                <ul class="mb-0 pagination"></ul>
+                                <button class="page-link pe-0" data-list-pagination="next">
+                                    <svg class="svg-inline--fa fa-chevron-right" aria-hidden="true" focusable="false" data-prefix="fas" data-icon="chevron-right" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512" data-fa-i2svg=""><path fill="currentColor" d="M310.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-192 192c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L242.7 256 73.4 86.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l192 192z"></path></svg>
+                                </button>
+                            </div>
                         </div>
                     </div>
-                    {% endif %}
+
+                    <!-- Remover paginação antiga do servidor -->
 
 
 
@@ -696,6 +578,8 @@
                         </div>
                         <div class="col-md-6 mb-3">
                             <label for="modalSelectCentroCusto" class="form-label fw-bold">Centro de Custo:</label>
+                            <!-- imrime o context todo -->
+                             
                             <select class="form-select" id="modalSelectCentroCusto">
                                 <option value="">Selecione um centro de custo...</option>
                                 {% if context.data.centros_custo %}
@@ -723,7 +607,7 @@
                 </div>
             </div>
         </div>
-    }</div>
+    </div>
 
     <!-- Modal de Confirmação para Remover Classificação -->
     <div class="modal fade" id="confirmRemoveClassificacaoModal" tabindex="-1" aria-hidden="true">
@@ -886,11 +770,7 @@
             console.log('=== DOM CONTENT LOADED ===');
             console.log('Console funcionando corretamente!');
             
-            const filterForm = document.getElementById('addEventForm');
-            const resetButton = document.getElementById('resetFilters');
             const dateInput = document.getElementById('timepicker2');
-            const searchInput = document.getElementById('searchInput');
-            const createLeadBtn = document.getElementById('createLeadBtn');
             let token = "{{ context.token }}";
 
             console.log('Token disponível:', token ? 'SIM (' + token.substring(0, 20) + '...)' : 'NÃO');
@@ -911,6 +791,7 @@
             document.addEventListener('click', function (e) {
                 // Verificar se o clique foi em uma linha da tabela
                 const row = e.target.closest('tr.clickable-row');
+                
                 if (row) {
                     // Capturar dados da linha usando atributos data
                     const dadosLancamento = {
@@ -1174,6 +1055,11 @@
                         "data": dataFormatada,
                         "lanc": dadosLancamentoAtual.numLanc
                     };
+
+                    // Adicionar nome do cliente se preenchido
+                    if (nomeCliente) {
+                        dadosParaEnvio.nome_cliente = nomeCliente;
+                    }
 
                     // Adicionar classificação se selecionada
                     if (codClassificacao) {
@@ -1649,7 +1535,7 @@
                     const urlParams = new URLSearchParams(window.location.search);
                     
                     // Construir URL da API com gera_planilha=S
-                    const baseUrl = "https://backend.caiuas.com.br/api/financeiro/lcontas";
+                    const baseUrl = "https://backend.caiuas.com.br/api/financeiro/download_lcontas";
                     const params = [];
                     
                     // Adicionar parâmetros existentes
@@ -1738,12 +1624,6 @@
                 btnTodos.classList.add('active');
             }
 
-            // Preencher o campo de busca com o valor da URL
-            const searchQuery = urlParams.get('search');
-            if (searchQuery) {
-                searchInput.value = searchQuery;
-            }
-
             // Initialize flatpickr with change event
             const fp = flatpickr(dateInput, {
                 mode: "range",
@@ -1751,14 +1631,24 @@
                 disableMobile: true,
                 onChange: function (selectedDates, dateStr, instance) {
                     if (selectedDates.length === 2) {
-                        const startDate = flatpickr.formatDate(selectedDates[0], "Y-m-d");
-                        const endDate = flatpickr.formatDate(selectedDates[1], "Y-m-d");
-                        const urlParams = new URLSearchParams(window.location.search);
-                        urlParams.set('initial_date', startDate);
-                        urlParams.set('final_date', endDate);
-                        urlParams.set('current_page', '1');
-                        const newUrl = window.location.pathname + '?' + urlParams.toString();
-                        window.location.href = newUrl;
+                        // Mostrar loading
+                        const loadingOverlay = document.createElement('div');
+                        loadingOverlay.id = 'dateLoadingOverlay';
+                        loadingOverlay.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9999; display: flex; align-items: center; justify-content: center;';
+                        loadingOverlay.innerHTML = '<div style="background: white; padding: 30px; border-radius: 10px; text-align: center;"><div class="spinner-border text-primary mb-3" role="status"></div><div class="fw-semibold">Carregando lançamentos...</div></div>';
+                        document.body.appendChild(loadingOverlay);
+                        
+                        // Pequeno delay para garantir que o loading apareça
+                        setTimeout(() => {
+                            const startDate = flatpickr.formatDate(selectedDates[0], "Y-m-d");
+                            const endDate = flatpickr.formatDate(selectedDates[1], "Y-m-d");
+                            const urlParams = new URLSearchParams(window.location.search);
+                            urlParams.set('initial_date', startDate);
+                            urlParams.set('final_date', endDate);
+                            urlParams.set('current_page', '1');
+                            const newUrl = window.location.pathname + '?' + urlParams.toString();
+                            window.location.href = newUrl;
+                        }, 100);
                     }
                 },
                 onReady: function (selectedDates, dateStr, instance) {
@@ -1784,63 +1674,6 @@
                     }
                 }
             });
-
-            // Handle form submission (Done button)
-            filterForm.addEventListener('submit', function (e) {
-                e.preventDefault();
-                const urlParams = new URLSearchParams(window.location.search);
-                const statusSelect = document.getElementById('organizerMultiple');
-                const selectedOptions = Array.from(statusSelect.selectedOptions);
-                const selectedValues = selectedOptions.map(option => option.value).filter(value => value !== '');
-
-                if (selectedValues.length > 0) {
-                    urlParams.set('status', selectedValues.join(','));
-                } else {
-                    urlParams.delete('status');
-                }
-
-                urlParams.set('current_page', '1');
-                const newUrl = window.location.pathname + '?' + urlParams.toString();
-                window.location.href = newUrl;
-            });
-
-            // Handle reset button
-            resetButton.addEventListener('click', function (e) {
-                e.preventDefault();
-                const urlParams = new URLSearchParams(window.location.search);
-                urlParams.delete('status');
-                urlParams.delete('initial_date');
-                urlParams.delete('final_date');
-                urlParams.delete('search');
-                urlParams.set('current_page', '1');
-                fp.clear();
-                searchInput.value = '';
-                const newUrl = window.location.pathname + '?' + urlParams.toString();
-                window.location.href = newUrl;
-            });
-
-            // Handle search input
-            searchInput.addEventListener('keypress', function (e) {
-                if (e.key === 'Enter') {
-                    e.preventDefault();
-                    performSearch();
-                }
-            });
-
-            function performSearch() {
-                const query = searchInput.value.trim();
-                const urlParams = new URLSearchParams(window.location.search);
-
-                if (query) {
-                    urlParams.set('search', query);
-                } else {
-                    urlParams.delete('search');
-                }
-
-                urlParams.set('current_page', '1');
-                const newUrl = window.location.pathname + '?' + urlParams.toString();
-                window.location.href = newUrl;
-            }
 
             // EVENT DELEGATION para botões de remover
             document.addEventListener('click', function (e) {

@@ -276,23 +276,30 @@
                   <div class="card-body d-flex flex-column">
                     <div class="d-flex justify-content-between">
                       <div>
-                        <h5 class="mb-2">Paying vs non paying</h5>
-                        <h6 class="text-body-tertiary">Last 7 days</h6>
+                        <h5 class="mb-2">Agendamentos enviados para o DES</h5>
+                        <h6 class="text-body-tertiary">Todo o tempo</h6>
                       </div>
                     </div>
                     <div class="d-flex justify-content-center pt-3 flex-1">
-                      <div class="echarts-paying-customer-chart" style="height:100%;width:100%;"></div>
+                      <div class="echarts-agendamentos-des-chart" style="height:100%;width:100%;"></div>
                     </div>
-                    <div class="mt-3">
+                    <div class="mt-3" id="agendamentos-des-stats">
                       <div class="d-flex align-items-center mb-2">
-                        <div class="bullet-item bg-primary me-2"></div>
-                        <h6 class="text-body fw-semibold flex-1 mb-0">Paying customer</h6>
-                        <h6 class="text-body fw-semibold mb-0">30%</h6>
+                        <div class="bullet-item bg-success me-2"></div>
+                        <h6 class="text-body fw-semibold flex-1 mb-0">Enviados</h6>
+                        <h6 class="text-body fw-semibold mb-0" id="enviados-percent">-</h6>
                       </div>
                       <div class="d-flex align-items-center">
-                        <div class="bullet-item bg-primary-subtle me-2"></div>
-                        <h6 class="text-body fw-semibold flex-1 mb-0">Non-paying customer</h6>
-                        <h6 class="text-body fw-semibold mb-0">70%</h6>
+                        <div class="bullet-item bg-warning me-2"></div>
+                        <h6 class="text-body fw-semibold flex-1 mb-0">Não enviados</h6>
+                        <h6 class="text-body fw-semibold mb-0" id="nao-enviados-percent">-</h6>
+                      </div>
+                      <div class="d-flex align-items-center mt-3 pt-2 border-top border-translucent">
+                        <div class="me-2">
+                          <i class="fas fa-calendar-check text-success"></i>
+                        </div>
+                        <h6 class="text-body fw-semibold flex-1 mb-0">Total de agendamentos</h6>
+                        <h6 class="text-body fw-semibold mb-0" id="total-agendamentos">-</h6>
                       </div>
                     </div>
                   </div>
@@ -1590,6 +1597,134 @@
       })();
       win.app = app;
     })(window, document);
+    
+    // ===============================================
+    // Componente Agendamentos DES
+    // ===============================================
+    (function() {
+      // Função para inicializar o gráfico de agendamentos DES
+      const initAgendamentosDesChart = (enviadosPercent, naoEnviadosPercent) => {
+        const { getColor } = window.phoenix.utils;
+        const chartEl = document.querySelector('.echarts-agendamentos-des-chart');
+        
+        if (chartEl && window.echarts) {
+          const chart = window.echarts.init(chartEl);
+          
+          const option = {
+            tooltip: {
+              trigger: 'item',
+              formatter: '{a} <br/>{b}: {c} ({d}%)'
+            },
+            series: [
+              {
+                name: 'Agendamentos',
+                type: 'pie',
+                radius: ['40%', '70%'],
+                center: ['50%', '50%'],
+                avoidLabelOverlap: false,
+                label: {
+                  show: false,
+                  position: 'center'
+                },
+                emphasis: {
+                  label: {
+                    show: true,
+                    fontSize: '18',
+                    fontWeight: 'bold'
+                  }
+                },
+                labelLine: {
+                  show: false
+                },
+                data: [
+                  {
+                    value: enviadosPercent,
+                    name: 'Enviados',
+                    itemStyle: { color: getColor('success') }
+                  },
+                  {
+                    value: naoEnviadosPercent,
+                    name: 'Não enviados',
+                    itemStyle: { color: getColor('warning') }
+                  }
+                ]
+              }
+            ]
+          };
+          
+          chart.setOption(option);
+          
+          // Redimensionar gráfico quando a janela mudar de tamanho
+          window.addEventListener('resize', function() {
+            chart.resize();
+          });
+        }
+      };
+
+      // Função para carregar dados da API
+      const carregarAgendamentosDes = () => {
+        const requestOptions = {
+          method: "GET",
+          redirect: "follow"
+        };
+
+        fetch("https://backend.caiuas.com.br/api/dashboard/agendamentos_des", requestOptions)
+          .then(response => {
+            if (!response.ok) {
+              throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+          })
+          .then(data => {
+            console.log('Dados de agendamentos DES:', data);
+            
+            // Calcular percentuais
+            const totalAgendamentos = data.total_agendamentos || 0;
+            const agendamentosEnviados = data.agendamentos_enviados || 0;
+            const agendamentosNaoEnviados = data.agendamentos_nao_enviados || 0;
+            
+            let enviadosPercent = 0;
+            let naoEnviadosPercent = 0;
+            
+            if (totalAgendamentos > 0) {
+              enviadosPercent = Math.round((agendamentosEnviados / totalAgendamentos) * 100);
+              naoEnviadosPercent = Math.round((agendamentosNaoEnviados / totalAgendamentos) * 100);
+            }
+            
+            // Atualizar elementos da interface
+            const enviadosElement = document.getElementById('enviados-percent');
+            const naoEnviadosElement = document.getElementById('nao-enviados-percent');
+            const totalElement = document.getElementById('total-agendamentos');
+            
+            if (enviadosElement) enviadosElement.textContent = `${agendamentosEnviados.toLocaleString('pt-BR')} (${enviadosPercent}%)`;
+            if (naoEnviadosElement) naoEnviadosElement.textContent = `${agendamentosNaoEnviados.toLocaleString('pt-BR')} (${naoEnviadosPercent}%)`;
+            if (totalElement) totalElement.textContent = totalAgendamentos.toLocaleString('pt-BR');
+            
+            // Inicializar o gráfico com os dados
+            initAgendamentosDesChart(enviadosPercent, naoEnviadosPercent);
+          })
+          .catch(error => {
+            console.error('Erro ao carregar dados de agendamentos DES:', error);
+            
+            // Mostrar valores padrão em caso de erro
+            const enviadosElement = document.getElementById('enviados-percent');
+            const naoEnviadosElement = document.getElementById('nao-enviados-percent');
+            const totalElement = document.getElementById('total-agendamentos');
+            
+            if (enviadosElement) enviadosElement.textContent = 'Erro ao carregar';
+            if (naoEnviadosElement) naoEnviadosElement.textContent = 'Erro ao carregar';
+            if (totalElement) totalElement.textContent = 'Erro ao carregar';
+            
+            // Exibir toast de erro se a função existir
+            if (typeof showToast === 'function') {
+              showToast('Erro ao carregar dados de agendamentos DES', 'bg-danger text-white');
+            }
+          });
+      };
+
+      // Carregar dados quando a página estiver pronta
+      document.addEventListener('DOMContentLoaded', carregarAgendamentosDes);
+    })();
   </script>
 </body>
 
