@@ -28,6 +28,9 @@ def list_lcontas():
         context['title'] = "Lançamentos de Contas"
         
         token = session.get('token')
+        headers = {
+            "Authorization": f"Bearer {token}"
+        }
 
         # Construir URL de forma mais limpa
         base_url = "https://backend.caiuas.com.br/api/financeiro/lcontas"
@@ -49,12 +52,34 @@ def list_lcontas():
         url = base_url + ("?" + "&".join(params) if params else "")
         
         payload = {}
-        headers = {
-            "Authorization": f"Bearer {token}"
-        }
         response = requests.request("GET", url, headers=headers, data=payload)
         
         data = response.json()
+        
+        # Buscar dados auxiliares para os selects do modal
+        try:
+            # Buscar empresas
+            empresas_response = requests.get("https://backend.caiuas.com.br/api/empresas", headers=headers)
+            if empresas_response.status_code == 200:
+                data['empresas'] = empresas_response.json().get('data', [])
+            
+            # Buscar centros de custo
+            centros_response = requests.get("https://backend.caiuas.com.br/api/centros_custo", headers=headers)
+            if centros_response.status_code == 200:
+                data['centros_custo'] = centros_response.json().get('data', [])
+            
+            # Buscar classificações
+            classificacoes_response = requests.get("https://backend.caiuas.com.br/api/classificacoes", headers=headers)
+            if classificacoes_response.status_code == 200:
+                data['classificacoes'] = classificacoes_response.json().get('data', [])
+            
+        except Exception as e:
+            print(f"Erro ao buscar dados auxiliares: {e}")
+            # Se não conseguir buscar, inicializa arrays vazios
+            data['empresas'] = []
+            data['centros_custo'] = []
+            data['classificacoes'] = []
+        
         context['token'] = token
         context['status_response'] = response.status_code
         context['data'] = data
