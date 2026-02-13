@@ -94,10 +94,10 @@
               </div>
               <div class="d-flex mb-4 flex-shrink-0">
                 <div class="search-box me-2 flex-grow-1" style="min-width: 0;">
-                  <form class="position-relative">
+                  <form class="position-relative" id="searchForm" onsubmit="return submitSearch(event)">
                     <input class="form-control search-input search" type="search" placeholder="Procure por aqui"
-                      aria-label="Search" />
-                    <span class="fas fa-search search-box-icon"></span>
+                      aria-label="Search" id="searchInputProcessos" value="{{ request.args.get('search', '') }}" />
+                    <span class="fas fa-search search-box-icon" style="cursor: pointer;" onclick="submitSearch()"></span>
                   </form>
                 </div>
                 <button class="btn px-3 btn-phoenix-secondary flex-shrink-0" type="button" data-bs-toggle="modal"
@@ -234,7 +234,7 @@
                       <div class="dropdown">
                         <button class="btn btn-phoenix-secondary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" data-bs-boundary="viewport"><span class="fas fa-ellipsis-h"></span></button>
                         <div class="dropdown-menu dropdown-menu-end py-2" style="z-index: 1050;">
-                          <a class="dropdown-item" href="#!">Ver detalhes</a>
+                          <a class="dropdown-item" href="/veiculos/processos/{{ processo.id_processo }}">Ver detalhes</a>
                           <div class="dropdown-divider"></div>
                           <a class="dropdown-item text-danger" href="#!" onclick="desativarProcesso({{ processo.id_processo }})">Excluir</a>
                         </div>
@@ -539,55 +539,51 @@
       }
 
       const filtros = {
-        modelo: Array.from(document.getElementById('filtroModelo').selectedOptions).map(o => o.value).filter(v => v),
-        ano: Array.from(document.getElementById('filtroAno').selectedOptions).map(o => o.value).filter(v => v),
-        cor: Array.from(document.getElementById('filtroCor').selectedOptions).map(o => o.value).filter(v => v),
-        tipo: Array.from(document.getElementById('filtroTipo').selectedOptions).map(o => o.value).filter(v => v),
-        vendedor: Array.from(document.getElementById('filtroVendedor').selectedOptions).map(o => o.value).filter(v => v),
-        patio: Array.from(document.getElementById('filtroPatio').selectedOptions).map(o => o.value).filter(v => v)
+        tipo: Array.from(document.getElementById('filtroTipo')?.selectedOptions || []).map(o => o.value).filter(v => v),
+        responsavel: Array.from(document.getElementById('filtroResponsavel')?.selectedOptions || []).map(o => o.value).filter(v => v),
+        status: Array.from(document.getElementById('filtroStatus')?.selectedOptions || []).map(o => o.value).filter(v => v)
       };
 
-      console.log('Filtros selecionados:', filtros);
+      const hasFilters = Object.values(filtros).some(f => f.length > 0);
 
-      // Aplicar filtros no List.js
-      window.estoqueList.filter(function (item) {
-        const values = item.values();
+      if (!hasFilters) {
+        window.estoqueList.filter();
+      } else {
+        window.estoqueList.filter(function (item) {
+          const values = item.values();
 
-        // Função helper para normalizar texto e extrair conteúdo real da célula
-        const normalize = (text) => {
-          if (!text) return '';
-          // Remove tags HTML e espaços extras
-          return text.toString().replace(/<[^>]*>/g, '').trim().toLowerCase();
-        };
+          const normalize = (text) => {
+            if (!text) return '';
+            return text.toString().replace(/<[^>]*>/g, '').trim().toLowerCase();
+          };
 
-        // Função para extrair texto do badge (para tipo novo/usado)
-        const extractBadgeText = (htmlContent) => {
-          if (!htmlContent) return '';
-          const match = htmlContent.match(/>([^<]+)</);
-          return match ? match[1].trim().toLowerCase() : htmlContent.toLowerCase();
-        };
+          const extractBadgeText = (htmlContent) => {
+            if (!htmlContent) return '';
+            const match = htmlContent.match(/>([^<]+)</);
+            return match ? match[1].trim().toLowerCase() : htmlContent.toLowerCase();
+          };
 
-        // Verificar cada filtro
-        if (filtros.tipo.length > 0) {
-          const itemTipo = extractBadgeText(values.tipo_descricao);
-          const hasMatch = filtros.tipo.some(filtro => itemTipo.includes(normalize(filtro)));
-          if (!hasMatch) return false;
-        }
+          if (filtros.tipo.length > 0) {
+            const itemTipo = extractBadgeText(values.tipo_descricao);
+            const hasMatch = filtros.tipo.some(filtro => itemTipo.includes(normalize(filtro)));
+            if (!hasMatch) return false;
+          }
 
-        if (filtros.responsavel.length > 0) {
-          const itemResponsavel = normalize(values.responsavel);
-          const hasMatch = filtros.responsavel.some(filtro => itemResponsavel.includes(normalize(filtro)));
-          if (!hasMatch) return false;
-        }
+          if (filtros.responsavel.length > 0) {
+            const itemResponsavel = normalize(values.responsavel);
+            const hasMatch = filtros.responsavel.some(filtro => itemResponsavel.includes(normalize(filtro)));
+            if (!hasMatch) return false;
+          }
 
-        if (filtros.status.length > 0) {
-          const itemStatus = extractBadgeText(values.status);
-          const hasMatch = filtros.status.some(filtro => itemStatus.includes(normalize(filtro)));
-          if (!hasMatch) return false;
-        }
+          if (filtros.status.length > 0) {
+            const itemStatus = extractBadgeText(values.status);
+            const hasMatch = filtros.status.some(filtro => itemStatus.includes(normalize(filtro)));
+            if (!hasMatch) return false;
+          }
 
-        return true;
-      });
+          return true;
+        });
+      }
 
       // Fechar modal
       const modal = bootstrap.Modal.getInstance(document.getElementById('reportsFilterModal'));
@@ -600,158 +596,46 @@
 
       // Mostrar toast de confirmação
       if (itemsEncontrados === 0) {
-        showToast('Nenhum veículo encontrado com os filtros selecionados', 'warning');
+        showToast('Nenhum processo encontrado com os filtros selecionados', 'warning');
       } else {
-        showToast(`Filtro aplicado: ${itemsEncontrados} veículo${itemsEncontrados > 1 ? 's' : ''} encontrado${itemsEncontrados > 1 ? 's' : ''}`, 'success');
+        showToast(`Filtro aplicado: ${itemsEncontrados} processo${itemsEncontrados > 1 ? 's' : ''} encontrado${itemsEncontrados > 1 ? 's' : ''}`, 'success');
       }
     }
 
     // Função para limpar filtros
     function resetFilters() {
-      if (!window.estoqueList) {
-        console.error('List.js não foi inicializado');
-        return;
-      }
-
       // Limpar todos os selects
       const selects = ['filtroTipo', 'filtroResponsavel', 'filtroStatus'];
       selects.forEach(selectId => {
         const select = document.getElementById(selectId);
         if (select) {
-          // Limpar seleções múltiplas
           Array.from(select.options).forEach(option => option.selected = false);
-          // Selecionar apenas a primeira opção (Todos)
           if (select.options.length > 0) {
             select.options[0].selected = true;
           }
         }
       });
 
-      // Limpar campo de busca também
-      const searchInput = document.querySelector('.search-input');
-      if (searchInput) {
-        searchInput.value = '';
-      }
-
-      // Remover filtros do List.js
-      window.estoqueList.filter();
-      window.estoqueList.search();
-
-      console.log('Filtros limpos');
-      console.log('Total de itens:', window.estoqueList.items.length);
-
-      showToast('Filtros removidos com sucesso', 'info');
-    }
-
-    // Função para aplicar filtro combinado (busca + filtros)
-    function applyFiltersCombined() {
-      if (!window.estoqueList) {
-        return;
-      }
-
-      const searchTerm = document.querySelector('.search-input')?.value?.toLowerCase() || '';
-
-      const filtros = {
-        tipo: Array.from(document.getElementById('filtroTipo')?.selectedOptions || []).map(o => o.value).filter(v => v),
-        responsavel: Array.from(document.getElementById('filtroResponsavel')?.selectedOptions || []).map(o => o.value).filter(v => v),
-        status: Array.from(document.getElementById('filtroStatus')?.selectedOptions || []).map(o => o.value).filter(v => v)
-      };
-
-      // Se não há filtros nem busca, mostrar todos
-      const hasFilters = Object.values(filtros).some(f => f.length > 0);
-      const hasSearch = searchTerm.length > 0;
-
-      if (!hasFilters && !hasSearch) {
+      // Limpar filtros do List.js
+      if (window.estoqueList) {
         window.estoqueList.filter();
-        return;
       }
 
-      // Aplicar filtros combinados
-      window.estoqueList.filter(function (item) {
-        const values = item.values();
-
-        // Função helper para normalizar texto
-        const normalize = (text) => {
-          if (!text) return '';
-          return text.toString().replace(/<[^>]*>/g, '').trim().toLowerCase();
-        };
-
-        const extractBadgeText = (htmlContent) => {
-          if (!htmlContent) return '';
-          const match = htmlContent.match(/>([^<]+)</);
-          return match ? match[1].trim().toLowerCase() : htmlContent.toLowerCase();
-        };
-
-        // Verificar busca global primeiro
-        if (hasSearch) {
-          const clienteNome = normalize(values.cliente_nome);
-          const idProcesso = normalize(values.id_processo);
-          const searchMatch = clienteNome.includes(searchTerm) || idProcesso.includes(searchTerm);
-          if (!searchMatch) return false;
-        }
-
-        // Verificar filtros específicos
-        if (filtros.tipo.length > 0) {
-          const itemTipo = extractBadgeText(values.tipo_descricao);
-          const hasMatch = filtros.tipo.some(filtro => itemTipo.includes(normalize(filtro)));
-          if (!hasMatch) return false;
-        }
-
-        if (filtros.responsavel.length > 0) {
-          const itemResponsavel = normalize(values.responsavel);
-          const hasMatch = filtros.responsavel.some(filtro => itemResponsavel.includes(normalize(filtro)));
-          if (!hasMatch) return false;
-        }
-
-        if (filtros.status.length > 0) {
-          const itemStatus = extractBadgeText(values.status);
-          const hasMatch = filtros.status.some(filtro => itemStatus.includes(normalize(filtro)));
-          if (!hasMatch) return false;
-        }
-
-        return true;
-      });
+      // Limpar busca e recarregar página sem parâmetro search
+      window.location.href = '/veiculos/processos';
     }
 
-    // Modificar a função applyFilters para usar a versão combinada
-    function applyFilters() {
-      if (!window.estoqueList) {
-        console.error('List.js não foi inicializado');
-        showToast('Erro: Sistema de filtros não inicializado', 'error');
-        return;
-      }
-
-      applyFiltersCombined();
-
-      // Fechar modal
-      const modal = bootstrap.Modal.getInstance(document.getElementById('reportsFilterModal'));
-      if (modal) {
-        modal.hide();
-      }
-
-      const itemsEncontrados = window.estoqueList.visibleItems.length;
-      console.log('Filtros aplicados. Itens encontrados:', itemsEncontrados);
-
-      // Mostrar toast de confirmação
-      if (itemsEncontrados === 0) {
-        showToast('Nenhum veículo encontrado com os filtros selecionados', 'warning');
+    // Função para submeter a busca
+    function submitSearch(event) {
+      if (event) event.preventDefault();
+      const searchValue = document.getElementById('searchInputProcessos').value.trim();
+      if (searchValue) {
+        window.location.href = `/veiculos/processos?search=${encodeURIComponent(searchValue)}`;
       } else {
-        showToast(`Filtro aplicado: ${itemsEncontrados} veículo${itemsEncontrados > 1 ? 's' : ''} encontrado${itemsEncontrados > 1 ? 's' : ''}`, 'success');
+        window.location.href = '/veiculos/processos';
       }
+      return false;
     }
-
-    // Listener para o campo de busca - integrar com filtros
-    document.addEventListener('DOMContentLoaded', function () {
-      setTimeout(() => {
-        const searchInput = document.querySelector('.search-input');
-        if (searchInput) {
-          searchInput.addEventListener('input', function () {
-            // Aplicar filtros combinados quando a busca muda
-            applyFiltersCombined();
-          });
-        }
-      }, 1000);
-    });
 
     // Função para mostrar toast
     function showToast(message, type = 'primary') {
