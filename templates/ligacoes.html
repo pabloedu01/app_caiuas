@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="pt-BR" dir="ltr" data-navigation-type="default" data-navbar-horizontal-shape="default">
+
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+    <!-- ===============================================-->
+    <!--    Document Title-->
+    <!-- ===============================================-->
+    <title>Honda Caiuás - Agendamento</title>
+
+
+    <!-- ===============================================-->
+    <!--    Favicons-->
+    <!-- ===============================================-->
+    <link rel="apple-touch-icon" sizes="180x180" href="static/assets/img/favicons/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="static/assets/img/favicons/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="static/assets/img/favicons/favicon-16x16.png">
+    <link rel="shortcut icon" type="image/x-icon" href="static/assets/img/favicons/favicon.ico">
+    <link rel="manifest" href="static/assets/img/favicons/manifest.json">
+    <meta name="msapplication-TileImage" content="static/assets/img/favicons/mstile-150x150.png">
+    <meta name="theme-color" content="#ffffff">
+    <script src="static/vendors/simplebar/simplebar.min.js"></script>
+    <script src="static/assets/js/config.js"></script>
+
+
+    <!-- ===============================================-->
+    <!--    Stylesheets-->
+    <!-- ===============================================-->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@300;400;600;700;800;900&amp;display=swap" rel="stylesheet">
+    <link href="static/vendors/simplebar/simplebar.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://unicons.iconscout.com/release/v4.0.8/css/line.css">
+    <link href="static/assets/css/theme-rtl.min.css" type="text/css" rel="stylesheet" id="style-rtl">
+    <link href="static/assets/css/theme.min.css" type="text/css" rel="stylesheet" id="style-default">
+    <link href="static/assets/css/user-rtl.min.css" type="text/css" rel="stylesheet" id="user-style-rtl">
+    <link href="static/assets/css/user.min.css" type="text/css" rel="stylesheet" id="user-style-default">
+    <script>
+      var phoenixIsRTL = window.config.config.phoenixIsRTL;
+      if (phoenixIsRTL) {
+        var linkDefault = document.getElementById('style-default');
+        var userLinkDefault = document.getElementById('user-style-default');
+        linkDefault.setAttribute('disabled', true);
+        userLinkDefault.setAttribute('disabled', true);
+        document.querySelector('html').setAttribute('dir', 'rtl');
+      } else {
+        var linkRTL = document.getElementById('style-rtl');
+        var userLinkRTL = document.getElementById('user-style-rtl');
+        linkRTL.setAttribute('disabled', true);
+        userLinkRTL.setAttribute('disabled', true);
+      }
+    </script>
+  </head>
+
+
+  <body>
+
+    <!-- ===============================================-->
+    <!--    Main Content-->
+    <!-- ===============================================-->
+    <main class="main" id="top">
+    {% include 'menu.html' %}
+    <!-- include top_bar.html -->
+    {% include 'top_bar.html' %}
+      <div class="content">
+        <div class="d-flex flex-center content-min-h">
+          <div class="container">
+            <div class="row justify-content-center">
+              <div class="col-12 col-md-8 col-lg-6">
+                <div class="card shadow-sm">
+                  <div class="card-body p-5">
+                    <div class="text-center mb-4">
+                      <h2 class="fw-bold mb-2">Importar Histórico de Ligações</h2>
+                      <p class="text-body-secondary">Faça upload de um arquivo CSV com o histórico de ligações</p>
+                    </div>
+                    
+                    {% with messages = get_flashed_messages(with_categories=true) %}
+                      {% if messages %}
+                        {% for category, message in messages %}
+                          {% if category == 'success' %}
+                            {% set alert_class = 'alert-success' %}
+                          {% elif category == 'error' %}
+                            {% set alert_class = 'alert-danger' %}
+                          {% elif category == 'warning' %}
+                            {% set alert_class = 'alert-warning' %}
+                          {% elif category == 'info' %}
+                            {% set alert_class = 'alert-info' %}
+                          {% else %}
+                            {% set alert_class = 'alert-secondary' %}
+                          {% endif %}
+                          <div class="alert {{ alert_class }} alert-dismissible fade show" role="alert">
+                            {{ message|safe }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                          </div>
+                        {% endfor %}
+                      {% endif %}
+                    {% endwith %}
+                    
+                    <form method="POST" enctype="multipart/form-data">
+                      <div class="mb-4">
+                        <label for="csvFile" class="form-label fw-semibold">Selecione o arquivo CSV</label>
+                        <input class="form-control form-control-lg" type="file" id="csvFile" name="csvFile" accept=".csv" required>
+                        <div class="form-text">Apenas arquivos CSV são permitidos</div>
+                      </div>
+                      
+                      <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                          <i class="fas fa-upload me-2"></i>Fazer Upload
+                        </button>
+                      </div>
+                    </form>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <footer class="footer position-absolute">
+          <div class="row g-0 justify-content-between align-items-center h-100">
+            <div class="col-12 col-sm-auto text-center">
+              <p class="mb-0 mt-2 mt-sm-0 text-body"><span class="d-none d-sm-inline-block"></span></p>
+            </div>
+          </div>
+        </footer>
+      </div>
+      <div class="modal fade" id="searchBoxModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="true" data-phoenix-modal="data-phoenix-modal" style="--phoenix-backdrop-opacity: 1;">
+        <div class="modal-dialog">
+          <div class="modal-content mt-15 rounded-pill">
+            <div class="modal-body p-0">
+              <div class="search-box navbar-top-search-box" data-list='{"valueNames":["title"]}' style="width: auto;">
+                <form class="position-relative" data-bs-toggle="search" data-bs-display="static">
+                  <input class="form-control search-input fuzzy-search rounded-pill form-control-lg" type="search" placeholder="Search..." aria-label="Search" />
+                  <span class="fas fa-search search-box-icon"></span>
+
+                </form>
+                <div class="btn-close position-absolute end-0 top-50 translate-middle cursor-pointer shadow-none" data-bs-dismiss="search">
+                  <button class="btn btn-link p-0" aria-label="Close"></button>
+                </div>
+                <div class="dropdown-menu border start-0 py-0 overflow-hidden w-100">
+                  <div class="scrollbar-overlay" style="max-height: 30rem;">
+                    <div class="list pb-3">
+                      <h6 class="dropdown-header text-body-highlight fs-10 py-2">24 <span class="text-body-quaternary">results</span></h6>
+                      <hr class="my-0" />
+                      <h6 class="dropdown-header text-body-highlight fs-9 border-bottom border-translucent py-2 lh-sm">Recently Searched </h6>
+                      <div class="py-2"><a class="dropdown-item" href="../apps/e-commerce/landing/product-details.html">
+                          <div class="d-flex align-items-center">
+
+                            <div class="fw-normal text-body-highlight title"><span class="fa-solid fa-clock-rotate-left" data-fa-transform="shrink-2"></span> Store Macbook</div>
+                          </div>
+                        </a>
+                        <a class="dropdown-item" href="../apps/e-commerce/landing/product-details.html">
+                          <div class="d-flex align-items-center">
+
+                            <div class="fw-normal text-body-highlight title"> <span class="fa-solid fa-clock-rotate-left" data-fa-transform="shrink-2"></span> MacBook Air - 13″</div>
+                          </div>
+                        </a>
+
+                      </div>
+                      <hr class="my-0" />
+                      <h6 class="dropdown-header text-body-highlight fs-9 border-bottom border-translucent py-2 lh-sm">Products</h6>
+                      <div class="py-2"><a class="dropdown-item py-2 d-flex align-items-center" href="../apps/e-commerce/landing/product-details.html">
+                          <div class="file-thumbnail me-2"><img class="h-100 w-100 object-fit-cover rounded-3" src="static/assets/img/products/60x60/3.png" alt="" /></div>
+                          <div class="flex-1">
+                            <h6 class="mb-0 text-body-highlight title">MacBook Air - 13″</h6>
+                            <p class="fs-10 mb-0 d-flex text-body-tertiary"><span class="fw-medium text-body-tertiary text-opactity-85">8GB Memory - 1.6GHz - 128GB Storage</span></p>
+                          </div>
+                        </a>
+                        <a class="dropdown-item py-2 d-flex align-items-center" href="../apps/e-commerce/landing/product-details.html">
+                          <div class="file-thumbnail me-2"><img class="img-fluid" src="static/assets/img/products/60x60/3.png" alt="" /></div>
+                          <div class="flex-1">
+                            <h6 class="mb-0 text-body-highlight title">MacBook Pro - 13″</h6>
+                            <p class="fs-10 mb-0 d-flex text-body-tertiary"><span class="fw-medium text-body-tertiary text-opactity-85">30 Sep at 12:30 PM</span></p>
+                          </div>
+                        </a>
+
+                      </div>
+                      <hr class="my-0" />
+                      <h6 class="dropdown-header text-body-highlight fs-9 border-bottom border-translucent py-2 lh-sm">Quick Links</h6>
+                      <div class="py-2"><a class="dropdown-item" href="../apps/e-commerce/landing/product-details.html">
+                          <div class="d-flex align-items-center">
+
+                            <div class="fw-normal text-body-highlight title"><span class="fa-solid fa-link text-body" data-fa-transform="shrink-2"></span> Support MacBook House</div>
+                          </div>
+                        </a>
+                        <a class="dropdown-item" href="../apps/e-commerce/landing/product-details.html">
+                          <div class="d-flex align-items-center">
+
+                            <div class="fw-normal text-body-highlight title"> <span class="fa-solid fa-link text-body" data-fa-transform="shrink-2"></span> Store MacBook″</div>
+                          </div>
+                        </a>
+
+                      </div>
+                      <hr class="my-0" />
+                      <h6 class="dropdown-header text-body-highlight fs-9 border-bottom border-translucent py-2 lh-sm">Files</h6>
+                      <div class="py-2"><a class="dropdown-item" href="../apps/e-commerce/landing/product-details.html">
+                          <div class="d-flex align-items-center">
+
+                            <div class="fw-normal text-body-highlight title"><span class="fa-solid fa-file-zipper text-body" data-fa-transform="shrink-2"></span> Library MacBook folder.rar</div>
+                          </div>
+                        </a>
+                        <a class="dropdown-item" href="../apps/e-commerce/landing/product-details.html">
+                          <div class="d-flex align-items-center">
+
+                            <div class="fw-normal text-body-highlight title"> <span class="fa-solid fa-file-lines text-body" data-fa-transform="shrink-2"></span> Feature MacBook extensions.txt</div>
+                          </div>
+                        </a>
+                        <a class="dropdown-item" href="../apps/e-commerce/landing/product-details.html">
+                          <div class="d-flex align-items-center">
+
+                            <div class="fw-normal text-body-highlight title"> <span class="fa-solid fa-image text-body" data-fa-transform="shrink-2"></span> MacBook Pro_13.jpg</div>
+                          </div>
+                        </a>
+
+                      </div>
+                      <hr class="my-0" />
+                      <h6 class="dropdown-header text-body-highlight fs-9 border-bottom border-translucent py-2 lh-sm">Members</h6>
+                      <div class="py-2"><a class="dropdown-item py-2 d-flex align-items-center" href="../pages/members.html">
+                          <div class="avatar avatar-l status-online  me-2 text-body">
+                            <img class="rounded-circle " src="static/assets/img/team/40x40/10.webp" alt="" />
+
+                          </div>
+                          <div class="flex-1">
+                            <h6 class="mb-0 text-body-highlight title">Carry Anna</h6>
+                            <p class="fs-10 mb-0 d-flex text-body-tertiary">anna@technext.it</p>
+                          </div>
+                        </a>
+                        <a class="dropdown-item py-2 d-flex align-items-center" href="../pages/members.html">
+                          <div class="avatar avatar-l  me-2 text-body">
+                            <img class="rounded-circle " src="static/assets/img/team/40x40/12.webp" alt="" />
+
+                          </div>
+                          <div class="flex-1">
+                            <h6 class="mb-0 text-body-highlight title">John Smith</h6>
+                            <p class="fs-10 mb-0 d-flex text-body-tertiary">smith@technext.it</p>
+                          </div>
+                        </a>
+
+                      </div>
+                      <hr class="my-0" />
+                      <h6 class="dropdown-header text-body-highlight fs-9 border-bottom border-translucent py-2 lh-sm">Related Searches</h6>
+                      <div class="py-2"><a class="dropdown-item" href="../apps/e-commerce/landing/product-details.html">
+                          <div class="d-flex align-items-center">
+
+                            <div class="fw-normal text-body-highlight title"><span class="fa-brands fa-firefox-browser text-body" data-fa-transform="shrink-2"></span> Search in the Web MacBook</div>
+                          </div>
+                        </a>
+                        <a class="dropdown-item" href="../apps/e-commerce/landing/product-details.html">
+                          <div class="d-flex align-items-center">
+
+                            <div class="fw-normal text-body-highlight title"> <span class="fa-brands fa-chrome text-body" data-fa-transform="shrink-2"></span> Store MacBook″</div>
+                          </div>
+                        </a>
+
+                      </div>
+                    </div>
+                    <div class="text-center">
+                      <p class="fallback fw-bold fs-7 d-none">No Result Found.</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+    </main>
+    <!-- ===============================================-->
+    <!--    End of Main Content-->
+    <!-- ===============================================-->
+
+
+
+
+    <!-- ===============================================-->
+    <!--    JavaScripts-->
+    <!-- ===============================================-->
+    <script src="static/vendors/popper/popper.min.js"></script>
+    <script src="static/vendors/bootstrap/bootstrap.min.js"></script>
+    <script src="static/vendors/anchorjs/anchor.min.js"></script>
+    <script src="static/vendors/is/is.min.js"></script>
+    <script src="static/vendors/fontawesome/all.min.js"></script>
+    <script src="static/vendors/lodash/lodash.min.js"></script>
+    <script src="static/vendors/list.js/list.min.js"></script>
+    <script src="static/vendors/feather-icons/feather.min.js"></script>
+    <script src="static/vendors/dayjs/dayjs.min.js"></script>
+    <script src="static/assets/js/phoenix.js"></script>
+    <script src="static/assets/js/menu.js"></script>
+
+  </body>
+
+</html>
