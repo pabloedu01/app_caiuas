@@ -233,7 +233,7 @@
                         <h5 class="text-body-highlight mb-0">Tipo do Evento</h5>
                       </div>{{ context.data.desc_tipo_evento if context.data.desc_tipo_evento else 'Não informado' }}
                       <button class="btn btn-link p-0 ms-2" type="button" data-bs-toggle="modal"
-                        data-bs-target="#editMidiaModal" title="Editar canal de venda">
+                        data-bs-target="#editMidiaModal" title="Editar tipo de evento">
                         <span class="fas fa-edit fs-10 text-body-tertiary"></span>
                       </button>
                     </div>
@@ -248,7 +248,7 @@
                     </div>Não informado
                     {% endif %}
                     <button class="btn btn-link p-0 ms-2" type="button" data-bs-toggle="modal"
-                      data-bs-target="#editMidiaModal" title="Editar canal de venda">
+                      data-bs-target="#editMidiaModal" title="Editar veículo de interesse">
                       <span class="fas fa-edit fs-10 text-body-tertiary"></span>
                     </button>
                   </div>
@@ -259,7 +259,7 @@
                     </div>{{ context.data.responsavel_nome_completo if context.data.responsavel_nome_completo else
                     'Não informado' }}
                     <button class="btn btn-link p-0 ms-2" type="button" data-bs-toggle="modal"
-                      data-bs-target="#editResponsavelModal" title="Editar canal de venda">
+                      data-bs-target="#editResponsavelModal" title="Editar responsável">
                       <span class="fas fa-edit fs-10 text-body-tertiary"></span>
                     </button>
                   </div>
@@ -267,12 +267,12 @@
                   <div class="mb-4">
                     <div class="d-flex align-items-center mb-1">
                       <span class="me-2 uil uil-megaphone"></span>
-                      <h5 class="text-body-highlight mb-0">Canal de Venda</h5>
+                      <h5 class="text-body-highlight mb-0">Mídia</h5>
                     </div>
                     <div class="d-flex align-items-center">
                       <span>{{ context.data.desc_midia if context.data.desc_midia else 'Não informado' }}</span>
                       <button class="btn btn-link p-0 ms-2" type="button" data-bs-toggle="modal"
-                        data-bs-target="#editMidiaModal" title="Editar canal de venda">
+                        data-bs-target="#editMidiaModal" title="Editar mídia">
                         <span class="fas fa-edit fs-10 text-body-tertiary"></span>
                       </button>
                     </div>
@@ -1001,6 +1001,56 @@
       </div>
     </div>
 
+    <!-- Modal Editar Mídia -->
+    <div class="modal fade" id="editMidiaModal" tabindex="-1" aria-labelledby="editMidiaModalLabel"
+      aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+          <form id="editMidiaForm">
+            <div class="modal-header">
+              <h5 class="modal-title" id="editMidiaModalLabel">Alterar Mídia</h5>
+              <button class="btn btn-close p-1" type="button" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <!-- Campo de busca -->
+              <div class="mb-3">
+                <label for="searchMidiaInput" class="form-label">Buscar Mídia</label>
+                <input type="text" class="form-control" id="searchMidiaInput" 
+                  placeholder="Digite para filtrar mídias...">
+              </div>
+
+              <!-- Loading indicator -->
+              <div id="midiaLoadingIndicator" class="text-center py-4" style="display: none;">
+                <div class="spinner-border text-primary" role="status">
+                  <span class="visually-hidden">Carregando...</span>
+                </div>
+                <p class="mt-2 text-body-secondary">Carregando mídias...</p>
+              </div>
+
+              <!-- Select de mídias -->
+              <div id="midiaSelectContainer">
+                <div class="mb-3">
+                  <label for="midiaSelect" class="form-label">Selecione a Mídia</label>
+                  <select class="form-select" id="midiaSelect" name="cod_midia" required size="10">
+                    <option value="">Carregando mídias...</option>
+                  </select>
+                  <div class="form-text">
+                    <span id="midiaCount">0</span> mídias disponíveis
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button class="btn btn-primary" type="submit">
+                <span class="fas fa-save me-2"></span>Salvar
+              </button>
+              <button class="btn btn-outline-primary" type="button" data-bs-dismiss="modal">Cancelar</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
 
   </main>
   <!-- ===============================================-->
@@ -1101,6 +1151,182 @@
 
 
 
+
+// =================== TROCA DE MÍDIA ===================
+      const midiaModal = new bootstrap.Modal(document.getElementById('editMidiaModal'));
+      const midiaSelect = document.getElementById('midiaSelect');
+      const searchMidiaInput = document.getElementById('searchMidiaInput');
+      const editMidiaForm = document.getElementById('editMidiaForm');
+      const midiaLoadingIndicator = document.getElementById('midiaLoadingIndicator');
+      const midiaCount = document.getElementById('midiaCount');
+      
+      let todasMidias = [];
+      let midiasFiltradas = [];
+
+      // Carregar mídias ao abrir o modal
+      document.getElementById('editMidiaModal').addEventListener('show.bs.modal', async function() {
+        midiaLoadingIndicator.style.display = 'block';
+        document.getElementById('midiaSelectContainer').style.display = 'none';
+        
+        try {
+          const myHeaders = new Headers();
+          myHeaders.append("Authorization", `Bearer ${token}`);
+
+          const requestOptions = {
+            method: "GET",
+            headers: myHeaders,
+            redirect: "follow"
+          };
+
+          const response = await fetch("https://backend.caiuas.com.br/api/crm/midias", requestOptions);
+          const result = await response.json();
+
+          if (!response.ok) {
+            throw new Error(result.message || 'Erro ao carregar mídias');
+          }
+
+          todasMidias = result.midias || [];
+          midiasFiltradas = [...todasMidias];
+          
+          renderizarMidias(midiasFiltradas);
+          
+          midiaLoadingIndicator.style.display = 'none';
+          document.getElementById('midiaSelectContainer').style.display = 'block';
+
+        } catch (error) {
+          console.error('Erro ao carregar mídias:', error);
+          midiaLoadingIndicator.style.display = 'none';
+          midiaSelect.innerHTML = '<option value="">Erro ao carregar mídias</option>';
+          
+          if (window.showToast) {
+            window.showToast(error.message || 'Erro ao carregar mídias', 'error');
+          }
+        }
+      });
+
+      // Função para renderizar mídias no select
+      function renderizarMidias(midias) {
+        midiaSelect.innerHTML = '';
+        
+        if (midias.length === 0) {
+          midiaSelect.innerHTML = '<option value="">Nenhuma mídia encontrada</option>';
+          midiaCount.textContent = '0';
+          return;
+        }
+
+        // Ordenar mídias alfabeticamente
+        midias.sort((a, b) => a.descricao.localeCompare(b.descricao));
+
+        midias.forEach(midia => {
+          const option = document.createElement('option');
+          option.value = midia.cod_midia;
+          option.textContent = midia.descricao;
+          
+          // Marcar se for a mídia atual
+          if (midia.descricao === '{{ context.data.desc_midia }}') {
+            option.selected = true;
+          }
+          
+          midiaSelect.appendChild(option);
+        });
+
+        midiaCount.textContent = midias.length;
+      }
+
+      // Filtrar mídias ao digitar
+      if (searchMidiaInput) {
+        searchMidiaInput.addEventListener('input', function() {
+          const searchTerm = this.value.toLowerCase().trim();
+          
+          if (searchTerm === '') {
+            midiasFiltradas = [...todasMidias];
+          } else {
+            midiasFiltradas = todasMidias.filter(midia => 
+              midia.descricao.toLowerCase().includes(searchTerm)
+            );
+          }
+          
+          renderizarMidias(midiasFiltradas);
+        });
+      }
+
+      // Limpar busca ao fechar modal
+      document.getElementById('editMidiaModal').addEventListener('hidden.bs.modal', function() {
+        searchMidiaInput.value = '';
+        midiasFiltradas = [...todasMidias];
+      });
+
+      // Submeter alteração de mídia
+      editMidiaForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        if (!verificarPermissaoEdicao('alterar mídia')) {
+          return;
+        }
+
+        const btn = e.submitter;
+        const originalHTML = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = `<span class="fas fa-spinner fa-spin"></span> Salvando...`;
+
+        try {
+          const codMidia = midiaSelect.value;
+          
+          if (!codMidia) {
+            throw new Error('Selecione uma mídia.');
+          }
+
+          const selectedOption = midiaSelect.options[midiaSelect.selectedIndex];
+          const descricaoMidia = selectedOption.textContent;
+
+          const payload = {
+            cod_midia: Number(codMidia)
+          };
+
+          const response = await fetch(
+            `https://backend.caiuas.com.br/api/crm/eventos/muda_midia/${codEvento}`,
+            {
+              method: 'PUT',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+              },
+              body: JSON.stringify(payload)
+            }
+          );
+
+          const result = await response.json();
+
+          if (!response.ok) {
+            throw new Error(result.message || 'Erro ao atualizar mídia');
+          }
+
+          // Atualizar a exibição da mídia na página
+          const midiaSection = document.querySelector('.mb-4:has(.uil-megaphone)');
+          if (midiaSection) {
+            const midiaDisplay = midiaSection.querySelectorAll('.d-flex.align-items-center')[1]?.querySelector('span:first-child');
+            if (midiaDisplay) {
+              midiaDisplay.textContent = descricaoMidia;
+            }
+          }
+
+          if (window.showToast) {
+            window.showToast('Mídia atualizada com sucesso!', 'success');
+          }
+
+          const modalInstance = bootstrap.Modal.getInstance(document.getElementById('editMidiaModal'));
+          modalInstance.hide();
+
+        } catch (error) {
+          console.error('Erro ao atualizar mídia:', error);
+          if (window.showToast) {
+            window.showToast(error.message || 'Erro ao atualizar mídia', 'error');
+          }
+        } finally {
+          btn.disabled = false;
+          btn.innerHTML = originalHTML;
+        }
+      });
 
 // =================== TROCA DE MODELO DE VEÍCULO ===================
       const modeloModal = new bootstrap.Modal(document.getElementById('editModeloModal'));
