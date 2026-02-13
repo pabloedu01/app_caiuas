@@ -110,3 +110,29 @@ def list_veiculos_processos():
         return render_template('veiculos/processos.html', context=context)
     except Exception as e:
         return render_template('500.html', error=str(e))
+    
+@veiculos_bp.route('/veiculos/processos/<int:id_processo>', methods=['GET'])
+@token_required
+def show_processos(id_processo):
+    try:
+        context = {}
+        context['token_data'] = request.token_data
+        context['title'] = "Processos"
+        token = session.get('token')
+        url = f"https://backend.caiuas.com.br/api/veiculos/processos/{id_processo}"
+        payload = {}
+        headers = {
+            "Authorization": f"Bearer {token}"
+        }
+        response = requests.request("GET", url, headers=headers, data=payload)
+        if response.status_code == 404 or not response.text:
+            return render_template('404.html', error="Processo não encontrado")
+        data = response.json()
+        return render_template('veiculos/processos_detalhe.html', context={
+            'data': data,
+            'title': "Detalhes do Processo"
+        })
+        
+        
+    except Exception as e:
+        return render_template('500.html', error=str(e))
