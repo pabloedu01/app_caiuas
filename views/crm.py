@@ -107,9 +107,9 @@ def eventos():
     except Exception as e:
         return render_template('500.html', error=str(e))
 
-@crm_bp.route('/crm/eventos_showroom/<int:evento_id>', methods=['GET'])
+@crm_bp.route('/crm/eventos/<int:evento_id>', methods=['GET'])
 @token_required
-def show_eventos_showroom(evento_id):
+def show_eventos(evento_id):
     try:
         previous_page = request.args.get('previous_page', None)
 
@@ -119,7 +119,7 @@ def show_eventos_showroom(evento_id):
         
         token = session.get('token')
 
-        url = f"https://backend.caiuas.com.br/api/crm/eventos_showroom/{evento_id}"
+        url = f"https://backend.caiuas.com.br/api/crm/eventos/{evento_id}"
         payload = {}
         headers = {
             "Authorization": f"Bearer {token}"
@@ -131,7 +131,7 @@ def show_eventos_showroom(evento_id):
             context['status_response'] = response.status_code
             context['data'] = data
             context['previous_page'] = previous_page
-            return render_template('crm/eventos_showroom_detalhes.html', context=context)
+            return render_template('crm/eventos_detalhes.html', context=context)
         if response.status_code == 404:
             return render_template('404.html'), 404
         else:

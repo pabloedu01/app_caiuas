@@ -294,7 +294,7 @@
                                         <div class="d-flex align-items-center">
                                             <div>
                                                 <a class="fs-8 fw-bold"
-                                                    href="/crm/eventos_showroom/{{evento.cod_empresa}}{{evento.cod_evento}}?previous_page={{context.current_page}}">
+                                                    href="/crm/eventos/{{evento.cod_empresa}}{{evento.cod_evento}}?previous_page={{context.current_page}}">
                                                     {{ evento.nome_cliente }}
                                                 </a>
                                                 <div class="d-flex align-items-center">
@@ -1133,7 +1133,7 @@
                         redirect: "follow"
                     };
 
-                    const response = await fetch(`https://backend.caiuas.com.br/api/crm/eventos_showroom/${idEvento}`, requestOptions);
+                    const response = await fetch(`https://backend.caiuas.com.br/api/crm/eventos/${idEvento}`, requestOptions);
 
                     if (response.ok) {
                         const result = await response.text();
@@ -1198,7 +1198,7 @@
                         redirect: "follow"
                     };
 
-                    const response = await fetch("https://backend.caiuas.com.br/api/crm/eventos_showroom/param_create", requestOptions);
+                    const response = await fetch("https://backend.caiuas.com.br/api/crm/eventos/param_create", requestOptions);
 
                     if (response.ok) {
                         const result = await response.json();
@@ -1592,7 +1592,7 @@
                             redirect: "follow"
                         };
 
-                        const response = await fetch("https://backend.caiuas.com.br/api/crm/eventos_showroom", requestOptions);
+                        const response = await fetch("https://backend.caiuas.com.br/api/crm/eventos", requestOptions);
 
                         if (response.ok) {
                             const result = await response.json();
