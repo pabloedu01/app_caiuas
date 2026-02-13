@@ -159,6 +159,38 @@
 
                                                         </select>
                                                     </div>
+                                                    <div class="mb-3">
+                                                        <label for="tipoEventoMultiple">Tipo de Evento</label>
+                                                        <select class="form-select" id="tipoEventoMultiple" name="tipo_evento"
+                                                            data-choices="data-choices" multiple="multiple"
+                                                            data-options='{"removeItemButton":true,"placeholder":true,"searchEnabled":true}'>
+                                                            <option value="">Selecione tipo de evento...</option>
+                                                            {% if context.data_tipo_evento and context.data_tipo_evento.eventos_tipo %}
+                                                                {% for tipo in context.data_tipo_evento.eventos_tipo %}
+                                                                    <option value="{{ tipo.cod_tipo_evento }}" 
+                                                                        {% if request.args.get('tipo_evento') and tipo.cod_tipo_evento|string in request.args.get('tipo_evento').split(',') %}selected{% endif %}>
+                                                                        {{ tipo.desc_tipo_evento }}
+                                                                    </option>
+                                                                {% endfor %}
+                                                            {% endif %}
+                                                        </select>
+                                                    </div>
+                                                    <div class="mb-3">
+                                                        <label for="responsibleMultiple">Responsável</label>
+                                                        <select class="form-select" id="responsibleMultiple" name="responsible"
+                                                            data-choices="data-choices" multiple="multiple"
+                                                            data-options='{"removeItemButton":true,"placeholder":true,"searchEnabled":true}'>
+                                                            <option value="">Selecione responsável...</option>
+                                                            {% if context.users %}
+                                                                {% for user in context.users %}
+                                                                    <option value="{{ user.email }}" 
+                                                                        {% if request.args.get('responsible') and user.email in request.args.get('responsible').split(',') %}selected{% endif %}>
+                                                                        {{ user.name }} ({{ user.email }})
+                                                                    </option>
+                                                                {% endfor %}
+                                                            {% endif %}
+                                                        </select>
+                                                    </div>
                                                 </div>
                                                 <div
                                                     class="modal-footer d-flex justify-content-end align-items-center px-4 pb-4 border-0 pt-3">
@@ -270,7 +302,7 @@
                                                         {{evento.descricao_modelo if evento.descricao_modelo else ''}}
                                                     </p>
                                                     <span
-                                                        class="badge badge-phoenix badge-phoenix-primary">{{evento.andamento}}</span>
+                                                        class="badge badge-phoenix badge-phoenix-primary">{{evento.andamento if evento.andamento else 'Não informado'}}</span>
                                                 </div>
                                             </div>
                                         </div>
@@ -901,6 +933,11 @@
     <script src="/static/assets/js/toast.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
+            // Imprimir contexto completo no console
+            console.log('========== CONTEXTO COMPLETO ==========');
+            console.log({{ context | tojson | safe }});
+            console.log('=======================================');
+            
             const filterForm = document.getElementById('addEventForm');
             const resetButton = document.getElementById('resetFilters');
             const dateInput = document.getElementById('timepicker2');
@@ -967,14 +1004,38 @@
             filterForm.addEventListener('submit', function (e) {
                 e.preventDefault();
                 const urlParams = new URLSearchParams(window.location.search);
+                
+                // Handle status filter
                 const statusSelect = document.getElementById('organizerMultiple');
-                const selectedOptions = Array.from(statusSelect.selectedOptions);
-                const selectedValues = selectedOptions.map(option => option.value).filter(value => value !== '');
+                const selectedStatusOptions = Array.from(statusSelect.selectedOptions);
+                const selectedStatusValues = selectedStatusOptions.map(option => option.value).filter(value => value !== '');
 
-                if (selectedValues.length > 0) {
-                    urlParams.set('status', selectedValues.join(','));
+                if (selectedStatusValues.length > 0) {
+                    urlParams.set('status', selectedStatusValues.join(','));
                 } else {
                     urlParams.delete('status');
+                }
+
+                // Handle tipo_evento filter
+                const tipoEventoSelect = document.getElementById('tipoEventoMultiple');
+                const selectedTipoEventoOptions = Array.from(tipoEventoSelect.selectedOptions);
+                const selectedTipoEventoValues = selectedTipoEventoOptions.map(option => option.value).filter(value => value !== '');
+
+                if (selectedTipoEventoValues.length > 0) {
+                    urlParams.set('tipo_evento', selectedTipoEventoValues.join(','));
+                } else {
+                    urlParams.delete('tipo_evento');
+                }
+
+                // Handle responsible filter
+                const responsibleSelect = document.getElementById('responsibleMultiple');
+                const selectedResponsibleOptions = Array.from(responsibleSelect.selectedOptions);
+                const selectedResponsibleValues = selectedResponsibleOptions.map(option => option.value).filter(value => value !== '');
+
+                if (selectedResponsibleValues.length > 0) {
+                    urlParams.set('responsible', selectedResponsibleValues.join(','));
+                } else {
+                    urlParams.delete('responsible');
                 }
 
                 urlParams.set('current_page', '1');
@@ -987,6 +1048,8 @@
                 e.preventDefault();
                 const urlParams = new URLSearchParams(window.location.search);
                 urlParams.delete('status');
+                urlParams.delete('tipo_evento');
+                urlParams.delete('responsible');
                 urlParams.delete('initial_date');
                 urlParams.delete('final_date');
                 urlParams.delete('search');
