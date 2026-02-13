@@ -3,6 +3,7 @@ from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from database import postgres_chatwoot, postgres_site
 from datetime import datetime, timedelta, timezone
+from flask_cors import CORS
 from functools import wraps
 import bcrypt
 from dotenv import load_dotenv
@@ -15,9 +16,11 @@ import jwt
 load_dotenv()
 app = Flask(__name__)
 
+
 # configura pasta static
 app = Flask(__name__, static_url_path='/static', static_folder='static')
 app.secret_key = os.environ.get('SECRET_KEY_BASE')
+cors = CORS(app)
 limiter = Limiter(
     get_remote_address,
     app=app,
@@ -93,6 +96,15 @@ def home():
     if not token or not token_valido(token):
         return redirect(url_for('login_page'))  # Corrigido aqui
     return render_template('dashboard.html')
+
+
+@app.route('/teste', methods=['GET'])
+def teste():
+    # Checa se o token está na sessão e é válido
+    # token = session.get('token')
+    # if not token or not token_valido(token):
+    #     return redirect(url_for('login_page'))  # Corrigido aqui
+    return render_template('teste.html')
 
 @app.route('/api/webhookwhatsapp', methods=['GET'])
 def webhook_verification():
