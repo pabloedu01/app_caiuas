@@ -143,6 +143,27 @@
             </a>
           </div>
 
+          <div class="nav-item-wrapper">
+            <a id="menu_nf" class="nav-link label-1" href="/nf/list" role="button" data-bs-toggle=""
+              aria-expanded="false">
+              <div class="d-flex align-items-center"><span class="nav-link-icon"><span
+                    data-feather="clipboard"></span></span><span class="nav-link-text-wrapper"><span
+                    class="nav-link-text">Notas Fiscais</span></span>
+              </div>
+            </a>
+          </div>
+          <script>
+            (function() {
+              const now = new Date();
+              const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
+              const formatDate = (d) => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+              const menuNf = document.getElementById('menu_nf');
+              if (menuNf) {
+                menuNf.href = '/nf/list?initial_date=' + formatDate(firstDay) + '&final_date=' + formatDate(now);
+              }
+            })();
+          </script>
+
           <!-- <div class="nav-item-wrapper">
             <a id="menu_chatbot" class="nav-link label-1" href="/chatbot" role="button" data-bs-toggle=""
               aria-expanded="false">
