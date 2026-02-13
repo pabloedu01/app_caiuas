@@ -53,8 +53,26 @@ def eventos():
         initial_date = request.args.get('initial_date', None)
         final_date = request.args.get('final_date', None)
         current_page = request.args.get('current_page', None)
+        tipo_evento = request.args.get('tipo_evento', None)
         search = request.args.get('search', None)
+        responsible = request.args.get('responsible', None)
         limit = request.args.get('limit', None)
+
+        query = f"""
+            select u.id, u.name, email 
+            from users u
+            order by name
+        """
+        conn, cur = postgres_chatwoot()
+        cur.execute(query)
+        users = []
+        r = cur.fetchall()
+        for row in r:
+            users.append({
+                'id': row[0],
+                'name': row[1],
+                'email': row[2]
+            })
 
         context = {}
         context['token_data'] = request.token_data
@@ -62,8 +80,8 @@ def eventos():
         
         token = session.get('token')
 
-        url = f"https://backend.caiuas.com.br/api/crm/eventos?&{f'&search={search}' if search else ''}{f'&status={status}' if status else ''}{f'&limit={limit}' if limit else ''}{f'&current_page={current_page}' if current_page else ''}{f'&initial_date={initial_date}' if initial_date else ''}{f'&final_date={final_date}' if final_date else ''}{f'&search={search}' if search else ''}"
-        context['current_page'] = f'https://app.caiuas.com.br/crm/eventos?&{f'&search={search}' if search else ''}{f'&status={status}' if status else ''}{f'&limit={limit}' if limit else ''}{f'&current_page={current_page}' if current_page else ''}{f'&initial_date={initial_date}' if initial_date else ''}{f'&final_date={final_date}' if final_date else ''}{f'&search={search}' if search else ''}'
+        url = f"https://backend.caiuas.com.br/api/crm/eventos?&{f'&search={search}' if search else ''}{f'&status={status}' if status else ''}{f'&limit={limit}' if limit else ''}{f'&current_page={current_page}' if current_page else ''}{f'&initial_date={initial_date}' if initial_date else ''}{f'&final_date={final_date}' if final_date else ''}{f'&tipo_evento={tipo_evento}' if tipo_evento else ''}{f'&responsible={responsible}' if responsible else ''}"
+        context['current_page'] = f'https://app.caiuas.com.br/crm/eventos?&{f'&search={search}' if search else ''}{f'&status={status}' if status else ''}{f'&limit={limit}' if limit else ''}{f'&current_page={current_page}' if current_page else ''}{f'&initial_date={initial_date}' if initial_date else ''}{f'&final_date={final_date}' if final_date else ''}{f'&tipo_evento={tipo_evento}' if tipo_evento else ''}{f'&responsible={responsible}' if responsible else ''}'
         payload = {}
         headers = {
             "Authorization": f"Bearer {token}"
@@ -71,13 +89,23 @@ def eventos():
         response = requests.request("GET", url, headers=headers, data=payload)
         
         data = response.json()
+        
+        url = f"https://backend.caiuas.com.br/api/crm/eventos_tipo"
+        payload = {}
+        headers = {
+            "Authorization": f"Bearer {token}"
+        }
+        response = requests.request("GET", url, headers=headers, data=payload)
+        data_tipo_evento = response.json()
+        context['data_tipo_evento'] = data_tipo_evento
+        context['users'] = users
+        
         context['token'] = token
         context['status_response'] = response.status_code
         context['data'] = data
         return render_template('crm/eventos.html', context=context)
     except Exception as e:
         return render_template('500.html', error=str(e))
-
 
 @crm_bp.route('/crm/eventos_showroom/<int:evento_id>', methods=['GET'])
 @token_required
@@ -143,3 +171,4 @@ def list_pesquisa_satisfacao():
         return render_template('crm/pesquisa_satisfacao.html', context=context)
     except Exception as e:
         return render_template('500.html', error=str(e))
+    
