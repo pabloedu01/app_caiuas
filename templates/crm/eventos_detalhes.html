@@ -98,15 +98,23 @@
                     <span class="fa-solid fa-calendar-check me-sm-2"></span>
                     <span class="d-none d-sm-inline">Remarcar contato</span>
                   </button>
-                  <button class="btn btn-success me-2">
+                  <button class="btn btn-success me-2" {% if context.data.status == 'D' %}disabled title="Evento descartado"{% endif %}>
                     <span class="fa-solid fa-check me-2"></span>
                     <span>Encerrar Evento</span>
                   </button>
+                  {% if context.data.status == 'D' %}
+                  <button class="btn btn-outline-warning px-3 px-sm-5 me-2" type="button" data-bs-toggle="modal"
+                    data-bs-target="#removerDescarteModal">
+                    <span class="fa-solid fa-undo me-sm-2"></span>
+                    <span class="d-none d-sm-inline">Remover Descarte</span>
+                  </button>
+                  {% else %}
                   <button class="btn btn-danger px-3 px-sm-5 me-2" type="button" data-bs-toggle="modal"
                     data-bs-target="#descartarEventoModal">
                     <span class="fa-solid fa-times me-sm-2"></span>
                     <span class="d-none d-sm-inline">Descartar</span>
                   </button>
+                  {% endif %}
                   <button class="btn px-3 btn-phoenix-secondary" type="button" data-bs-toggle="dropdown"
                     data-boundary="window" aria-haspopup="true" aria-expanded="false" data-bs-reference="parent"><span
                       class="fa-solid fa-ellipsis"></span></button>
@@ -1071,6 +1079,30 @@
       </div>
     </div>
 
+    <!-- Modal Remover Descarte -->
+    <div class="modal fade" id="removerDescarteModal" tabindex="-1" aria-labelledby="removerDescarteModalLabel"
+      aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header bg-warning bg-opacity-10">
+            <h5 class="modal-title text-warning" id="removerDescarteModalLabel">
+              <span class="fas fa-undo me-2"></span>Remover Descarte
+            </h5>
+            <button class="btn btn-close p-1" type="button" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <p class="mb-0">Deseja remover o descarte do evento <strong>{{context.data.cod_evento}}</strong>? O evento voltará ao status anterior.</p>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-warning" type="button" id="btnConfirmarRemoverDescarte">
+              <span class="fas fa-undo me-2"></span>Confirmar Remoção
+            </button>
+            <button class="btn btn-outline-secondary" type="button" data-bs-dismiss="modal">Cancelar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Modal Editar Responsável -->
     <div class="modal fade" id="editResponsavelModal" tabindex="-1" aria-labelledby="editResponsavelModalLabel"
       aria-hidden="true">
@@ -1309,6 +1341,50 @@
     }
     document.addEventListener('DOMContentLoaded', () => {
 
+
+
+// =================== REMOVER DESCARTE ===================
+      const btnConfirmarRemoverDescarte = document.getElementById('btnConfirmarRemoverDescarte');
+      if (btnConfirmarRemoverDescarte) {
+        btnConfirmarRemoverDescarte.addEventListener('click', async function () {
+        const btn = this;
+        const originalHTML = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = `<span class="fas fa-spinner fa-spin me-2"></span>Removendo...`;
+
+        try {
+          const response = await fetch(
+            `https://backend.caiuas.com.br/api/crm/eventos/remover_descarte/${codEvento}`,
+            {
+              method: 'PUT',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+              }
+            }
+          );
+
+          const result = await response.json();
+
+          if (!response.ok) {
+            throw new Error(result.message || 'Erro ao remover descarte');
+          }
+
+          if (window.showToast) window.showToast('Descarte removido com sucesso!', 'success');
+
+          const modalInstance = bootstrap.Modal.getInstance(document.getElementById('removerDescarteModal'));
+          modalInstance.hide();
+
+          setTimeout(() => window.location.reload(), 1200);
+
+        } catch (error) {
+          console.error('Erro ao remover descarte:', error);
+          if (window.showToast) window.showToast(error.message || 'Erro ao remover descarte', 'error');
+          btn.disabled = false;
+          btn.innerHTML = originalHTML;
+        }
+      });
+      }
 
 
 // =================== DESCARTAR EVENTO ===================
@@ -3192,6 +3268,25 @@
         agendarBtn.classList.add('disabled');
         agendarBtn.setAttribute('title', `Evento ${statusEvento === 'D' ? 'Descartado' : statusEvento === 'E' ? 'Encerrado' : 'Contato Perdido'} - não é possível editar`);
       }
+
+      // Desabilitar todos os botões de edição da sidebar (ícones de lápis e modais de edição)
+      const editModalTargets = [
+        '#editTipoEventoModal',
+        '#editModeloModal',
+        '#editResponsavelModal',
+        '#editMidiaModal',
+        '#editAndamentoModal',
+        '#editTemperaturaModal',
+      ];
+      editModalTargets.forEach(target => {
+        document.querySelectorAll(`[data-bs-target="${target}"]`).forEach(btn => {
+          btn.disabled = true;
+          btn.classList.add('disabled');
+          btn.setAttribute('title', `Evento bloqueado para edição`);
+          btn.removeAttribute('data-bs-toggle');
+          btn.removeAttribute('data-bs-target');
+        });
+      });
 
       // Adicionar estilo visual para elementos desabilitados
       const style = document.createElement('style');
