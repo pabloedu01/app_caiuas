@@ -233,7 +233,7 @@
                         <h5 class="text-body-highlight mb-0">Tipo do Evento</h5>
                       </div>{{ context.data.desc_tipo_evento if context.data.desc_tipo_evento else 'Não informado' }}
                       <button class="btn btn-link p-0 ms-2" type="button" data-bs-toggle="modal"
-                        data-bs-target="#editMidiaModal" title="Editar tipo de evento">
+                        data-bs-target="#editTipoEventoModal" title="Editar tipo de evento">
                         <span class="fas fa-edit fs-10 text-body-tertiary"></span>
                       </button>
                     </div>
@@ -1001,6 +1001,56 @@
       </div>
     </div>
 
+    <!-- Modal Editar Tipo de Evento -->
+    <div class="modal fade" id="editTipoEventoModal" tabindex="-1" aria-labelledby="editTipoEventoModalLabel"
+      aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+          <form id="editTipoEventoForm">
+            <div class="modal-header">
+              <h5 class="modal-title" id="editTipoEventoModalLabel">Alterar Tipo do Evento</h5>
+              <button class="btn btn-close p-1" type="button" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <!-- Campo de busca -->
+              <div class="mb-3">
+                <label for="searchTipoEventoInput" class="form-label">Buscar Tipo</label>
+                <input type="text" class="form-control" id="searchTipoEventoInput"
+                  placeholder="Digite para filtrar tipos de evento...">
+              </div>
+
+              <!-- Loading indicator -->
+              <div id="tipoEventoLoadingIndicator" class="text-center py-4" style="display: none;">
+                <div class="spinner-border text-primary" role="status">
+                  <span class="visually-hidden">Carregando...</span>
+                </div>
+                <p class="mt-2 text-body-secondary">Carregando tipos de evento...</p>
+              </div>
+
+              <!-- Select de tipos -->
+              <div id="tipoEventoSelectContainer">
+                <div class="mb-3">
+                  <label for="tipoEventoSelect" class="form-label">Selecione o Tipo do Evento</label>
+                  <select class="form-select" id="tipoEventoSelect" name="cod_tipo_evento" required size="10">
+                    <option value="">Carregando tipos...</option>
+                  </select>
+                  <div class="form-text">
+                    <span id="tipoEventoCount">0</span> tipos disponíveis
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button class="btn btn-primary" type="submit">
+                <span class="fas fa-save me-2"></span>Salvar
+              </button>
+              <button class="btn btn-outline-primary" type="button" data-bs-dismiss="modal">Cancelar</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
     <!-- Modal Editar Mídia -->
     <div class="modal fade" id="editMidiaModal" tabindex="-1" aria-labelledby="editMidiaModalLabel"
       aria-hidden="true">
@@ -1150,6 +1200,188 @@
     document.addEventListener('DOMContentLoaded', () => {
 
 
+
+// =================== TROCA DE TIPO DE EVENTO ===================
+      const tipoEventoSelect = document.getElementById('tipoEventoSelect');
+      const searchTipoEventoInput = document.getElementById('searchTipoEventoInput');
+      const editTipoEventoForm = document.getElementById('editTipoEventoForm');
+      const tipoEventoLoadingIndicator = document.getElementById('tipoEventoLoadingIndicator');
+      const tipoEventoCount = document.getElementById('tipoEventoCount');
+
+      let todosTiposEvento = [];
+      let tiposEventoFiltrados = [];
+
+      // Carregar tipos ao abrir o modal
+      document.getElementById('editTipoEventoModal').addEventListener('show.bs.modal', async function () {
+        tipoEventoLoadingIndicator.style.display = 'block';
+        document.getElementById('tipoEventoSelectContainer').style.display = 'none';
+
+        try {
+          const myHeaders = new Headers();
+          myHeaders.append("Authorization", `Bearer ${token}`);
+
+          const requestOptions = {
+            method: "GET",
+            headers: myHeaders,
+            redirect: "follow"
+          };
+
+          const response = await fetch("https://backend.caiuas.com.br/api/crm/eventos_tipo", requestOptions);
+          const result = await response.json();
+
+          if (!response.ok) {
+            throw new Error(result.message || 'Erro ao carregar tipos de evento');
+          }
+
+          todosTiposEvento = result.eventos_tipo || [];
+          tiposEventoFiltrados = [...todosTiposEvento];
+
+          renderizarTiposEvento(tiposEventoFiltrados);
+
+          tipoEventoLoadingIndicator.style.display = 'none';
+          document.getElementById('tipoEventoSelectContainer').style.display = 'block';
+
+        } catch (error) {
+          console.error('Erro ao carregar tipos de evento:', error);
+          tipoEventoLoadingIndicator.style.display = 'none';
+          tipoEventoSelect.innerHTML = '<option value="">Erro ao carregar tipos de evento</option>';
+          document.getElementById('tipoEventoSelectContainer').style.display = 'block';
+
+          if (window.showToast) {
+            window.showToast(error.message || 'Erro ao carregar tipos de evento', 'error');
+          }
+        }
+      });
+
+      // Renderizar os tipos no select
+      function renderizarTiposEvento(tipos) {
+        tipoEventoSelect.innerHTML = '';
+
+        if (tipos.length === 0) {
+          tipoEventoSelect.innerHTML = '<option value="">Nenhum tipo encontrado</option>';
+          tipoEventoCount.textContent = '0';
+          return;
+        }
+
+        // Ordenar alfabeticamente
+        tipos.sort((a, b) => a.desc_tipo_evento.localeCompare(b.desc_tipo_evento));
+
+        tipos.forEach(tipo => {
+          const option = document.createElement('option');
+          option.value = tipo.cod_tipo_evento;
+          option.textContent = tipo.desc_tipo_evento;
+
+          // Marcar o tipo atual
+          if (tipo.desc_tipo_evento === '{{ context.data.desc_tipo_evento }}') {
+            option.selected = true;
+          }
+
+          tipoEventoSelect.appendChild(option);
+        });
+
+        tipoEventoCount.textContent = tipos.length;
+      }
+
+      // Filtrar ao digitar
+      if (searchTipoEventoInput) {
+        searchTipoEventoInput.addEventListener('input', function () {
+          const searchTerm = this.value.toLowerCase().trim();
+
+          if (searchTerm === '') {
+            tiposEventoFiltrados = [...todosTiposEvento];
+          } else {
+            tiposEventoFiltrados = todosTiposEvento.filter(tipo =>
+              tipo.desc_tipo_evento.toLowerCase().includes(searchTerm)
+            );
+          }
+
+          renderizarTiposEvento(tiposEventoFiltrados);
+        });
+      }
+
+      // Limpar busca ao fechar modal
+      document.getElementById('editTipoEventoModal').addEventListener('hidden.bs.modal', function () {
+        searchTipoEventoInput.value = '';
+        tiposEventoFiltrados = [...todosTiposEvento];
+      });
+
+      // Submeter alteração de tipo de evento
+      editTipoEventoForm.addEventListener('submit', async function (e) {
+        e.preventDefault();
+
+        if (!verificarPermissaoEdicao('alterar tipo de evento')) {
+          return;
+        }
+
+        const btn = e.submitter;
+        const originalHTML = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = `<span class="fas fa-spinner fa-spin"></span> Salvando...`;
+
+        try {
+          const codTipoEvento = tipoEventoSelect.value;
+
+          if (!codTipoEvento) {
+            throw new Error('Selecione um tipo de evento.');
+          }
+
+          const selectedOption = tipoEventoSelect.options[tipoEventoSelect.selectedIndex];
+          const descTipoEvento = selectedOption.textContent;
+
+          const payload = {
+            cod_tipo_evento: Number(codTipoEvento)
+          };
+
+          const response = await fetch(
+            `https://backend.caiuas.com.br/api/crm/eventos/muda_tipo_evento/${codEvento}`,
+            {
+              method: 'PUT',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+              },
+              body: JSON.stringify(payload)
+            }
+          );
+
+          const result = await response.json();
+
+          if (!response.ok) {
+            throw new Error(result.message || 'Erro ao atualizar tipo de evento');
+          }
+
+          // Atualizar exibição na página
+          const tipoEventoDisplay = document.querySelector('[data-bs-target="#editTipoEventoModal"]');
+          if (tipoEventoDisplay) {
+            const parentDiv = tipoEventoDisplay.closest('.mb-4');
+            if (parentDiv) {
+              // Substituir o texto do tipo de evento (nó de texto antes do botão)
+              const nodes = parentDiv.childNodes;
+              nodes.forEach(node => {
+                if (node.nodeType === Node.TEXT_NODE && node.textContent.trim()) {
+                  node.textContent = descTipoEvento + ' ';
+                }
+              });
+            }
+          }
+
+          if (window.showToast) {
+            window.showToast('Tipo de evento atualizado com sucesso!', 'success');
+          }
+
+          const modalInstance = bootstrap.Modal.getInstance(document.getElementById('editTipoEventoModal'));
+          modalInstance.hide();
+
+        } catch (error) {
+          console.error('Erro ao atualizar tipo de evento:', error);
+          if (window.showToast) {
+            window.showToast(error.message || 'Erro ao atualizar tipo de evento', 'error');
+          }
+        } finally {
+          btn.disabled = false;
+          btn.innerHTML = originalHTML;
+        }
+      });
 
 
 // =================== TROCA DE MÍDIA ===================
