@@ -98,7 +98,7 @@
                     <span class="fa-solid fa-calendar-check me-sm-2"></span>
                     <span class="d-none d-sm-inline">Remarcar contato</span>
                   </button>
-                  <button class="btn btn-success me-2" {% if context.data.status == 'D' %}disabled title="Evento descartado"{% endif %}>
+                  <button class="btn btn-success me-2" {% if context.data.status == 'D' %}disabled title="Evento descartado"{% else %}data-bs-toggle="modal" data-bs-target="#encerrarEventoModal"{% endif %}>
                     <span class="fa-solid fa-check me-2"></span>
                     <span>Encerrar Evento</span>
                   </button>
@@ -109,8 +109,8 @@
                     <span class="d-none d-sm-inline">Remover Descarte</span>
                   </button>
                   {% else %}
-                  <button class="btn btn-danger px-3 px-sm-5 me-2" type="button" data-bs-toggle="modal"
-                    data-bs-target="#descartarEventoModal">
+                  <button class="btn btn-danger px-3 px-sm-5 me-2" type="button"
+                    {% if context.data.status == 'E' %}disabled title="Evento encerrado"{% else %}data-bs-toggle="modal" data-bs-target="#descartarEventoModal"{% endif %}>
                     <span class="fa-solid fa-times me-sm-2"></span>
                     <span class="d-none d-sm-inline">Descartar</span>
                   </button>
@@ -1024,6 +1024,36 @@
     </div>
 
     <!-- Modal Apagar Evento -->
+    <!-- Modal Encerrar Evento -->
+    <div class="modal fade" id="encerrarEventoModal" tabindex="-1" aria-labelledby="encerrarEventoModalLabel"
+      aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <form id="encerrarEventoForm">
+            <div class="modal-header bg-success bg-opacity-10">
+              <h5 class="modal-title text-success" id="encerrarEventoModalLabel">
+                <span class="fas fa-check-circle me-2"></span>Encerrar Evento
+              </h5>
+              <button class="btn btn-close p-1" type="button" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <div class="mb-3">
+                <label for="encerrarObservacao" class="form-label">Observação <span class="text-danger">*</span></label>
+                <textarea class="form-control" id="encerrarObservacao" name="observacao" rows="4" required
+                  placeholder="Descreva como foi o encerramento do evento..."></textarea>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button class="btn btn-success" type="submit" id="btnConfirmarEncerrarEvento">
+                <span class="fas fa-check me-2"></span>Confirmar Encerramento
+              </button>
+              <button class="btn btn-outline-secondary" type="button" data-bs-dismiss="modal">Cancelar</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
     <div class="modal fade" id="apagarEventoModal" tabindex="-1" aria-labelledby="apagarEventoModalLabel"
       aria-hidden="true">
       <div class="modal-dialog modal-dialog-centered">
@@ -2310,6 +2340,57 @@
       const codEvento = '{{context.data.cod_empresa}}{{context.data.cod_evento}}';
       const token = '{{ session.token }}';
       const statusEvento = '{{ context.data.status }}';
+
+      // =================== ENCERRAR EVENTO ===================
+      const encerrarEventoForm = document.getElementById('encerrarEventoForm');
+      if (encerrarEventoForm) {
+        encerrarEventoForm.addEventListener('submit', async function (e) {
+          e.preventDefault();
+          if (!verificarPermissaoEdicao('encerrar evento')) return;
+
+          const btn = document.getElementById('btnConfirmarEncerrarEvento');
+          const originalHTML = btn.innerHTML;
+          btn.disabled = true;
+          btn.innerHTML = `<span class="fas fa-spinner fa-spin me-2"></span>Encerrando...`;
+
+          const observacao = document.getElementById('encerrarObservacao').value.trim();
+
+          try {
+            const response = await fetch(
+              `https://backend.caiuas.com.br/api/crm/eventos/encerrar_evento/${codEvento}`,
+              {
+                method: 'PUT',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ observacao })
+              }
+            );
+
+            if (response.ok) {
+              const modalInstance = bootstrap.Modal.getInstance(document.getElementById('encerrarEventoModal'));
+              if (modalInstance) modalInstance.hide();
+              if (window.showToast) window.showToast('Evento encerrado com sucesso!', 'success');
+              setTimeout(() => { window.location.reload(); }, 1000);
+            } else {
+              let errorMessage = 'Erro ao encerrar evento';
+              try {
+                const errorResponse = await response.json();
+                if (errorResponse && errorResponse.message) errorMessage = errorResponse.message;
+              } catch (_) {}
+              if (window.showToast) window.showToast(errorMessage, 'error');
+              btn.disabled = false;
+              btn.innerHTML = originalHTML;
+            }
+          } catch (error) {
+            console.error('Erro ao encerrar evento:', error);
+            if (window.showToast) window.showToast(error.message || 'Erro ao encerrar evento', 'error');
+            btn.disabled = false;
+            btn.innerHTML = originalHTML;
+          }
+        });
+      }
 
       const andamentoModal = new bootstrap.Modal(document.getElementById('editAndamentoModal'));
       const andamentoSelect = document.getElementById('andamentoSelect');
