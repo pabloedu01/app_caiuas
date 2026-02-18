@@ -1605,9 +1605,10 @@
                             // Mostrar mensagem de sucesso
                             showToast('Lead criado com sucesso!', 'success');
 
-                            // Recarregar a página após um pequeno delay
+                            // Redirecionar para a página do evento
                             setTimeout(() => {
-                                window.location.reload();
+                                const codEvento = result.cod_evento;
+                                window.location.href = `https://app.caiuas.com.br/crm/eventos/${codEvento}?previous_page=https://app.caiuas.com.br/crm/eventos?&&status=P,V,R,A`;
                             }, 1500);
 
                         } else {
