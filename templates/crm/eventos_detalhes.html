@@ -1001,6 +1001,46 @@
       </div>
     </div>
 
+    <!-- Modal Editar Responsável -->
+    <div class="modal fade" id="editResponsavelModal" tabindex="-1" aria-labelledby="editResponsavelModalLabel"
+      aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <form id="editResponsavelForm">
+            <div class="modal-header">
+              <h5 class="modal-title" id="editResponsavelModalLabel">Alterar Responsável</h5>
+              <button class="btn btn-close p-1" type="button" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <div class="mb-3">
+                <label for="searchResponsavelInput" class="form-label">Buscar usuário</label>
+                <input type="text" class="form-control" id="searchResponsavelInput"
+                  placeholder="Digite para filtrar...">
+              </div>
+              <div class="mb-3">
+                <label for="responsavelSelect" class="form-label">Selecione o Responsável</label>
+                <select class="form-select" id="responsavelSelect" name="responsavel_email" required size="8">
+                  {% for user in context.users %}
+                  <option value="{{ user.email }}"
+                    {% if user.name == context.data.responsavel_nome_completo %}selected{% endif %}>
+                    {{ user.name }}
+                  </option>
+                  {% endfor %}
+                </select>
+                <div class="form-text"><span id="responsavelCount">{{ context.users|length }}</span> usuários disponíveis</div>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button class="btn btn-primary" type="submit">
+                <span class="fas fa-save me-2"></span>Salvar
+              </button>
+              <button class="btn btn-outline-primary" type="button" data-bs-dismiss="modal">Cancelar</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
     <!-- Modal Editar Tipo de Evento -->
     <div class="modal fade" id="editTipoEventoModal" tabindex="-1" aria-labelledby="editTipoEventoModalLabel"
       aria-hidden="true">
@@ -1199,6 +1239,127 @@
     }
     document.addEventListener('DOMContentLoaded', () => {
 
+
+
+// =================== TROCA DE RESPONSÁVEL ===================
+      const editResponsavelForm = document.getElementById('editResponsavelForm');
+      const responsavelSelect = document.getElementById('responsavelSelect');
+      const searchResponsavelInput = document.getElementById('searchResponsavelInput');
+      const responsavelCount = document.getElementById('responsavelCount');
+
+      // Guardar todas as opções originais
+      const todasOpcoesResponsavel = Array.from(responsavelSelect.options).map(opt => ({
+        value: opt.value,
+        text: opt.text,
+        selected: opt.selected
+      }));
+
+      // Filtrar ao digitar
+      if (searchResponsavelInput) {
+        searchResponsavelInput.addEventListener('input', function () {
+          const term = this.value.toLowerCase().trim();
+          responsavelSelect.innerHTML = '';
+          const filtradas = term === ''
+            ? todasOpcoesResponsavel
+            : todasOpcoesResponsavel.filter(o => o.text.toLowerCase().includes(term));
+
+          filtradas.forEach(o => {
+            const opt = document.createElement('option');
+            opt.value = o.value;
+            opt.textContent = o.text;
+            if (o.selected) opt.selected = true;
+            responsavelSelect.appendChild(opt);
+          });
+
+          responsavelCount.textContent = filtradas.length;
+        });
+      }
+
+      // Limpar busca ao fechar
+      document.getElementById('editResponsavelModal').addEventListener('hidden.bs.modal', function () {
+        searchResponsavelInput.value = '';
+        responsavelSelect.innerHTML = '';
+        todasOpcoesResponsavel.forEach(o => {
+          const opt = document.createElement('option');
+          opt.value = o.value;
+          opt.textContent = o.text;
+          if (o.selected) opt.selected = true;
+          responsavelSelect.appendChild(opt);
+        });
+        responsavelCount.textContent = todasOpcoesResponsavel.length;
+      });
+
+      // Submeter
+      editResponsavelForm.addEventListener('submit', async function (e) {
+        e.preventDefault();
+
+        if (!verificarPermissaoEdicao('alterar responsável')) {
+          return;
+        }
+
+        const btn = e.submitter;
+        const originalHTML = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = `<span class="fas fa-spinner fa-spin"></span> Salvando...`;
+
+        try {
+          const email = responsavelSelect.value;
+
+          if (!email) {
+            throw new Error('Selecione um responsável.');
+          }
+
+          const selectedOption = responsavelSelect.options[responsavelSelect.selectedIndex];
+          const nomeResponsavel = selectedOption.textContent.trim();
+
+          const response = await fetch(
+            `https://backend.caiuas.com.br/api/crm/eventos/muda_responsavel/${codEvento}`,
+            {
+              method: 'PUT',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+              },
+              body: JSON.stringify({ email })
+            }
+          );
+
+          const result = await response.json();
+
+          if (!response.ok) {
+            throw new Error(result.message || 'Erro ao atualizar responsável');
+          }
+
+          // Atualizar texto na página
+          const btnResponsavel = document.querySelector('[data-bs-target="#editResponsavelModal"]');
+          if (btnResponsavel) {
+            const parentDiv = btnResponsavel.closest('.mb-4');
+            if (parentDiv) {
+              parentDiv.childNodes.forEach(node => {
+                if (node.nodeType === Node.TEXT_NODE && node.textContent.trim()) {
+                  node.textContent = nomeResponsavel + '\n                    ';
+                }
+              });
+            }
+          }
+
+          if (window.showToast) {
+            window.showToast('Responsável atualizado com sucesso!', 'success');
+          }
+
+          const modalInstance = bootstrap.Modal.getInstance(document.getElementById('editResponsavelModal'));
+          modalInstance.hide();
+
+        } catch (error) {
+          console.error('Erro ao atualizar responsável:', error);
+          if (window.showToast) {
+            window.showToast(error.message || 'Erro ao atualizar responsável', 'error');
+          }
+        } finally {
+          btn.disabled = false;
+          btn.innerHTML = originalHTML;
+        }
+      });
 
 
 // =================== TROCA DE TIPO DE EVENTO ===================

@@ -126,10 +126,27 @@ def show_eventos(evento_id):
         }
         response = requests.request("GET", url, headers=headers, data=payload)
         if response.status_code == 200:
+            query = f"""
+            select u.id, u.name, email 
+            from users u
+            order by name
+            """
+            conn, cur = postgres_chatwoot()
+            cur.execute(query)
+            users = []
+            r = cur.fetchall()
+            for row in r:
+                users.append({
+                    'id': row[0],
+                    'name': row[1],
+                    'email': row[2]
+                })
             
+            conn.close()
             data = response.json()
             context['status_response'] = response.status_code
             context['data'] = data
+            context['users'] = users
             context['previous_page'] = previous_page
             return render_template('crm/eventos_detalhes.html', context=context)
         if response.status_code == 404:
