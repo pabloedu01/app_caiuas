@@ -21,6 +21,8 @@ def eventos_showroom():
         final_date = request.args.get('final_date', None)
         current_page = request.args.get('current_page', None)
         search = request.args.get('search', None)
+        created_at_min = request.args.get('created_at_min', None)
+        created_at_max = request.args.get('created_at_max', None)
         limit = request.args.get('limit', None)
 
         context = {}
@@ -29,8 +31,8 @@ def eventos_showroom():
         
         token = session.get('token')
 
-        url = f"https://backend.caiuas.com.br/api/crm/eventos?&tipo_evento=785,787,793,795,797,799{f'&search={search}' if search else ''}{f'&status={status}' if status else ''}{f'&limit={limit}' if limit else ''}{f'&current_page={current_page}' if current_page else ''}{f'&initial_date={initial_date}' if initial_date else ''}{f'&final_date={final_date}' if final_date else ''}{f'&search={search}' if search else ''}"
-        context['current_page'] = f'https://app.caiuas.com.br/crm/eventos?&tipo_evento=785,787,793,795,797,799{f'&search={search}' if search else ''}{f'&status={status}' if status else ''}{f'&limit={limit}' if limit else ''}{f'&current_page={current_page}' if current_page else ''}{f'&initial_date={initial_date}' if initial_date else ''}{f'&final_date={final_date}' if final_date else ''}{f'&search={search}' if search else ''}'
+        url = f"https://backend.caiuas.com.br/api/crm/eventos?&tipo_evento=785,787,793,795,797,799{f'&search={search}' if search else ''}{f'&status={status}' if status else ''}{f'&limit={limit}' if limit else ''}{f'&current_page={current_page}' if current_page else ''}{f'&initial_date={initial_date}' if initial_date else ''}{f'&final_date={final_date}' if final_date else ''}{f'&created_at_min={created_at_min}' if created_at_min else ''}{f'&created_at_max={created_at_max}' if created_at_max else ''}"
+        context['current_page'] = f'https://app.caiuas.com.br/crm/eventos?&tipo_evento=785,787,793,795,797,799{f'&search={search}' if search else ''}{f'&status={status}' if status else ''}{f'&limit={limit}' if limit else ''}{f'&current_page={current_page}' if current_page else ''}{f'&initial_date={initial_date}' if initial_date else ''}{f'&final_date={final_date}' if final_date else ''}{f'&created_at_min={created_at_min}' if created_at_min else ''}{f'&created_at_max={created_at_max}' if created_at_max else ''}'
         payload = {}
         headers = {
             "Authorization": f"Bearer {token}"
@@ -57,6 +59,8 @@ def eventos():
         search = request.args.get('search', None)
         responsible = request.args.get('responsible', None)
         limit = request.args.get('limit', None)
+        created_at_min = request.args.get('created_at_min', None)
+        created_at_max = request.args.get('created_at_max', None)
 
         query = f"""
             select u.id, u.name, email 
@@ -80,8 +84,8 @@ def eventos():
         
         token = session.get('token')
 
-        url = f"https://backend.caiuas.com.br/api/crm/eventos?&{f'&search={search}' if search else ''}{f'&status={status}' if status else ''}{f'&limit={limit}' if limit else ''}{f'&current_page={current_page}' if current_page else ''}{f'&initial_date={initial_date}' if initial_date else ''}{f'&final_date={final_date}' if final_date else ''}{f'&tipo_evento={tipo_evento}' if tipo_evento else ''}{f'&responsible={responsible}' if responsible else ''}"
-        context['current_page'] = f'https://app.caiuas.com.br/crm/eventos?&{f'&search={search}' if search else ''}{f'&status={status}' if status else ''}{f'&limit={limit}' if limit else ''}{f'&current_page={current_page}' if current_page else ''}{f'&initial_date={initial_date}' if initial_date else ''}{f'&final_date={final_date}' if final_date else ''}{f'&tipo_evento={tipo_evento}' if tipo_evento else ''}{f'&responsible={responsible}' if responsible else ''}'
+        url = f"https://backend.caiuas.com.br/api/crm/eventos?&{f'&search={search}' if search else ''}{f'&status={status}' if status else ''}{f'&limit={limit}' if limit else ''}{f'&current_page={current_page}' if current_page else ''}{f'&initial_date={initial_date}' if initial_date else ''}{f'&final_date={final_date}' if final_date else ''}{f'&tipo_evento={tipo_evento}' if tipo_evento else ''}{f'&responsible={responsible}' if responsible else ''}{f'&created_at_min={created_at_min}' if created_at_min else ''}{f'&created_at_max={created_at_max}' if created_at_max else ''}"
+        context['current_page'] = f'https://app.caiuas.com.br/crm/eventos?&{f'&search={search}' if search else ''}{f'&status={status}' if status else ''}{f'&limit={limit}' if limit else ''}{f'&current_page={current_page}' if current_page else ''}{f'&initial_date={initial_date}' if initial_date else ''}{f'&final_date={final_date}' if final_date else ''}{f'&tipo_evento={tipo_evento}' if tipo_evento else ''}{f'&responsible={responsible}' if responsible else ''}{f'&created_at_min={created_at_min}' if created_at_min else ''}{f'&created_at_max={created_at_max}' if created_at_max else ''}'
         payload = {}
         headers = {
             "Authorization": f"Bearer {token}"
