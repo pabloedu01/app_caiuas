@@ -94,6 +94,11 @@
                       data-phoenix-toggle="offcanvas" data-phoenix-target="#productFilterColumn"><span
                         class="fa-solid fa-bars"></span></button>
                   </div>
+                  <button id="btnRegistrarRetorno" class="btn btn-phoenix-secondary px-3 px-sm-5 me-2"
+                    {% if context.data.status not in ['E', 'D'] %}data-bs-toggle="modal" data-bs-target="#registrarRetornoModal"{% else %}disabled title="Evento encerrado ou descartado"{% endif %}>
+                    <span class="fa-solid fa-redo me-sm-2"></span>
+                    <span class="d-none d-sm-inline">Registrar retorno</span>
+                  </button>
                   <button id="btnRemarcarContato" class="btn btn-primary px-3 px-sm-5 me-2">
                     <span class="fa-solid fa-calendar-check me-sm-2"></span>
                     <span class="d-none d-sm-inline">Remarcar contato</span>
@@ -586,6 +591,49 @@
                   {% endif %}
                 </div>
               </div>
+
+              <!-- Card de Retornos de Contato -->
+              <div class="card mb-3">
+                <div class="card-body">
+                  <div class="d-flex align-items-center mb-3">
+                    <span class="me-2 uil uil-redo fs-5"></span>
+                    <h3 class="mb-0">Retornos à concessionária</h3>
+                  </div>
+                  {% if context.data.retornos and context.data.retornos|length > 0 %}
+                  <ul class="list-group list-group-flush">
+                    {% for retorno in context.data.retornos %}
+                    <li class="list-group-item px-0">
+                      <div class="d-flex align-items-center justify-content-between gap-2">
+                        <div class="d-flex align-items-start gap-2">
+                          <span class="uil uil-user-circle fs-7 text-primary mt-1"></span>
+                          <div>
+                            <div class="fw-semibold fs-9">{{ retorno.nome_completo or retorno.responsavel }}</div>
+                            <div class="text-body-secondary fs-10">
+                              {% if retorno.created_at %}
+                                {% set dt = retorno.created_at %}
+                                {{ dt[8:10] }}/{{ dt[5:7] }}/{{ dt[0:4] }} às {{ dt[11:16] }}
+                              {% endif %}
+                            </div>
+                          </div>
+                        </div>
+                        <button class="btn btn-sm btn-phoenix-danger btn-apagar-retorno" data-id-retorno="{{ retorno.id_retorno }}"
+                          {% if context.data.status in ['E', 'D'] %}disabled title="Evento encerrado ou descartado"{% else %}title="Apagar retorno"{% endif %}>
+                          <span class="fas fa-trash-alt"></span>
+                        </button>
+                      </div>
+                    </li>
+                    {% endfor %}
+                  </ul>
+                  {% else %}
+                  <div class="text-center py-4">
+                    <span class="uil uil-redo fa-2x text-secondary"></span>
+                    <p class="text-body-secondary mt-2 mb-0">Nenhum retorno de contato registrado.</p>
+                  </div>
+                  {% endif %}
+                </div>
+              </div>
+              <!-- Fim Card de Retornos -->
+
             </div>
             <div class="phoenix-offcanvas-backdrop d-lg-none top-0" data-phoenix-backdrop="data-phoenix-backdrop">
             </div>
@@ -813,6 +861,62 @@
         </div>
       </div>
     </div>
+
+    <!-- Modal Registrar Retorno -->
+    <div class="modal fade" id="registrarRetornoModal" tabindex="-1" aria-labelledby="registrarRetornoModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="registrarRetornoModalLabel">Registrar Retorno de Contato</h5>
+            <button class="btn btn-close p-1" type="button" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <div class="d-flex align-items-start gap-3">
+              <span class="fa-solid fa-circle-question text-warning fs-4 mt-1"></span>
+              <div>
+                <p class="mb-1 fw-semibold">Confirma visita do cliente para a data de hoje?</p>
+                <p class="text-body-secondary mb-0 fs-9">Ao confirmar, será registrado um retorno de contato para este evento.</p>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-phoenix-secondary" data-bs-dismiss="modal">Cancelar</button>
+            <button type="button" class="btn btn-primary" id="btnConfirmarRetorno">
+              <span class="fas fa-check me-2"></span>Confirmar
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- Fim Modal Registrar Retorno -->
+
+    <!-- Modal Confirmar Exclusão de Retorno -->
+    <div class="modal fade" id="apagarRetornoModal" tabindex="-1" aria-labelledby="apagarRetornoModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="apagarRetornoModalLabel">Apagar Retorno</h5>
+            <button class="btn btn-close p-1" type="button" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <div class="d-flex align-items-start gap-3">
+              <span class="fa-solid fa-triangle-exclamation text-danger fs-4 mt-1"></span>
+              <div>
+                <p class="mb-1 fw-semibold">Deseja apagar este retorno?</p>
+                <p class="text-body-secondary mb-0 fs-9">Esta ação não pode ser desfeita.</p>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-phoenix-secondary" data-bs-dismiss="modal">Cancelar</button>
+            <button type="button" class="btn btn-danger" id="btnConfirmarApagarRetorno">
+              <span class="fas fa-trash-alt me-2"></span>Apagar
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- Fim Modal Confirmar Exclusão de Retorno -->
 
     <!-- Modal de update para agendamento de visita -->
     <div class="modal fade" id="novoAgendamentoModal" tabindex="-1" aria-labelledby="novoAgendamentoModalLabel"
@@ -3576,6 +3680,90 @@
         const [y, m, d] = date.split('-');
         dataContatoElement.textContent = `${d}/${m}/${y} às ${time}`;
       }
+    }
+
+    // =================== APAGAR RETORNO ===================
+    let _retornoBtnOrigem = null;
+    const apagarRetornoModal = new bootstrap.Modal(document.getElementById('apagarRetornoModal'));
+
+    document.querySelectorAll('.btn-apagar-retorno').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        _retornoBtnOrigem = btn;
+        apagarRetornoModal.show();
+      });
+    });
+
+    document.getElementById('btnConfirmarApagarRetorno').addEventListener('click', async function () {
+      const btn = _retornoBtnOrigem;
+      if (!btn) return;
+      const idRetorno = btn.dataset.idRetorno;
+
+      apagarRetornoModal.hide();
+
+      const originalHTML = btn.innerHTML;
+      btn.disabled = true;
+      btn.innerHTML = `<span class="fas fa-spinner fa-spin"></span>`;
+
+      try {
+        const myHeaders = new Headers();
+        myHeaders.append('Authorization', `Bearer ${token}`);
+
+        const response = await fetch(
+          `https://backend.caiuas.com.br/api/crm/eventos_retorno/${idRetorno}`,
+          { method: 'DELETE', headers: myHeaders, redirect: 'follow' }
+        );
+
+        if (!response.ok) {
+          const errText = await response.text();
+          let errMsg = `Erro ${response.status}`;
+          try { errMsg = JSON.parse(errText).message || errMsg; } catch (_) { errMsg = errText || errMsg; }
+          throw new Error(errMsg);
+        }
+
+        window.showToast && window.showToast('Retorno apagado com sucesso!', 'success');
+        setTimeout(() => location.reload(), 800);
+      } catch (error) {
+        console.error('Erro ao apagar retorno:', error);
+        btn.disabled = false;
+        btn.innerHTML = originalHTML;
+        window.showToast && window.showToast(error.message || 'Erro ao apagar retorno', 'error');
+      }
+    });
+
+    // =================== REGISTRAR RETORNO ===================
+    const btnConfirmarRetorno = document.getElementById('btnConfirmarRetorno');
+    if (btnConfirmarRetorno) {
+      btnConfirmarRetorno.addEventListener('click', async function () {
+        const btn = this;
+        const originalHTML = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = `<span class="fas fa-spinner fa-spin me-2"></span>Registrando...`;
+
+        try {
+          const myHeaders = new Headers();
+          myHeaders.append('Authorization', `Bearer ${token}`);
+
+          const response = await fetch(
+            `https://backend.caiuas.com.br/api/crm/eventos_retorno/${codEvento}`,
+            { method: 'POST', headers: myHeaders, redirect: 'follow' }
+          );
+
+          if (!response.ok) {
+            const errText = await response.text();
+            let errMsg = `Erro ${response.status}`;
+            try { errMsg = JSON.parse(errText).message || errMsg; } catch (_) { errMsg = errText || errMsg; }
+            throw new Error(errMsg);
+          }
+
+          window.showToast && window.showToast('Retorno registrado com sucesso!', 'success');
+          setTimeout(() => location.reload(), 800);
+        } catch (error) {
+          console.error('Erro ao registrar retorno:', error);
+          btn.disabled = false;
+          btn.innerHTML = originalHTML;
+          window.showToast && window.showToast(error.message || 'Erro ao registrar retorno', 'error');
+        }
+      });
     }
 
     // Debug - verificar se elementos existem
