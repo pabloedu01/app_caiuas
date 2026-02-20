@@ -231,6 +231,43 @@
                             </div>
                         </div>
                     </div>
+                    <!-- Cards de resumo -->
+                    <div class="row g-2 mb-3">
+                        <div class="col-auto">
+                            <div class="card border border-danger-subtle shadow-none py-2 px-3" style="min-width:150px; cursor:pointer;" onclick="filtrarPorData('atrasados')" title="Ver eventos atrasados">
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="fas fa-clock text-danger fs-9"></span>
+                                    <div>
+                                        <div class="text-danger fw-semibold fs-8">{{ context.data.total_atrasados | default(0) }}</div>
+                                        <div class="text-muted" style="font-size:0.7rem;">Atrasados</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <div class="card border border-warning-subtle shadow-none py-2 px-3" style="min-width:150px; cursor:pointer;" onclick="filtrarPorData('hoje')" title="Ver eventos de hoje">
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="fas fa-calendar-day text-warning fs-9"></span>
+                                    <div>
+                                        <div class="text-warning fw-semibold fs-8">{{ context.data.total_hoje | default(0) }}</div>
+                                        <div class="text-muted" style="font-size:0.7rem;">Hoje</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <div class="card border border-success-subtle shadow-none py-2 px-3" style="min-width:150px; cursor:pointer;" onclick="filtrarPorData('futuros')" title="Ver eventos futuros">
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="fas fa-calendar-check text-success fs-9"></span>
+                                    <div>
+                                        <div class="text-success fw-semibold fs-8">{{ context.data.total_futuros | default(0) }}</div>
+                                        <div class="text-muted" style="font-size:0.7rem;">Futuros</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Fim Cards de resumo -->
                     <div class="table-responsive scrollbar mx-n1 px-1">
                         <table class="table fs-9 mb-0 leads-table border-top border-translucent">
                             <thead>
@@ -1755,6 +1792,42 @@
                 searchIcon.style.cursor = 'pointer';
             }
         });
+
+        function filtrarPorData(tipo) {
+            const params = new URLSearchParams(window.location.search);
+
+            // Remove parâmetros de data anteriores
+            params.delete('created_at_min');
+            params.delete('created_at_max');
+            params.delete('initial_date');
+            params.delete('final_date');
+
+            const hoje = new Date();
+            function toISO(date) {
+                const y = date.getFullYear();
+                const m = String(date.getMonth() + 1).padStart(2, '0');
+                const d = String(date.getDate()).padStart(2, '0');
+                return `${y}-${m}-${d}`;
+            }
+
+            const ontem = new Date(hoje); ontem.setDate(hoje.getDate() - 1);
+            const amanha = new Date(hoje); amanha.setDate(hoje.getDate() + 1);
+
+            if (tipo === 'atrasados') {
+                // Eventos atrasados: final_date = ontem
+                params.set('final_date', toISO(ontem));
+            } else if (tipo === 'hoje') {
+                // Eventos de hoje: initial_date e final_date = hoje
+                params.set('initial_date', toISO(hoje));
+                params.set('final_date', toISO(hoje));
+            } else if (tipo === 'futuros') {
+                // Eventos futuros: initial_date = amanhã
+                params.set('initial_date', toISO(amanha));
+            }
+
+            params.set('page', '1');
+            window.location.href = window.location.pathname + '?' + params.toString();
+        }
     </script>
 </body>
 
