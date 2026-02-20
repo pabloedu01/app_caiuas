@@ -128,10 +128,9 @@ def show_processos(id_processo):
         if response.status_code == 404 or not response.text:
             return render_template('404.html', error="Processo não encontrado")
         data = response.json()
-        return render_template('veiculos/processos_detalhe.html', context={
-            'data': data,
-            'title': "Detalhes do Processo"
-        })
+        context['token'] = token
+        context['data'] = data
+        return render_template('veiculos/processos_detalhe.html', context=context)
         
         
     except Exception as e:
