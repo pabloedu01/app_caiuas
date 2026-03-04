@@ -296,17 +296,19 @@
                     placeholder="Adicione uma observação sobre esta etapa..."
                   >{% if etapa.observacao %}{{ etapa.observacao }}{% endif %}</textarea>
                   <div class="d-flex flex-column justify-content-center gap-1">
-                    <input type="file" id="file-etapa-{{ etapa.id_etapa }}" class="d-none" accept=".png,.jpg,.jpeg,.pdf" multiple onchange="handleFileUpload({{ etapa.id_etapa }}, this)">
+                    <input type="file" id="file-etapa-{{ etapa.id_etapa }}" class="d-none" multiple onchange="handleFileUpload({{ etapa.id_etapa }}, this)">
                     <button type="button" class="btn btn-phoenix-primary h-100 px-3" onclick="document.getElementById('file-etapa-{{ etapa.id_etapa }}').click()" title="Enviar arquivos">
                       <span class="fas fa-cloud-upload-alt fa-lg"></span>
                     </button>
                   </div>
                   <div class="d-flex flex-column justify-content-center">
-                    <button type="button" class="btn btn-phoenix-secondary h-100 px-3 position-relative" onclick="verArquivos({{ etapa.id_etapa }})" title="Ver arquivos">
+                    <button type="button" class="btn btn-phoenix-secondary h-100 px-3 position-relative" onclick="verArquivos({{ etapa.id_etapa }}, '{{ etapa.nome_etapa }}')" title="Ver arquivos" id="btn-ver-arquivos-{{ etapa.id_etapa }}" data-arquivos='{{ etapa.arquivos | tojson }}'>
                       <span class="fas fa-folder-open fa-lg"></span>
+                      {% if etapa.arquivos and etapa.arquivos | length > 0 %}
                       <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.6rem;">
-                        {{ etapa.total_arquivos | default(0) }}
+                        {{ etapa.arquivos | length }}
                       </span>
+                      {% endif %}
                     </button>
                   </div>
                 </div>
@@ -370,6 +372,31 @@
               <button type="button" class="btn btn-primary" disabled>
                 <span class="fas fa-save me-1"></span>Salvar
               </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal Ver Arquivos -->
+      <div class="modal fade" id="modalArquivos" tabindex="-1" aria-labelledby="modalArquivosLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h6 class="modal-title" id="modalArquivosLabel">
+                <span class="fas fa-folder-open text-primary me-2"></span>
+                Arquivos - <span id="modalArquivosNomeEtapa"></span>
+              </h6>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+            </div>
+            <div class="modal-body">
+              <div id="modalArquivosLista"></div>
+              <div id="modalArquivosVazio" class="text-center py-4 d-none">
+                <span class="fas fa-folder-open fa-3x text-muted mb-3 d-block"></span>
+                <p class="text-muted mb-0">Nenhum arquivo enviado nesta etapa</p>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-sm btn-phoenix-secondary" data-bs-dismiss="modal">Fechar</button>
             </div>
           </div>
         </div>
@@ -472,62 +499,226 @@
         });
       }
 
-      // Upload de arquivos da etapa
-      function handleFileUpload(idEtapa, input) {
+      // Upload de arquivos da etapa com pré-assinatura S3
+      async function handleFileUpload(idEtapa, input) {
         if (!input.files || input.files.length === 0) return;
 
-        var files = input.files;
-        var formData = new FormData();
-        formData.append('id_etapa', idEtapa);
-
-        for (var i = 0; i < files.length; i++) {
-          formData.append('arquivos', files[i]);
-        }
-
-        // Feedback visual
+        var files = Array.from(input.files);
         var btn = input.nextElementSibling;
         var originalHtml = btn.innerHTML;
+        
         btn.disabled = true;
         btn.innerHTML = '<span class="fas fa-spinner fa-spin"></span>';
 
-        fetch('https://backend.caiuas.com.br/api/veiculos/processos/upload_etapa', {
-          method: 'POST',
-          headers: {
-            'Authorization': 'Bearer ' + token
-          },
-          body: formData
-        })
-        .then(function(response) {
-          if (!response.ok) throw new Error('Erro ' + response.status);
-          return response.json();
-        })
-        .then(function(data) {
+        var successCount = 0;
+        var errorCount = 0;
+        var novosArquivos = [];
+
+        for (var i = 0; i < files.length; i++) {
+          var file = files[i];
+          
+          try {
+            // 1. Gerar URL pré-assinada
+            var presignedResponse = await fetch('https://backend.caiuas.com.br/api/files/generate_presigned_url', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + token
+              },
+              body: JSON.stringify({
+                file_name: file.name,
+                file_size: file.size,
+                file_type: file.type || 'application/octet-stream'
+              })
+            });
+
+            if (!presignedResponse.ok) throw new Error('Erro ao gerar URL pré-assinada');
+            var presignedData = await presignedResponse.json();
+
+            // 2. Upload do arquivo para S3
+            var uploadResponse = await fetch(presignedData.presigned_url, {
+              method: 'PUT',
+              headers: {
+                'Content-Type': file.type || 'application/octet-stream'
+              },
+              body: file
+            });
+
+            if (!uploadResponse.ok) throw new Error('Erro no upload para S3');
+
+            // 3. Registrar arquivo no sistema
+            var registerResponse = await fetch('https://backend.caiuas.com.br/api/files/register_file_processos', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + token
+              },
+              body: JSON.stringify({
+                file_key: presignedData.key,
+                bucket: presignedData.bucket,
+                file_name: file.name,
+                old_file_name: file.name,
+                content_type: presignedData.content_type,
+                file_size: file.size,
+                region: presignedData.region,
+                id_etapa: idEtapa
+              })
+            });
+
+            if (!registerResponse.ok) throw new Error('Erro ao registrar arquivo');
+            
+            var registerData = await registerResponse.json();
+            
+            // Adicionar arquivo à lista de novos arquivos
+            novosArquivos.push({
+              id_file: registerData.id_file,
+              id_file_etapa: registerData.id_file_etapa || null,
+              file_key: registerData.file_key || presignedData.key,
+              old_file_name: file.name,
+              bucket: presignedData.bucket,
+              region: presignedData.region,
+              content_type: presignedData.content_type,
+              file_size: file.size,
+              created_at: registerData.created_at,
+              id_etapa: idEtapa
+            });
+            
+            successCount++;
+          } catch (error) {
+            console.error('Erro no upload do arquivo:', file.name, error);
+            errorCount++;
+          }
+        }
+
+        // Atualizar a lista de arquivos e o contador
+        if (novosArquivos.length > 0) {
+          atualizarListaArquivos(idEtapa, novosArquivos);
+        }
+
+        // Feedback final
+        if (errorCount === 0) {
           btn.innerHTML = '<span class="fas fa-check"></span>';
           btn.classList.add('btn-success');
-          setTimeout(function() {
-            btn.innerHTML = originalHtml;
-            btn.classList.remove('btn-success');
-            btn.disabled = false;
-          }, 2000);
-          // Limpar input
-          input.value = '';
-        })
-        .catch(function() {
+        } else if (successCount > 0) {
+          btn.innerHTML = '<span class="fas fa-exclamation"></span>';
+          btn.classList.add('btn-warning');
+        } else {
           btn.innerHTML = '<span class="fas fa-times"></span>';
           btn.classList.add('btn-danger');
-          setTimeout(function() {
-            btn.innerHTML = originalHtml;
-            btn.classList.remove('btn-danger');
-            btn.disabled = false;
-          }, 2500);
-          input.value = '';
-        });
+        }
+
+        setTimeout(function() {
+          btn.innerHTML = originalHtml;
+          btn.classList.remove('btn-success', 'btn-warning', 'btn-danger');
+          btn.disabled = false;
+        }, 2000);
+
+        input.value = '';
+      }
+
+      // Atualizar lista de arquivos e contador
+      function atualizarListaArquivos(idEtapa, novosArquivos) {
+        var btnVerArquivos = document.getElementById('btn-ver-arquivos-' + idEtapa);
+        if (!btnVerArquivos) return;
+        
+        // Pegar arquivos existentes
+        var arquivosAtuais = JSON.parse(btnVerArquivos.getAttribute('data-arquivos') || '[]');
+        
+        // Adicionar novos arquivos
+        arquivosAtuais = arquivosAtuais.concat(novosArquivos);
+        
+        // Atualizar o data-arquivos
+        btnVerArquivos.setAttribute('data-arquivos', JSON.stringify(arquivosAtuais));
+        
+        // Atualizar o contador (badge)
+        var badge = btnVerArquivos.querySelector('.badge');
+        if (badge) {
+          badge.textContent = arquivosAtuais.length;
+        } else {
+          // Criar badge se não existir
+          var newBadge = document.createElement('span');
+          newBadge.className = 'position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger';
+          newBadge.style.fontSize = '0.6rem';
+          newBadge.textContent = arquivosAtuais.length;
+          btnVerArquivos.appendChild(newBadge);
+        }
       }
 
       // Ver arquivos da etapa
-      function verArquivos(idEtapa) {
-        // TODO: Implementar modal ou página para visualizar arquivos
-        alert('Visualizar arquivos da etapa #' + idEtapa + ' - Em desenvolvimento');
+      function verArquivos(idEtapa, nomeEtapa) {
+        var btn = document.getElementById('btn-ver-arquivos-' + idEtapa);
+        var arquivos = JSON.parse(btn.getAttribute('data-arquivos') || '[]');
+        
+        document.getElementById('modalArquivosNomeEtapa').textContent = nomeEtapa;
+        var listaContainer = document.getElementById('modalArquivosLista');
+        var vazioContainer = document.getElementById('modalArquivosVazio');
+        
+        if (arquivos.length === 0) {
+          listaContainer.innerHTML = '';
+          listaContainer.classList.add('d-none');
+          vazioContainer.classList.remove('d-none');
+        } else {
+          vazioContainer.classList.add('d-none');
+          listaContainer.classList.remove('d-none');
+          
+          var html = '<div class="table-responsive"><table class="table table-sm table-hover mb-0">';
+          html += '<thead><tr><th>Arquivo</th><th>Tipo</th><th>Tamanho</th><th>Data</th></tr></thead><tbody>';
+          
+          arquivos.forEach(function(arq) {
+            var fileName = arq.old_file_name || arq.file_name || arq.file_key.split('/').pop();
+            var fileSize = formatFileSize(arq.file_size);
+            var fileDate = arq.created_at ? arq.created_at.split(' ')[0] : '-';
+            var fileIcon = getFileIcon(arq.content_type);
+            
+            html += '<tr style="cursor: pointer;" onclick="downloadArquivo(' + arq.id_file + ')" title="Clique para baixar">';
+            html += '<td><span class="' + fileIcon + ' me-2"></span>' + fileName + '</td>';
+            html += '<td><span class="badge bg-light text-dark">' + arq.content_type + '</span></td>';
+            html += '<td>' + fileSize + '</td>';
+            html += '<td>' + fileDate + '</td>';
+            html += '</tr>';
+          });
+          
+          html += '</tbody></table></div>';
+          listaContainer.innerHTML = html;
+        }
+        
+        var modal = new bootstrap.Modal(document.getElementById('modalArquivos'));
+        modal.show();
+      }
+      
+      function formatFileSize(bytes) {
+        if (bytes === 0) return '0 Bytes';
+        var k = 1024;
+        var sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        var i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+      }
+      
+      function getFileIcon(contentType) {
+        if (contentType.startsWith('image/')) return 'fas fa-file-image text-success';
+        if (contentType === 'application/pdf') return 'fas fa-file-pdf text-danger';
+        if (contentType.includes('word')) return 'fas fa-file-word text-primary';
+        if (contentType.includes('excel') || contentType.includes('spreadsheet')) return 'fas fa-file-excel text-success';
+        return 'fas fa-file text-secondary';
+      }
+      
+      async function downloadArquivo(idFile) {
+        try {
+          var response = await fetch('https://backend.caiuas.com.br/api/files/download/' + idFile, {
+            method: 'GET',
+            headers: {
+              'Authorization': 'Bearer ' + token
+            }
+          });
+          
+          if (!response.ok) throw new Error('Erro ao obter URL de download');
+          var data = await response.json();
+          
+          window.open(data.presigned_url, '_blank');
+        } catch (error) {
+          console.error('Erro no download:', error);
+          alert('Erro ao baixar arquivo');
+        }
       }
     </script>
 
