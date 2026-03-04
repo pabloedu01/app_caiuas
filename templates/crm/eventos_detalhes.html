@@ -367,6 +367,27 @@
                   </div>
 
                   <div class="mb-4">
+                    <div class="d-flex align-items-center mb-1"><span class="me-2 uil uil-car"></span>
+                      <h5 class="text-body-highlight mb-0">Tem Test Drive ?</h5>
+                    </div>
+                    {% if context.data.tem_test_drive == 'TEM' %}
+                    <span class="badge badge-phoenix fs-10 badge-phoenix-success" id="testDriveBadge">
+                      <span class="fw-bold">Sim</span>
+                      <span class="ms-1 fas fa-check"></span>
+                    </span>
+                    {% else %}
+                    <span class="badge badge-phoenix fs-10 badge-phoenix-secondary" id="testDriveBadge">
+                      <span class="fw-bold">Não</span>
+                      <span class="ms-1 fas fa-times"></span>
+                    </span>
+                    {% endif %}
+                    <button class="btn btn-link p-0 ms-2" type="button" data-bs-toggle="modal"
+                      data-bs-target="#editTestDriveModal" title="Alterar test drive">
+                      <span class="fas fa-edit fs-10 text-body-tertiary"></span>
+                    </button>
+                  </div>
+
+                  <div class="mb-4">
                     <div class="d-flex align-items-center mb-1"><span class="me-2 uil uil-check-circle"></span>
                       <h5 class="text-body-highlight mb-0">Status do evento</h5>
                     </div>
@@ -1055,6 +1076,34 @@
                 <label for="andamentoSelect" class="form-label">Novo andamento</label>
                 <select class="form-select" id="andamentoSelect" name="andamento" required>
                   <option value="">Carregando...</option>
+                </select>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button class="btn btn-primary" type="submit">Salvar</button>
+              <button class="btn btn-outline-primary" type="button" data-bs-dismiss="modal">Cancelar</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- modal para troca de test drive -->
+    <div class="modal fade" id="editTestDriveModal" tabindex="-1" aria-labelledby="editTestDriveModalLabel"
+      aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <form id="editTestDriveForm">
+            <div class="modal-header">
+              <h5 class="modal-title" id="editTestDriveModalLabel">Alterar Test Drive</h5>
+              <button class="btn btn-close p-1" type="button" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <div class="mb-3">
+                <label for="testDriveSelect" class="form-label">Tem Test Drive?</label>
+                <select class="form-select" id="testDriveSelect" name="tem_test_drive" required>
+                  <option value="SIM">Sim</option>
+                  <option value="NÃO">Não</option>
                 </select>
               </div>
             </div>
@@ -2588,6 +2637,69 @@
       const andamentoSelect = document.getElementById('andamentoSelect');
       const editAndamentoForm = document.getElementById('editAndamentoForm');
 
+      // =================== TROCA DE TEST DRIVE ===================
+      const testDriveModal = new bootstrap.Modal(document.getElementById('editTestDriveModal'));
+      const testDriveSelect = document.getElementById('testDriveSelect');
+      const editTestDriveForm = document.getElementById('editTestDriveForm');
+
+      // Abrir modal e selecionar valor atual
+      document.querySelector('[data-bs-target="#editTestDriveModal"]').addEventListener('click', function () {
+        const atual = '{{ context.data.tem_test_drive|default("NÃO") }}';
+        Array.from(testDriveSelect.options).forEach(opt => {
+          opt.selected = opt.value === atual;
+        });
+        testDriveModal.show();
+      });
+
+      // Submeter alteração de test drive
+      editTestDriveForm.addEventListener('submit', async function (e) {
+        e.preventDefault();
+        if (!verificarPermissaoEdicao('alterar test drive')) return;
+
+        const btn = e.submitter;
+        const originalHTML = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = `<span class="fas fa-spinner fa-spin"></span> Salvando...`;
+
+        try {
+          const temTestDrive = testDriveSelect.value;
+          const payload = { tem_test_drive: temTestDrive };
+          const response = await fetch(
+            `https://backend.caiuas.com.br/api/crm/eventos/muda_test_drive/${codEvento}`,
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${token}`
+              },
+              body: JSON.stringify(payload),
+              redirect: "follow"
+            }
+          );
+
+          let result;
+          try {
+            result = await response.json();
+          } catch {
+            result = { message: await response.text() };
+          }
+
+          if (!response.ok) {
+            throw new Error(result.message || 'Erro ao alterar test drive.');
+          }
+
+          if (window.showToast) window.showToast('Test Drive alterado com sucesso!', 'success');
+          testDriveModal.hide();
+          setTimeout(() => window.location.reload(), 500);
+        } catch (err) {
+          console.error('Erro ao alterar test drive:', err);
+          if (window.showToast) window.showToast(err.message || 'Erro ao alterar test drive.', 'error');
+        } finally {
+          btn.disabled = false;
+          btn.innerHTML = originalHTML;
+        }
+      });
+
       // =================== TROCA DE TEMPERATURA ===================
       const temperaturaModal = new bootstrap.Modal(document.getElementById('editTemperaturaModal'));
       const temperaturaSelect = document.getElementById('temperaturaSelect');
@@ -3630,6 +3742,7 @@
         '#editMidiaModal',
         '#editAndamentoModal',
         '#editTemperaturaModal',
+        '#editTestDriveModal',
       ];
       editModalTargets.forEach(target => {
         document.querySelectorAll(`[data-bs-target="${target}"]`).forEach(btn => {
