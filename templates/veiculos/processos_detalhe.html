@@ -219,10 +219,20 @@
                 </button>
                 {% endif %}
               </div>
-              <!-- Status mockup: pendente por padrão -->
+              <!-- Status da etapa -->
+              {% if etapa.status == 'Autorizado' %}
+              <span class="badge badge-phoenix badge-phoenix-success etapa-badge">
+                <span class="fas fa-check me-1"></span>Autorizado
+              </span>
+              {% elif etapa.status == 'Reprovado' %}
+              <span class="badge badge-phoenix badge-phoenix-danger etapa-badge">
+                <span class="fas fa-times me-1"></span>Reprovado
+              </span>
+              {% else %}
               <span class="badge badge-phoenix badge-phoenix-warning etapa-badge">
                 <span class="fas fa-clock me-1"></span>Pendente
               </span>
+              {% endif %}
             </div>
 
             <div class="card-body d-flex flex-column gap-3">
@@ -233,12 +243,28 @@
                 <p class="info-label mb-2"><span class="fas fa-users me-1"></span>Autorizadores</p>
                 <div class="d-flex flex-column gap-2">
                   {% for aut in etapa.autorizadores %}
+                  {% if aut.status == 'Autorizado' %}
+                  <div class="d-flex align-items-center justify-content-between px-2 py-2 rounded" style="background: rgba(25, 135, 84, 0.1); border: 1px solid rgba(25, 135, 84, 0.3);">
+                  {% elif aut.status == 'Reprovado' %}
+                  <div class="d-flex align-items-center justify-content-between px-2 py-2 rounded" style="background: rgba(220, 53, 69, 0.1); border: 1px solid rgba(220, 53, 69, 0.3);">
+                  {% else %}
                   <div class="d-flex align-items-center justify-content-between px-2 py-2 rounded" style="background: var(--phoenix-body-bg); border: 1px solid var(--phoenix-border-color);">
+                  {% endif %}
                     <div class="d-flex align-items-center gap-2">
                       <div class="avatar avatar-s">
+                        {% if aut.status == 'Autorizado' %}
+                        <div class="avatar-name rounded-circle" style="background: rgba(25, 135, 84, 0.2);">
+                          <span class="text-success fw-bold" style="font-size: 0.65rem;">{{ aut.nome_completo[:2] | upper }}</span>
+                        </div>
+                        {% elif aut.status == 'Reprovado' %}
+                        <div class="avatar-name rounded-circle" style="background: rgba(220, 53, 69, 0.2);">
+                          <span class="text-danger fw-bold" style="font-size: 0.65rem;">{{ aut.nome_completo[:2] | upper }}</span>
+                        </div>
+                        {% else %}
                         <div class="avatar-name rounded-circle bg-primary bg-opacity-10">
                           <span class="text-primary fw-bold" style="font-size: 0.65rem;">{{ aut.nome_completo[:2] | upper }}</span>
                         </div>
+                        {% endif %}
                       </div>
                       <div>
                         <p class="mb-0 fw-semibold" style="font-size: 0.8rem; line-height: 1.2;">{{ aut.nome_completo }}</p>
@@ -247,33 +273,18 @@
                     </div>
                     {% if aut.status == 'Autorizado' %}
                       <div class="text-end">
-                        <span class="badge badge-phoenix badge-phoenix-success d-block mb-1" style="font-size: 0.6rem;">
-                          <span class="fas fa-check me-1"></span>{{ aut.status }}
-                        </span>
-                        {% if aut.updated_at %}
-                        <span class="text-body-tertiary" style="font-size: 0.65rem;">
-                          <span class="fas fa-calendar-check me-1"></span>{{ aut.updated_at | replace('T', ' ') }}
-                        </span>
-                        {% endif %}
+                        <button class="btn btn-sm btn-phoenix-danger py-0 px-2" type="button" style="font-size: 0.65rem;" onclick="toggleAutorizacao({{ etapa.id_etapa }}, '{{ aut.usuario_nbs }}', this)">
+                          <span class="fas fa-times me-1"></span>Remover
+                        </button>
                       </div>
                     {% elif aut.status == 'Reprovado' %}
                       <div class="text-end">
-                        <span class="badge badge-phoenix badge-phoenix-danger d-block mb-1" style="font-size: 0.6rem;">
-                          <span class="fas fa-times me-1"></span>{{ aut.status }}
-                        </span>
-                        {% if aut.updated_at %}
-                        <span class="text-body-tertiary" style="font-size: 0.65rem;">
-                          <span class="fas fa-calendar-times me-1"></span>{{ aut.updated_at | replace('T', ' ') }}
-                        </span>
-                        {% endif %}
+                        <span class="text-danger" style="font-size: 0.7rem;"><span class="fas fa-ban me-1"></span>Reprovado</span>
                       </div>
                     {% else %}
                       <div class="text-end">
-                        <span class="badge badge-phoenix badge-phoenix-warning d-block mb-1" style="font-size: 0.6rem;">
-                          <span class="fas fa-clock me-1"></span>{{ aut.status }}
-                        </span>
-                        <button class="btn btn-sm btn-phoenix-success py-0 px-2" type="button" style="font-size: 0.65rem;">
-                          Confirmar
+                        <button class="btn btn-sm btn-phoenix-success py-0 px-2" type="button" style="font-size: 0.65rem;" onclick="toggleAutorizacao({{ etapa.id_etapa }}, '{{ aut.usuario_nbs }}', this)">
+                          <span class="fas fa-check me-1"></span>Confirmar
                         </button>
                       </div>
                     {% endif %}
@@ -294,10 +305,11 @@
                     id="obs-etapa-{{ etapa.id_etapa }}"
                     rows="2"
                     placeholder="Adicione uma observação sobre esta etapa..."
+                    {% if etapa.status == 'Autorizado' %}disabled{% endif %}
                   >{% if etapa.observacao %}{{ etapa.observacao }}{% endif %}</textarea>
                   <div class="d-flex flex-column justify-content-center gap-1">
-                    <input type="file" id="file-etapa-{{ etapa.id_etapa }}" class="d-none" multiple onchange="handleFileUpload({{ etapa.id_etapa }}, this)">
-                    <button type="button" class="btn btn-phoenix-primary h-100 px-3" onclick="document.getElementById('file-etapa-{{ etapa.id_etapa }}').click()" title="Enviar arquivos">
+                    <input type="file" id="file-etapa-{{ etapa.id_etapa }}" class="d-none" multiple onchange="handleFileUpload({{ etapa.id_etapa }}, this)" {% if etapa.status == 'Autorizado' %}disabled{% endif %}>
+                    <button type="button" class="btn btn-phoenix-primary h-100 px-3" onclick="document.getElementById('file-etapa-{{ etapa.id_etapa }}').click()" title="Enviar arquivos" {% if etapa.status == 'Autorizado' %}disabled{% endif %}>
                       <span class="fas fa-cloud-upload-alt fa-lg"></span>
                     </button>
                   </div>
@@ -319,7 +331,8 @@
             <div class="card-footer py-3 d-flex gap-2 justify-content-end">
               <button class="btn btn-sm btn-primary" type="button"
                 id="btn-salvar-{{ etapa.id_etapa }}"
-                onclick="salvarObservacao({{ etapa.id_etapa }}, this)">
+                onclick="salvarObservacao({{ etapa.id_etapa }}, this)"
+                {% if etapa.status == 'Autorizado' %}disabled{% endif %}>
                 <span class="fas fa-save me-1"></span>Salvar
               </button>
             </div>
@@ -416,6 +429,28 @@
             <div class="modal-body fs-9" id="modalExplicacaoTexto" style="white-space: pre-wrap;"></div>
             <div class="modal-footer">
               <button type="button" class="btn btn-sm btn-phoenix-secondary" data-bs-dismiss="modal">Fechar</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal Confirmação -->
+      <div class="modal fade" id="modalConfirmacao" tabindex="-1" aria-labelledby="modalConfirmacaoLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-sm">
+          <div class="modal-content">
+            <div class="modal-header border-0 pb-0">
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+            </div>
+            <div class="modal-body text-center pt-0">
+              <div class="mb-3">
+                <span class="fas fa-exclamation-triangle fa-3x text-warning"></span>
+              </div>
+              <h5 class="mb-2" id="modalConfirmacaoTitulo">Confirmar ação</h5>
+              <p class="text-muted mb-0" id="modalConfirmacaoMensagem">Deseja realmente realizar esta ação?</p>
+            </div>
+            <div class="modal-footer border-0 justify-content-center pt-0">
+              <button type="button" class="btn btn-phoenix-secondary" data-bs-dismiss="modal">Cancelar</button>
+              <button type="button" class="btn btn-danger" id="modalConfirmacaoBtnConfirmar">Confirmar</button>
             </div>
           </div>
         </div>
@@ -717,8 +752,88 @@
           window.open(data.presigned_url, '_blank');
         } catch (error) {
           console.error('Erro no download:', error);
-          alert('Erro ao baixar arquivo');
+          showToast('Erro ao baixar arquivo', 'error');
         }
+      }
+
+      // Toggle autorização (confirmar ou remover)
+      async function toggleAutorizacao(idEtapa, usuarioNbs, btn) {
+        var originalHtml = btn.innerHTML;
+        var isRemover = btn.classList.contains('btn-phoenix-danger');
+        
+        // Pedir confirmação se for remover autorização
+        if (isRemover) {
+          showConfirmModal(
+            'Remover Autorização',
+            'Deseja realmente remover a autorização desta etapa?',
+            function() {
+              executarAutorizacao(idEtapa, usuarioNbs, btn, originalHtml, true);
+            }
+          );
+          return;
+        }
+        
+        executarAutorizacao(idEtapa, usuarioNbs, btn, originalHtml, false);
+      }
+      
+      async function executarAutorizacao(idEtapa, usuarioNbs, btn, originalHtml, isRemover) {
+        btn.disabled = true;
+        btn.innerHTML = '<span class="fas fa-spinner fa-spin"></span>';
+
+        try {
+          var bodyData = {
+            id_etapa: idEtapa,
+            usuario_nbs: usuarioNbs
+          };
+          
+          // Adicionar remove_status se for remoção
+          if (isRemover) {
+            bodyData.remove_status = true;
+          }
+          
+          var response = await fetch('https://backend.caiuas.com.br/api/veiculos/processos/autorizar', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': 'Bearer ' + token
+            },
+            body: JSON.stringify(bodyData)
+          });
+
+          var data = await response.json();
+          
+          if (!response.ok || data.status === 'error') {
+            throw new Error(data.message || 'Erro na requisição');
+          }
+
+          // Recarregar a página para atualizar o status
+          window.location.reload();
+        } catch (error) {
+          console.error('Erro na autorização:', error);
+          btn.innerHTML = originalHtml;
+          btn.disabled = false;
+          showToast(error.message || 'Erro ao processar autorização', 'error');
+        }
+      }
+      
+      // Função para mostrar modal de confirmação
+      function showConfirmModal(titulo, mensagem, onConfirm) {
+        document.getElementById('modalConfirmacaoTitulo').textContent = titulo;
+        document.getElementById('modalConfirmacaoMensagem').textContent = mensagem;
+        
+        var btnConfirmar = document.getElementById('modalConfirmacaoBtnConfirmar');
+        var modal = new bootstrap.Modal(document.getElementById('modalConfirmacao'));
+        
+        // Remover listeners anteriores
+        var newBtn = btnConfirmar.cloneNode(true);
+        btnConfirmar.parentNode.replaceChild(newBtn, btnConfirmar);
+        
+        newBtn.addEventListener('click', function() {
+          modal.hide();
+          onConfirm();
+        });
+        
+        modal.show();
       }
     </script>
 
