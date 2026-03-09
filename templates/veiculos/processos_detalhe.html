@@ -114,7 +114,17 @@
             Criado em {{ context.data.created_at | replace('T', ' ') }}
           </span>
         </div>
-        <div class="col-auto">
+        <div class="col-auto d-flex align-items-center gap-2">
+          {% if context.data.status == 'Pendente' %}
+          <button type="button" class="btn btn-phoenix-success btn-sm" onclick="finalizarProcesso()">
+            <span class="fas fa-check me-1"></span>Finalizar
+          </button>
+          {% endif %}
+          {% if context.data.status != 'Pendente' %}
+          <button type="button" class="btn btn-phoenix-warning btn-sm" onclick="reabrirProcesso()">
+            <span class="fas fa-redo me-1"></span>Reabrir Processo
+          </button>
+          {% endif %}
           {% if context.data.status == 'Pendente' %}
             <span class="badge badge-phoenix badge-phoenix-warning fs-9">
               <span class="fas fa-clock me-1"></span>{{ context.data.status }}
@@ -161,16 +171,21 @@
               <p class="info-label mb-1"><span class="fas fa-user-tie me-1"></span>Responsável</p>
               <p class="info-value mb-0">{{ context.data.responsible.nome_responsavel }}</p>
               <p class="mb-0 text-body-tertiary fs-9">{{ context.data.responsible.cod_responsavel }}</p>
+              <p class="info-label mb-1 mt-2"><span class="fas fa-file-alt me-1"></span>Proposta</p>
+              <div class="d-flex align-items-center gap-2">
+                <span class="info-value mb-0" id="valorProposta">{{ context.data.cod_proposta or '-' }}</span>
+                {% if context.data.status != 'Autorizado' %}
+                <button type="button" class="btn btn-sm btn-phoenix-primary p-1 lh-1" onclick="alterarProposta()" title="Alterar Proposta" style="font-size: 0.7rem;">
+                  <span class="fas fa-edit"></span>
+                </button>
+                {% endif %}
+              </div>
             </div>
 
-            <!-- Tipo / Proposta -->
+            <!-- Tipo -->
             <div class="col-12 col-md-3">
               <p class="info-label mb-1"><span class="fas fa-tag me-1"></span>Tipo</p>
               <p class="info-value mb-1">{{ context.data.tipo_descricao }}</p>
-              {% if context.data.cod_proposta %}
-                <p class="info-label mb-1 mt-2"><span class="fas fa-file-alt me-1"></span>Proposta</p>
-                <p class="info-value mb-0">{{ context.data.cod_proposta }}</p>
-              {% endif %}
             </div>
 
             <!-- Datas -->
@@ -451,6 +466,75 @@
             <div class="modal-footer border-0 justify-content-center pt-0">
               <button type="button" class="btn btn-phoenix-secondary" data-bs-dismiss="modal">Cancelar</button>
               <button type="button" class="btn btn-danger" id="modalConfirmacaoBtnConfirmar">Confirmar</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal Buscar Proposta -->
+      <div class="modal fade" id="modalBuscarProposta" tabindex="-1" aria-labelledby="modalBuscarPropostaLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h6 class="modal-title" id="modalBuscarPropostaLabel">
+                <span class="fas fa-search text-primary me-2"></span>Buscar Proposta
+              </h6>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+            </div>
+            <div class="modal-body">
+              <div class="row g-3 mb-3">
+                <div class="col-md-4">
+                  <label class="form-label fw-semibold" for="buscaCodCliente">Código do Cliente</label>
+                  <input type="text" class="form-control" id="buscaCodCliente" placeholder="Ex: 7494482881" readonly style="background-color: #e9ecef;">
+                </div>
+                <div class="col-md-4">
+                  <label class="form-label fw-semibold" for="buscaNomeCliente">Nome do Cliente</label>
+                  <input type="text" class="form-control" id="buscaNomeCliente" placeholder="Digite o nome...">
+                </div>
+                <div class="col-md-4">
+                  <label class="form-label fw-semibold" for="buscaCodProposta">Código da Proposta</label>
+                  <input type="text" class="form-control" id="buscaCodProposta" placeholder="Ex: 110066900">
+                </div>
+              </div>
+              <div class="d-flex justify-content-end mb-3">
+                <button type="button" class="btn btn-primary" onclick="buscarPropostas()">
+                  <span class="fas fa-search me-1"></span>Buscar
+                </button>
+              </div>
+              <div id="tabelaPropostasContainer">
+                <div id="tabelaPropostasVazio" class="text-center py-4">
+                  <span class="fas fa-file-alt fa-3x text-muted mb-3 d-block"></span>
+                  <p class="text-muted mb-0">Utilize os filtros acima para buscar propostas</p>
+                </div>
+                <div id="tabelaPropostasLoading" class="text-center py-4 d-none">
+                  <span class="fas fa-spinner fa-spin fa-2x text-primary mb-3 d-block"></span>
+                  <p class="text-muted mb-0">Buscando propostas...</p>
+                </div>
+                <div id="tabelaPropostas" class="d-none">
+                  <div class="table-responsive">
+                    <table class="table table-sm table-hover mb-0">
+                      <thead>
+                        <tr>
+                          <th></th>
+                          <th>Código Proposta</th>
+                          <th>Cliente</th>
+                          <th>Modelo</th>
+                          <th>Valor</th>
+                          <th>Emissão</th>
+                          <th>Processo</th>
+                        </tr>
+                      </thead>
+                      <tbody id="tabelaPropostasBody"></tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-phoenix-secondary" data-bs-dismiss="modal">Cancelar</button>
+              <button type="button" class="btn btn-primary" id="btnSalvarProposta" onclick="salvarPropostaSelecionada()" disabled>
+                <span class="fas fa-save me-1"></span>Salvar
+              </button>
             </div>
           </div>
         </div>
@@ -834,6 +918,222 @@
         });
         
         modal.show();
+      }
+
+      // Finalizar processo
+      function finalizarProcesso() {
+        showConfirmModal(
+          'Finalizar Processo',
+          'Deseja realmente finalizar este processo?',
+          function() {
+            fetch('https://backend.caiuas.com.br/api/veiculos/processos/{{ context.data.id_processo }}/finalizar', {
+              method: 'PUT',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + token
+              },
+              body: JSON.stringify({
+                cod_cliente: '{{ context.data.cliente.cod_cliente }}',
+                cod_proposta: document.getElementById('valorProposta').textContent === '-' ? '' : document.getElementById('valorProposta').textContent
+              })
+            })
+            .then(function(response) {
+              return response.json().then(function(data) {
+                if (!response.ok || data.status === 'error') {
+                  throw new Error(data.message || 'Erro ' + response.status);
+                }
+                return data;
+              });
+            })
+            .then(function(data) {
+              showToast('Processo finalizado com sucesso!', 'success');
+              window.location.reload();
+            })
+            .catch(function(error) {
+              showToast('Erro ao finalizar processo: ' + error.message, 'error');
+            });
+          }
+        );
+      }
+
+      // Reabrir processo
+      function reabrirProcesso() {
+        showConfirmModal(
+          'Reabrir Processo',
+          'Deseja realmente reabrir este processo? Todas as etapas serão reabertas.',
+          function() {
+            fetch('https://backend.caiuas.com.br/api/veiculos/processos/{{ context.data.id_processo }}/reabre', {
+              method: 'PUT',
+              headers: {
+                'Authorization': 'Bearer ' + token
+              }
+            })
+            .then(function(response) {
+              return response.json().then(function(data) {
+                if (!response.ok || data.status === 'error') {
+                  throw new Error(data.message || 'Erro ' + response.status);
+                }
+                return data;
+              });
+            })
+            .then(function(data) {
+              showToast('Processo reaberto com sucesso!', 'success');
+              window.location.reload();
+            })
+            .catch(function(error) {
+              showToast('Erro ao reabrir processo: ' + error.message, 'error');
+            });
+          }
+        );
+      }
+
+      // Alterar proposta - abre modal de busca
+      var propostaSelecionada = null;
+      var modalBuscarProposta = null;
+
+      function alterarProposta() {
+        propostaSelecionada = null;
+        document.getElementById('buscaCodCliente').value = '{{ context.data.cliente.cod_cliente }}';
+        document.getElementById('buscaNomeCliente').value = '';
+        document.getElementById('buscaCodProposta').value = '';
+        document.getElementById('tabelaPropostasVazio').classList.remove('d-none');
+        document.getElementById('tabelaPropostasLoading').classList.add('d-none');
+        document.getElementById('tabelaPropostas').classList.add('d-none');
+        document.getElementById('btnSalvarProposta').disabled = true;
+        
+        modalBuscarProposta = new bootstrap.Modal(document.getElementById('modalBuscarProposta'));
+        modalBuscarProposta.show();
+      }
+
+      // Buscar propostas na API
+      function buscarPropostas() {
+        var codCliente = document.getElementById('buscaCodCliente').value.trim();
+        var nomeCliente = document.getElementById('buscaNomeCliente').value.trim();
+        var codProposta = document.getElementById('buscaCodProposta').value.trim();
+
+        // Montar query string
+        var params = new URLSearchParams();
+        if (codCliente) params.append('cod_cliente', codCliente);
+        if (nomeCliente) params.append('search', nomeCliente);
+        if (codProposta) params.append('cod_proposta', codProposta);
+
+        // Mostrar loading
+        document.getElementById('tabelaPropostasVazio').classList.add('d-none');
+        document.getElementById('tabelaPropostasLoading').classList.remove('d-none');
+        document.getElementById('tabelaPropostas').classList.add('d-none');
+
+        fetch('https://backend.caiuas.com.br/api/veiculos/propostas?' + params.toString(), {
+          method: 'GET',
+          headers: {
+            'Authorization': 'Bearer ' + token
+          }
+        })
+        .then(function(response) {
+          if (!response.ok) throw new Error('Erro ' + response.status);
+          return response.text();
+        })
+        .then(function(text) {
+          if (!text || text.trim() === '') {
+            return { propostas: [] };
+          }
+          return JSON.parse(text);
+        })
+        .then(function(data) {
+          document.getElementById('tabelaPropostasLoading').classList.add('d-none');
+          
+          if (!data.propostas || data.propostas.length === 0) {
+            document.getElementById('tabelaPropostasVazio').classList.remove('d-none');
+            document.getElementById('tabelaPropostasVazio').innerHTML = '<span class="fas fa-search fa-3x text-muted mb-3 d-block"></span><p class="text-muted mb-0">Nenhuma proposta encontrada</p>';
+            return;
+          }
+
+          // Preencher tabela
+          var tbody = document.getElementById('tabelaPropostasBody');
+          tbody.innerHTML = '';
+          
+          data.propostas.forEach(function(proposta) {
+            var tr = document.createElement('tr');
+            tr.style.cursor = 'pointer';
+            tr.onclick = function() { selecionarProposta(proposta.cod_proposta, tr); };
+            var processoLink = proposta.id_processo 
+              ? '<a href="https://app.caiuas.com.br/veiculos/processos/' + proposta.id_processo + '" target="_blank" onclick="event.stopPropagation();" class="btn btn-sm btn-phoenix-primary p-1"><span class="fas fa-external-link-alt"></span> ' + proposta.id_processo + '</a>' 
+              : '-';
+            tr.innerHTML = '<td><input type="radio" name="propostaSelecionada" value="' + proposta.cod_proposta + '"></td>' +
+              '<td><strong>' + proposta.cod_proposta + '</strong></td>' +
+              '<td>' + (proposta.nome_cliente || '-') + '</td>' +
+              '<td>' + (proposta.descricao_modelo || '-') + '</td>' +
+              '<td>' + (proposta.valor_proposta ? 'R$ ' + proposta.valor_proposta.toLocaleString('pt-BR', {minimumFractionDigits: 2}) : '-') + '</td>' +
+              '<td>' + (proposta.emissao ? proposta.emissao.split(' ')[0] : '-') + '</td>' +
+              '<td>' + processoLink + '</td>';
+            tbody.appendChild(tr);
+          });
+
+          document.getElementById('tabelaPropostas').classList.remove('d-none');
+        })
+        .catch(function(error) {
+          document.getElementById('tabelaPropostasLoading').classList.add('d-none');
+          document.getElementById('tabelaPropostasVazio').classList.remove('d-none');
+          document.getElementById('tabelaPropostasVazio').innerHTML = '<span class="fas fa-exclamation-triangle fa-3x text-danger mb-3 d-block"></span><p class="text-danger mb-0">Erro ao buscar propostas: ' + error.message + '</p>';
+        });
+      }
+
+      // Selecionar proposta na tabela
+      function selecionarProposta(codProposta, tr) {
+        propostaSelecionada = codProposta;
+        
+        // Desmarcar todas as linhas
+        var rows = document.querySelectorAll('#tabelaPropostasBody tr');
+        rows.forEach(function(row) {
+          row.classList.remove('table-primary');
+          row.querySelector('input[type="radio"]').checked = false;
+        });
+        
+        // Marcar linha selecionada
+        tr.classList.add('table-primary');
+        tr.querySelector('input[type="radio"]').checked = true;
+        
+        // Habilitar botão salvar
+        document.getElementById('btnSalvarProposta').disabled = false;
+      }
+
+      // Salvar proposta selecionada
+      function salvarPropostaSelecionada() {
+        if (!propostaSelecionada) {
+          showToast('Selecione uma proposta', 'warning');
+          return;
+        }
+
+        var btn = document.getElementById('btnSalvarProposta');
+        var originalHtml = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<span class="fas fa-spinner fa-spin me-1"></span>Salvando...';
+
+        fetch('https://backend.caiuas.com.br/api/veiculos/processos/{{ context.data.id_processo }}/proposta', {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + token
+          },
+          body: JSON.stringify({ cod_proposta: propostaSelecionada })
+        })
+        .then(function(response) {
+          return response.json().then(function(data) {
+            if (!response.ok || data.status === 'error') {
+              throw new Error(data.message || 'Erro ' + response.status);
+            }
+            return data;
+          });
+        })
+        .then(function(data) {
+          document.getElementById('valorProposta').textContent = propostaSelecionada;
+          showToast('Proposta atualizada com sucesso!', 'success');
+          modalBuscarProposta.hide();
+        })
+        .catch(function(error) {
+          showToast('Erro ao atualizar proposta: ' + error.message, 'error');
+          btn.innerHTML = originalHtml;
+          btn.disabled = false;
+        });
       }
     </script>
 
