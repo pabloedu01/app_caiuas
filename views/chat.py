@@ -639,21 +639,12 @@ def api_update_chatbot_information(id_bot):
 @chat_bp.route('/api/webhookwhatsapp', methods=['POST'])
 def webhook_whatsapp():
     try:
-        # date em formato iso
         now = datetime.now()
         formatted_date = now.strftime('%Y-%m-%dT%H:%M:%S')
         
         payload = request.get_json()
-        # with open(f"{formatted_date}_webhookwhatsapp.json", 'w') as f:
-        #     json.dump(payload, f, ensure_ascii=False, indent=2)
         numero = str(payload['entry'][0]['changes'][0]['value']['metadata']['display_phone_number'])
         
-        # if payload['entry'][0]['changes'][0]['value']['messages'][0]['from']:
-        #     phone_number = payload['entry'][0]['changes'][0]['value']['messages'][0]['from']
-        #     if str(phone_number) == '5515988272755':
-        #         with open(f"{formatted_date}_webhookwhatsapp.json", 'w') as f:
-        #             json.dump(payload, f, ensure_ascii=False, indent=2)
-            
         if numero == '551530336400':
             with open(f"{formatted_date}_webhookwhatsapp.json", 'w') as f:
                 json.dump(payload, f, ensure_ascii=False, indent=2)
@@ -676,9 +667,7 @@ def webhook_whatsapp():
                 
             except Exception as e:
                 pass
-            # grava payload em json
-            # with open(f'webhookwhatsapp{formatted_date}.json', 'w') as f:
-            #     json.dump(payload, f)
+
             url = "https://chat.caiuas.com.br/webhooks/whatsapp/+551530336400"
             headers = {
             'Content-Type': 'application/json'
@@ -694,16 +683,13 @@ def webhook_whatsapp():
                 pesquisa = json.loads(pesquisa)
                 pesquisa_tratada = {}
                 flow_token = pesquisa['flow_token']
-                # print(flow_token)
+                
                 flow_token = str(flow_token).split('-')
                 
                 cod_form = flow_token[0]
                 cod_empresa = flow_token[1]
                 cod_evento = flow_token[2]
-                # with open(f"flow_token-pesquisa.json", 'w') as f:
-                #     json.dump(pesquisa, f, ensure_ascii=False, indent=2)
-                # is_posvendas = 'screen_0_Escolha_uma_das_opes_0' in pesquisa
-                # is_vendas = 'screen_0_Nossas_instalaes_0' in pesquisa
+                
                 if cod_form == 'PV':
 
                     pesquisa_tratada['evento'] = pesquisa['flow_token']
@@ -724,9 +710,7 @@ def webhook_whatsapp():
                         f"{k}: {v}" for k, v in pesquisa_tratada.items()
                     ]
                     payload['entry'][0]['changes'][0]['value']['messages'][0]['text']['body'] = '\n'.join(body_lines)
-                    # payload['entry'][0]['changes'][0]['value']['messages'][0]['text']['body'] = 'Posvendas'
-                    # with open('pesquisa.json','w') as f:
-                    #     json.dump(payload, f, ensure_ascii=False, indent=2)
+                    
                 elif cod_form == 'SW':
                     pesquisa_tratada['evento'] = pesquisa['flow_token']
                     pesquisa_tratada['Instalações'] = pesquisa.get('screen_0_Nossas_instalaes_0', '').split("_")[-1]
@@ -745,21 +729,14 @@ def webhook_whatsapp():
                         f"{k}: {v}" for k, v in pesquisa_tratada.items() if v
                     ]
                     payload['entry'][0]['changes'][0]['value']['messages'][0]['text']['body'] = '\n'.join(body_lines)
-                    # payload['entry'][0]['changes'][0]['value']['messages'][0]['text']['body'] = 'Posvendas'
+                    
             except Exception as e:
-                # with open(f"{formatted_date}_falhou.json", 'w') as f:
-                #     json.dump({'error': str(e), 'payload': payload}, f, ensure_ascii=False, indent=2)
                 pass
 
-            # with open(f'log/{formatted_date}.json', 'w') as f:
-            #     json.dump(payload, f)
             url = "https://chat.caiuas.com.br/webhooks/whatsapp/+551533315555"
             headers = {
             'Content-Type': 'application/json'
             }
-            # grava payload em json
-            # with open(f'webhookwhatsapp{formatted_date}.json', 'w') as f:
-            #     json.dump(payload, f)
             payload = json.dumps(payload)
             
             response = requests.request("POST", url, headers=headers, data=payload)
