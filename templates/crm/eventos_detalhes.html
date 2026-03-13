@@ -1359,7 +1359,7 @@
     <!-- Modal Editar Responsável -->
     <div class="modal fade" id="editResponsavelModal" tabindex="-1" aria-labelledby="editResponsavelModalLabel"
       aria-hidden="true">
-      <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content">
           <form id="editResponsavelForm">
             <div class="modal-header">
@@ -1367,26 +1367,31 @@
               <button class="btn btn-close p-1" type="button" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-              <div class="mb-3">
-                <label for="searchResponsavelInput" class="form-label">Buscar usuário</label>
-                <input type="text" class="form-control" id="searchResponsavelInput"
-                  placeholder="Digite para filtrar...">
+              <!-- Loading indicator -->
+              <div id="responsavelLoadingIndicator" class="text-center py-4">
+                <div class="spinner-border text-primary" role="status">
+                  <span class="visually-hidden">Carregando...</span>
+                </div>
+                <p class="mt-2 text-body-secondary">Carregando responsáveis...</p>
               </div>
-              <div class="mb-3">
-                <label for="responsavelSelect" class="form-label">Selecione o Responsável</label>
-                <select class="form-select" id="responsavelSelect" name="responsavel_email" required size="8">
-                  {% for user in context.users %}
-                  <option value="{{ user.email }}"
-                    {% if user.name == context.data.responsavel_nome_completo %}selected{% endif %}>
-                    {{ user.name }}
-                  </option>
-                  {% endfor %}
-                </select>
-                <div class="form-text"><span id="responsavelCount">{{ context.users|length }}</span> usuários disponíveis</div>
+              
+              <!-- Container do select (inicialmente oculto) -->
+              <div id="responsavelSelectContainer" style="display: none;">
+                <div class="mb-3">
+                  <label for="searchResponsavelInput" class="form-label">Buscar usuário</label>
+                  <input type="text" class="form-control" id="searchResponsavelInput"
+                    placeholder="Digite para filtrar...">
+                </div>
+                <div class="mb-3">
+                  <label for="responsavelSelect" class="form-label">Selecione o Responsável</label>
+                  <select class="form-select" id="responsavelSelect" name="responsavel_email" required size="8">
+                  </select>
+                  <div class="form-text"><span id="responsavelCount">0</span> usuários disponíveis</div>
+                </div>
               </div>
             </div>
             <div class="modal-footer">
-              <button class="btn btn-primary" type="submit">
+              <button class="btn btn-primary" type="submit" id="btnSalvarResponsavel">
                 <span class="fas fa-save me-2"></span>Salvar
               </button>
               <button class="btn btn-outline-primary" type="button" data-bs-dismiss="modal">Cancelar</button>
@@ -1844,47 +1849,110 @@
       const responsavelSelect = document.getElementById('responsavelSelect');
       const searchResponsavelInput = document.getElementById('searchResponsavelInput');
       const responsavelCount = document.getElementById('responsavelCount');
+      const responsavelLoadingIndicator = document.getElementById('responsavelLoadingIndicator');
+      const responsavelSelectContainer = document.getElementById('responsavelSelectContainer');
+      const btnSalvarResponsavel = document.getElementById('btnSalvarResponsavel');
 
-      // Guardar todas as opções originais
-      const todasOpcoesResponsavel = Array.from(responsavelSelect.options).map(opt => ({
-        value: opt.value,
-        text: opt.text,
-        selected: opt.selected
-      }));
+      let todosResponsaveis = [];
+      let responsaveisFiltrados = [];
+
+      // Carregar responsáveis ao abrir o modal
+      document.getElementById('editResponsavelModal').addEventListener('show.bs.modal', async function () {
+        responsavelLoadingIndicator.style.display = 'block';
+        responsavelSelectContainer.style.display = 'none';
+        btnSalvarResponsavel.disabled = true;
+        searchResponsavelInput.value = '';
+
+        try {
+          const myHeaders = new Headers();
+          myHeaders.append("Authorization", `Bearer ${token}`);
+
+          const requestOptions = {
+            method: "GET",
+            headers: myHeaders,
+            redirect: "follow"
+          };
+
+          const response = await fetch("https://backend.caiuas.com.br/api/crm/responsaveis", requestOptions);
+          const result = await response.json();
+
+          if (!response.ok) {
+            throw new Error(result.message || 'Erro ao carregar responsáveis');
+          }
+
+          todosResponsaveis = result.responsaveis || [];
+          responsaveisFiltrados = [...todosResponsaveis];
+
+          renderizarResponsaveis(responsaveisFiltrados);
+
+          responsavelLoadingIndicator.style.display = 'none';
+          responsavelSelectContainer.style.display = 'block';
+          btnSalvarResponsavel.disabled = false;
+
+        } catch (error) {
+          console.error('Erro ao carregar responsáveis:', error);
+          responsavelLoadingIndicator.style.display = 'none';
+          responsavelSelect.innerHTML = '<option value="">Erro ao carregar responsáveis</option>';
+          responsavelSelectContainer.style.display = 'block';
+
+          if (window.showToast) {
+            window.showToast(error.message || 'Erro ao carregar responsáveis', 'error');
+          }
+        }
+      });
+
+      // Função para renderizar responsáveis no select
+      function renderizarResponsaveis(responsaveis) {
+        responsavelSelect.innerHTML = '';
+
+        if (responsaveis.length === 0) {
+          responsavelSelect.innerHTML = '<option value="">Nenhum responsável encontrado</option>';
+          responsavelCount.textContent = '0';
+          return;
+        }
+
+        // Ordenar alfabeticamente pelo nome completo
+        responsaveis.sort((a, b) => a.nome_completo.localeCompare(b.nome_completo));
+
+        responsaveis.forEach(resp => {
+          const option = document.createElement('option');
+          option.value = resp.nome_usuario;
+          option.textContent = `${resp.nome_completo} (${resp.empresa})`;
+
+          // Marcar se for o responsável atual
+          if (resp.nome_completo === '{{ context.data.responsavel_nome_completo }}') {
+            option.selected = true;
+          }
+
+          responsavelSelect.appendChild(option);
+        });
+
+        responsavelCount.textContent = responsaveis.length;
+      }
 
       // Filtrar ao digitar
       if (searchResponsavelInput) {
         searchResponsavelInput.addEventListener('input', function () {
-          const term = this.value.toLowerCase().trim();
-          responsavelSelect.innerHTML = '';
-          const filtradas = term === ''
-            ? todasOpcoesResponsavel
-            : todasOpcoesResponsavel.filter(o => o.text.toLowerCase().includes(term));
+          const searchTerm = this.value.toLowerCase().trim();
 
-          filtradas.forEach(o => {
-            const opt = document.createElement('option');
-            opt.value = o.value;
-            opt.textContent = o.text;
-            if (o.selected) opt.selected = true;
-            responsavelSelect.appendChild(opt);
-          });
+          if (searchTerm === '') {
+            responsaveisFiltrados = [...todosResponsaveis];
+          } else {
+            responsaveisFiltrados = todosResponsaveis.filter(resp =>
+              resp.nome_completo.toLowerCase().includes(searchTerm) ||
+              resp.empresa.toLowerCase().includes(searchTerm) ||
+              resp.email.toLowerCase().includes(searchTerm)
+            );
+          }
 
-          responsavelCount.textContent = filtradas.length;
+          renderizarResponsaveis(responsaveisFiltrados);
         });
       }
 
-      // Limpar busca ao fechar
+      // Limpar busca ao fechar modal
       document.getElementById('editResponsavelModal').addEventListener('hidden.bs.modal', function () {
         searchResponsavelInput.value = '';
-        responsavelSelect.innerHTML = '';
-        todasOpcoesResponsavel.forEach(o => {
-          const opt = document.createElement('option');
-          opt.value = o.value;
-          opt.textContent = o.text;
-          if (o.selected) opt.selected = true;
-          responsavelSelect.appendChild(opt);
-        });
-        responsavelCount.textContent = todasOpcoesResponsavel.length;
+        responsaveisFiltrados = [...todosResponsaveis];
       });
 
       // Submeter
@@ -1901,14 +1969,15 @@
         btn.innerHTML = `<span class="fas fa-spinner fa-spin"></span> Salvando...`;
 
         try {
-          const email = responsavelSelect.value;
+          const nomeUsuario = responsavelSelect.value;
 
-          if (!email) {
+          if (!nomeUsuario) {
             throw new Error('Selecione um responsável.');
           }
 
-          const selectedOption = responsavelSelect.options[responsavelSelect.selectedIndex];
-          const nomeResponsavel = selectedOption.textContent.trim();
+          // Buscar o responsável selecionado no array
+          const responsavelSelecionado = todosResponsaveis.find(r => r.nome_usuario === nomeUsuario);
+          const nomeResponsavel = responsavelSelecionado ? responsavelSelecionado.nome_completo : nomeUsuario;
 
           const response = await fetch(
             `https://backend.caiuas.com.br/api/crm/eventos/muda_responsavel/${codEvento}`,
@@ -1918,7 +1987,7 @@
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${token}`
               },
-              body: JSON.stringify({ email })
+              body: JSON.stringify({ nome_usuario: nomeUsuario })
             }
           );
 
