@@ -1,0 +1,159 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR" dir="ltr" data-navigation-type="default" data-navbar-horizontal-shape="default">
+
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>Vendedor da vez</title>
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/static/assets/img/favicons/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/static/assets/img/favicons/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/static/assets/img/favicons/favicon-16x16.png">
+  <link rel="shortcut icon" type="image/x-icon" href="/static/assets/img/favicons/favicon.ico">
+  <link rel="manifest" href="/static/assets/img/favicons/manifest.json">
+  <meta name="msapplication-TileImage" content="static/assets/img/favicons/mstile-150x150.png">
+  <meta name="theme-color" content="#ffffff">
+  <script src="/static/vendors/simplebar/simplebar.min.js"></script>
+  <script src="/static/assets/js/config.js"></script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+  <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@300;400;600;700;800;900&amp;display=swap" rel="stylesheet">
+  <link href="/static/vendors/simplebar/simplebar.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://unicons.iconscout.com/release/v4.0.8/css/line.css">
+  <link href="/static/assets/css/theme-rtl.min.css" type="text/css" rel="stylesheet" id="style-rtl">
+  <link href="/static/assets/css/theme.min.css" type="text/css" rel="stylesheet" id="style-default">
+  <link href="/static/assets/css/user-rtl.min.css" type="text/css" rel="stylesheet" id="user-style-rtl">
+  <link href="/static/assets/css/user.min.css" type="text/css" rel="stylesheet" id="user-style-default">
+  <script>
+    var phoenixIsRTL = window.config.config.phoenixIsRTL;
+    if (phoenixIsRTL) {
+      var linkDefault = document.getElementById('style-default');
+      var userLinkDefault = document.getElementById('user-style-default');
+      linkDefault.setAttribute('disabled', true);
+      userLinkDefault.setAttribute('disabled', true);
+      document.querySelector('html').setAttribute('dir', 'rtl');
+    } else {
+      var linkRTL = document.getElementById('style-rtl');
+      var userLinkRTL = document.getElementById('user-style-rtl');
+      linkRTL.setAttribute('disabled', true);
+      userLinkRTL.setAttribute('disabled', true);
+    }
+  </script>
+</head>
+
+<body>
+  <main class="main" id="top">
+    {% include 'menu.html' %}
+    {% include 'top_bar.html' %}
+    <div class="content kanban-content">
+      <div class="kanban-header">
+        <div class="row gx-0 align-items-center mb-1">
+          <div class="col-auto">
+            <h2 class="mb-0"><i class="uil uil-users-alt me-2"></i>Vendedor da vez</h2>
+          </div>
+        </div>
+      </div>
+      <div class="kanban-container scrollbar" data-kanban-container="data-kanban-container">
+
+        <!-- Sorocaba -->
+        <div class="kanban-column scrollbar">
+          <div class="kanban-column-header px-4 hover-actions-trigger">
+            <div class="d-flex align-items-center border-bottom border-3 py-3 border-warning">
+              <h5 class="mb-0 text-warning fw-semibold"><i class="uil uil-map-marker me-2"></i>Sorocaba</h5>
+              <span class="badge badge-phoenix badge-phoenix-warning ms-2">{{ listas['sorocaba']|length }}</span>
+            </div>
+          </div>
+          <div class="kanban-items-container">
+            {% for vendedor in listas['sorocaba'] %}
+            <div class="sortable-item-wrapper kanban-card border-bottom border-translucent px-3 py-2 d-flex align-items-center justify-content-between" data-id="{{ vendedor.id }}">
+              <span class="fs-9 text-body-highlight"><span class="fas fa-grip-vertical me-2 text-body-quaternary"></span><i class="uil uil-user me-1"></i>{{ vendedor.nome }}</span>
+              <span class="d-flex align-items-center">
+                <span class="ordem badge badge-phoenix badge-phoenix-secondary fs-10 me-2">#{{ vendedor.ordem }}</span>
+                <button class="btn-remover-vendedor btn btn-link p-0" data-id="{{ vendedor.id }}" title="Remover"><i class="uil uil-trash-alt text-danger fs-9"></i></button>
+              </span>
+            </div>
+            {% endfor %}
+          </div>
+          <div class="py-3 px-3 kanban-add-task">
+            <form class="form-add-vendedor d-flex align-items-center gap-2" autocomplete="off">
+              <input type="hidden" name="grupo" value="sorocaba">
+              <button type="submit" class="btn btn-sm bg-body-tertiary px-2 flex-shrink-0"><span class="fas fa-plus text-primary" data-fa-transform="grow-2"></span></button>
+              <input type="text" name="nome" class="form-control form-control-sm search-input rounded-3 px-3" placeholder="Adicionar vendedor">
+            </form>
+          </div>
+        </div>
+
+        <!-- Indaiatuba -->
+        <div class="kanban-column scrollbar">
+          <div class="kanban-column-header px-4 hover-actions-trigger">
+            <div class="d-flex align-items-center border-bottom border-3 py-3 border-primary">
+              <h5 class="mb-0 text-primary fw-semibold"><i class="uil uil-map-marker me-2"></i>Indaiatuba</h5>
+              <span class="badge badge-phoenix badge-phoenix-primary ms-2">{{ listas['indaiatuba']|length }}</span>
+            </div>
+          </div>
+          <div class="kanban-items-container">
+            {% for vendedor in listas['indaiatuba'] %}
+            <div class="sortable-item-wrapper kanban-card border-bottom border-translucent px-3 py-2 d-flex align-items-center justify-content-between" data-id="{{ vendedor.id }}">
+              <span class="fs-9 text-body-highlight"><span class="fas fa-grip-vertical me-2 text-body-quaternary"></span><i class="uil uil-user me-1"></i>{{ vendedor.nome }}</span>
+              <span class="d-flex align-items-center">
+                <span class="ordem badge badge-phoenix badge-phoenix-secondary fs-10 me-2">#{{ vendedor.ordem }}</span>
+                <button class="btn-remover-vendedor btn btn-link p-0" data-id="{{ vendedor.id }}" title="Remover"><i class="uil uil-trash-alt text-danger fs-9"></i></button>
+              </span>
+            </div>
+            {% endfor %}
+          </div>
+          <div class="py-3 px-3 kanban-add-task">
+            <form class="form-add-vendedor d-flex align-items-center gap-2" autocomplete="off">
+              <input type="hidden" name="grupo" value="indaiatuba">
+              <button type="submit" class="btn btn-sm bg-body-tertiary px-2 flex-shrink-0"><span class="fas fa-plus text-primary" data-fa-transform="grow-2"></span></button>
+              <input type="text" name="nome" class="form-control form-control-sm search-input rounded-3 px-3" placeholder="Adicionar vendedor">
+            </form>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <footer class="footer position-absolute">
+      <div class="row g-0 justify-content-between align-items-center h-100">
+        <div class="col-12 col-sm-auto text-center">
+          <p class="mb-0 text-body-tertiary text-opacity-85">v1.23.0</p>
+        </div>
+      </div>
+    </footer>
+  </main>
+
+  <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 9999;">
+    <div id="toastMessage" class="toast align-items-center text-white border-0" role="alert" aria-live="assertive" aria-atomic="true">
+      <div class="d-flex">
+        <div class="toast-body"></div>
+        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/static/vendors/popper/popper.min.js"></script>
+  <script src="/static/vendors/bootstrap/bootstrap.min.js"></script>
+  <script src="/static/vendors/anchorjs/anchor.min.js"></script>
+  <script src="/static/vendors/is/is.min.js"></script>
+  <script src="/static/vendors/fontawesome/all.min.js"></script>
+  <script src="/static/vendors/lodash/lodash.min.js"></script>
+  <script src="/static/vendors/list.js/list.min.js"></script>
+  <script src="/static/vendors/feather-icons/feather.min.js"></script>
+  <script src="/static/vendors/dayjs/dayjs.min.js"></script>
+  <script src="/static/assets/js/phoenix.js"></script>
+  <script src="/static/assets/js/menu.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
+  <script src="/static/fila_venda.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      if (window.feather) feather.replace();
+    });
+  </script>
+</body>
+</html>
+
