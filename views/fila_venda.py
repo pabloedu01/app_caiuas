@@ -7,7 +7,7 @@ fila_venda_bp = Blueprint('fila_venda', __name__)
 def fila_venda():
     try:
         conn, cur = postgres_site()
-        grupos = ['sorocaba', 'indaiatuba']
+        grupos = ['sorocaba', 'indaiatuba', 'sorocaba_direta', 'indaiatuba_direta']
         listas = {}
         for grupo in grupos:
             cur.execute("SELECT id, nome, ordem, grupo FROM vendedores_vez WHERE grupo = %s ORDER BY ordem", (grupo,))
@@ -24,7 +24,7 @@ def api_fila_venda():
     if request.method == 'GET':
         try:
             conn, cur = postgres_site()
-            grupos = ['sorocaba', 'indaiatuba']
+            grupos = ['sorocaba', 'indaiatuba', 'sorocaba_direta', 'indaiatuba_direta']
             listas = {}
             for grupo in grupos:
                 cur.execute("SELECT id, nome, ordem, grupo FROM vendedores_vez WHERE grupo = %s ORDER BY ordem", (grupo,))

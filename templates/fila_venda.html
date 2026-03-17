@@ -87,6 +87,34 @@
           </div>
         </div>
 
+        <!-- Sorocaba-DIRETA -->
+        <div class="kanban-column scrollbar">
+          <div class="kanban-column-header px-4 hover-actions-trigger">
+            <div class="d-flex align-items-center border-bottom border-3 py-3 border-success">
+              <h5 class="mb-0 text-success fw-semibold"><i class="uil uil-map-marker me-2"></i>Sorocaba-DIRETA</h5>
+              <span class="badge badge-phoenix badge-phoenix-success ms-2">{{ listas['sorocaba_direta']|length }}</span>
+            </div>
+          </div>
+          <div class="kanban-items-container">
+            {% for vendedor in listas['sorocaba_direta'] %}
+            <div class="sortable-item-wrapper kanban-card border-bottom border-translucent px-3 py-2 d-flex align-items-center justify-content-between" data-id="{{ vendedor.id }}">
+              <span class="fs-9 text-body-highlight"><span class="fas fa-grip-vertical me-2 text-body-quaternary"></span><i class="uil uil-user me-1"></i>{{ vendedor.nome }}</span>
+              <span class="d-flex align-items-center">
+                <span class="ordem badge badge-phoenix badge-phoenix-secondary fs-10 me-2">#{{ vendedor.ordem }}</span>
+                <button class="btn-remover-vendedor btn btn-link p-0" data-id="{{ vendedor.id }}" title="Remover"><i class="uil uil-trash-alt text-danger fs-9"></i></button>
+              </span>
+            </div>
+            {% endfor %}
+          </div>
+          <div class="py-3 px-3 kanban-add-task">
+            <form class="form-add-vendedor d-flex align-items-center gap-2" autocomplete="off">
+              <input type="hidden" name="grupo" value="sorocaba_direta">
+              <button type="submit" class="btn btn-sm bg-body-tertiary px-2 flex-shrink-0"><span class="fas fa-plus text-primary" data-fa-transform="grow-2"></span></button>
+              <input type="text" name="nome" class="form-control form-control-sm search-input rounded-3 px-3" placeholder="Adicionar vendedor">
+            </form>
+          </div>
+        </div>
+
         <!-- Indaiatuba -->
         <div class="kanban-column scrollbar">
           <div class="kanban-column-header px-4 hover-actions-trigger">
@@ -109,6 +137,34 @@
           <div class="py-3 px-3 kanban-add-task">
             <form class="form-add-vendedor d-flex align-items-center gap-2" autocomplete="off">
               <input type="hidden" name="grupo" value="indaiatuba">
+              <button type="submit" class="btn btn-sm bg-body-tertiary px-2 flex-shrink-0"><span class="fas fa-plus text-primary" data-fa-transform="grow-2"></span></button>
+              <input type="text" name="nome" class="form-control form-control-sm search-input rounded-3 px-3" placeholder="Adicionar vendedor">
+            </form>
+          </div>
+        </div>
+
+        <!-- Indaiatuba-DIRETA -->
+        <div class="kanban-column scrollbar">
+          <div class="kanban-column-header px-4 hover-actions-trigger">
+            <div class="d-flex align-items-center border-bottom border-3 py-3 border-info">
+              <h5 class="mb-0 text-info fw-semibold"><i class="uil uil-map-marker me-2"></i>Indaiatuba-DIRETA</h5>
+              <span class="badge badge-phoenix badge-phoenix-info ms-2">{{ listas['indaiatuba_direta']|length }}</span>
+            </div>
+          </div>
+          <div class="kanban-items-container">
+            {% for vendedor in listas['indaiatuba_direta'] %}
+            <div class="sortable-item-wrapper kanban-card border-bottom border-translucent px-3 py-2 d-flex align-items-center justify-content-between" data-id="{{ vendedor.id }}">
+              <span class="fs-9 text-body-highlight"><span class="fas fa-grip-vertical me-2 text-body-quaternary"></span><i class="uil uil-user me-1"></i>{{ vendedor.nome }}</span>
+              <span class="d-flex align-items-center">
+                <span class="ordem badge badge-phoenix badge-phoenix-secondary fs-10 me-2">#{{ vendedor.ordem }}</span>
+                <button class="btn-remover-vendedor btn btn-link p-0" data-id="{{ vendedor.id }}" title="Remover"><i class="uil uil-trash-alt text-danger fs-9"></i></button>
+              </span>
+            </div>
+            {% endfor %}
+          </div>
+          <div class="py-3 px-3 kanban-add-task">
+            <form class="form-add-vendedor d-flex align-items-center gap-2" autocomplete="off">
+              <input type="hidden" name="grupo" value="indaiatuba_direta">
               <button type="submit" class="btn btn-sm bg-body-tertiary px-2 flex-shrink-0"><span class="fas fa-plus text-primary" data-fa-transform="grow-2"></span></button>
               <input type="text" name="nome" class="form-control form-control-sm search-input rounded-3 px-3" placeholder="Adicionar vendedor">
             </form>
