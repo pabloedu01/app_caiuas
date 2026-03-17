@@ -275,6 +275,22 @@
                     </div>
 
                     <div class="mb-4">
+                      <div class="d-flex align-items-center mb-1"><span class="me-2 uil uil-history"></span>
+                        <h5 class="text-body-highlight mb-0">Evento Anterior</h5>
+                      </div>
+                      {% if context.data.cod_evento_anterior %}
+                      <a href="/crm/eventos/{{ context.data.cod_empresa_anterior }}{{ context.data.cod_evento_anterior }}" class="fw-semibold text-primary">
+                        {{ context.data.cod_empresa_anterior }}{{ context.data.cod_evento_anterior }}
+                      </a>
+                      {% else %}
+                      <span class="text-muted">Não vinculado</span>
+                      {% endif %}
+                      <button class="btn btn-link p-0 ms-2" type="button" id="btnEditEventoAnterior" title="Alterar evento anterior">
+                        <span class="fas fa-edit fs-10 text-body-tertiary"></span>
+                      </button>
+                    </div>
+
+                    <div class="mb-4">
                       <div class="d-flex align-items-center mb-1">
                         <span class="me-2 uil uil-car"></span>
                         <h5 class="text-body-highlight mb-0">Veículo de interesse</h5>
@@ -1397,6 +1413,86 @@
               <button class="btn btn-outline-primary" type="button" data-bs-dismiss="modal">Cancelar</button>
             </div>
           </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal Editar Evento Anterior -->
+    <div class="modal fade" id="editEventoAnteriorModal" tabindex="-1" aria-labelledby="editEventoAnteriorModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered modal-xl">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="editEventoAnteriorModalLabel">Buscar Evento Anterior</h5>
+            <button class="btn btn-close p-1" type="button" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <!-- Campo de busca -->
+            <div class="row mb-3">
+              <div class="col-md-10">
+                <input type="text" class="form-control" id="searchEventoAnteriorInput" placeholder="Buscar por código, cliente ou responsável...">
+              </div>
+              <div class="col-md-2">
+                <button class="btn btn-primary w-100" type="button" id="searchEventoAnteriorBtn">
+                  <span class="fas fa-search me-1"></span> Buscar
+                </button>
+              </div>
+            </div>
+
+            <!-- Estado inicial -->
+            <div id="eventoAnteriorSearchInitial" class="text-center py-4">
+              <span class="fas fa-search fa-3x text-muted mb-3"></span>
+              <p class="text-muted">Digite para buscar eventos ou clique em buscar para ver todos.</p>
+            </div>
+
+            <!-- Loading -->
+            <div id="eventoAnteriorSearchLoading" class="text-center py-4" style="display: none;">
+              <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Carregando...</span>
+              </div>
+              <p class="mt-2 text-body-secondary">Buscando eventos...</p>
+            </div>
+
+            <!-- Resultados vazios -->
+            <div id="eventoAnteriorSearchEmpty" class="text-center py-4" style="display: none;">
+              <span class="fas fa-inbox fa-3x text-muted mb-3"></span>
+              <p class="text-muted">Nenhum evento encontrado.</p>
+            </div>
+
+            <!-- Resultados -->
+            <div id="eventoAnteriorSearchResults" style="display: none;">
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <small class="text-muted" id="eventoAnteriorResultsInfo"></small>
+              </div>
+              <div class="table-responsive">
+                <table class="table table-hover table-sm fs-9">
+                  <thead>
+                    <tr>
+                      <th>Código</th>
+                      <th>Cliente</th>
+                      <th>Tipo</th>
+                      <th>Responsável</th>
+                      <th>Data Contato</th>
+                      <th>Status</th>
+                      <th>Ação</th>
+                    </tr>
+                  </thead>
+                  <tbody id="eventoAnteriorTableBody"></tbody>
+                </table>
+              </div>
+              <!-- Paginação -->
+              <nav aria-label="Paginação de eventos anteriores">
+                <ul class="pagination pagination-sm justify-content-center" id="eventoAnteriorPagination"></ul>
+              </nav>
+            </div>
+          </div>
+          <div class="modal-footer">
+            {% if context.data.cod_evento_anterior %}
+            <button class="btn btn-outline-danger me-auto" type="button" id="btnRemoverEventoAnterior">
+              <span class="fas fa-unlink me-1"></span> Remover Vínculo
+            </button>
+            {% endif %}
+            <button class="btn btn-outline-primary" type="button" data-bs-dismiss="modal">Fechar</button>
+          </div>
         </div>
       </div>
     </div>
@@ -3948,6 +4044,294 @@
       });
     }
 
+    // ========== EVENTO ANTERIOR ==========
+    const btnEditEventoAnterior = document.getElementById('btnEditEventoAnterior');
+    const editEventoAnteriorModalEl = document.getElementById('editEventoAnteriorModal');
+    const searchEventoAnteriorInput = document.getElementById('searchEventoAnteriorInput');
+    const searchEventoAnteriorBtn = document.getElementById('searchEventoAnteriorBtn');
+    const eventoAnteriorTableBody = document.getElementById('eventoAnteriorTableBody');
+    const eventoAnteriorSearchLoading = document.getElementById('eventoAnteriorSearchLoading');
+    const eventoAnteriorSearchResults = document.getElementById('eventoAnteriorSearchResults');
+    const eventoAnteriorSearchEmpty = document.getElementById('eventoAnteriorSearchEmpty');
+    const eventoAnteriorSearchInitial = document.getElementById('eventoAnteriorSearchInitial');
+    const eventoAnteriorResultsInfo = document.getElementById('eventoAnteriorResultsInfo');
+    const eventoAnteriorPagination = document.getElementById('eventoAnteriorPagination');
+    const btnRemoverEventoAnterior = document.getElementById('btnRemoverEventoAnterior');
+
+    let editEventoAnteriorModal = null;
+    if (editEventoAnteriorModalEl) {
+      editEventoAnteriorModal = new bootstrap.Modal(editEventoAnteriorModalEl);
+    }
+
+    let eventoAnteriorCurrentPage = 1;
+    let eventoAnteriorSearchTerm = '';
+
+    // Abrir modal
+    if (btnEditEventoAnterior && editEventoAnteriorModal) {
+      btnEditEventoAnterior.addEventListener('click', function() {
+        editEventoAnteriorModal.show();
+      });
+    }
+
+    // Função para buscar eventos
+    async function searchEventosAnteriores(search = '', page = 1) {
+      eventoAnteriorCurrentPage = page;
+      eventoAnteriorSearchTerm = search;
+
+      // Mostrar loading
+      eventoAnteriorSearchLoading.style.display = 'block';
+      eventoAnteriorSearchResults.style.display = 'none';
+      eventoAnteriorSearchEmpty.style.display = 'none';
+      eventoAnteriorSearchInitial.style.display = 'none';
+
+      try {
+        const tiposEvento = '829,795,793,797,799,819,821,825,827,815,817,823,810,812';
+        const status = 'P,V,R,A';
+        const url = `https://backend.caiuas.com.br/api/crm/eventos?status=${encodeURIComponent(status)}&tipo_evento=${encodeURIComponent(tiposEvento)}&limit=10&current_page=${page}&search=${encodeURIComponent(search)}`;
+
+        const response = await fetch(url, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        if (!response.ok) {
+          throw new Error('Erro ao buscar eventos');
+        }
+
+        const data = await response.json();
+        eventoAnteriorSearchLoading.style.display = 'none';
+
+        if (data.eventos && data.eventos.length > 0) {
+          renderEventosAnteriores(data.eventos, data.total_eventos, data.current_page, data.total_pages);
+        } else {
+          eventoAnteriorSearchEmpty.style.display = 'block';
+        }
+      } catch (error) {
+        console.error('Erro ao buscar eventos:', error);
+        eventoAnteriorSearchLoading.style.display = 'none';
+        eventoAnteriorSearchEmpty.style.display = 'block';
+        window.showToast && window.showToast('Erro ao buscar eventos', 'error');
+      }
+    }
+
+    // Renderizar eventos na tabela
+    function renderEventosAnteriores(eventos, total, currentPage, totalPages) {
+      eventoAnteriorTableBody.innerHTML = '';
+
+      eventos.forEach(evento => {
+        const dataContato = evento.data_contato ? formatDate(evento.data_contato) : '-';
+        const statusBadge = getStatusBadge(evento.status);
+
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td><span class="fw-semibold">${evento.cod_empresa}${evento.cod_evento}</span></td>
+          <td>${evento.nome_cliente || '-'}</td>
+          <td><small>${evento.desc_tipo_evento || '-'}</small></td>
+          <td>${evento.responsavel_nome_completo || '-'}</td>
+          <td>${dataContato}</td>
+          <td>${statusBadge}</td>
+          <td>
+            <button class="btn btn-sm btn-primary" onclick="selectEventoAnterior('${evento.cod_empresa}', '${evento.cod_evento}')">
+              <span class="fas fa-check me-1"></span>Selecionar
+            </button>
+          </td>
+        `;
+        eventoAnteriorTableBody.appendChild(row);
+      });
+
+      // Atualizar info de resultados
+      const start = (currentPage - 1) * 20 + 1;
+      const end = Math.min(currentPage * 20, total);
+      eventoAnteriorResultsInfo.textContent = `Mostrando ${start} a ${end} de ${total} resultados`;
+
+      // Renderizar paginação
+      renderEventoAnteriorPagination(currentPage, totalPages);
+
+      eventoAnteriorSearchResults.style.display = 'block';
+    }
+
+    // Formatar data
+    function formatDate(dateStr) {
+      if (!dateStr) return '-';
+      const date = new Date(dateStr);
+      const day = String(date.getDate()).padStart(2, '0');
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const year = date.getFullYear();
+      return `${day}/${month}/${year}`;
+    }
+
+    // Obter badge de status
+    function getStatusBadge(status) {
+      const badges = {
+        'P': '<span class="badge badge-phoenix badge-phoenix-warning">Pendente</span>',
+        'E': '<span class="badge badge-phoenix badge-phoenix-success">Encerrado</span>',
+        'D': '<span class="badge badge-phoenix badge-phoenix-danger">Descartado</span>',
+        'V': '<span class="badge badge-phoenix badge-phoenix-info">Visita Agendada</span>',
+        'R': '<span class="badge badge-phoenix badge-phoenix-secondary">Remarcou</span>',
+        'A': '<span class="badge badge-phoenix badge-phoenix-primary">Com ações</span>',
+        'CP': '<span class="badge badge-phoenix badge-phoenix-danger">Contato Perdido</span>'
+      };
+      return badges[status] || '<span class="badge badge-phoenix badge-phoenix-secondary">-</span>';
+    }
+
+    // Renderizar paginação
+    function renderEventoAnteriorPagination(currentPage, totalPages) {
+      eventoAnteriorPagination.innerHTML = '';
+
+      // Botão anterior
+      const prevLi = document.createElement('li');
+      prevLi.className = `page-item ${currentPage === 1 ? 'disabled' : ''}`;
+      prevLi.innerHTML = `<a class="page-link" href="#" data-page="${currentPage - 1}"><span class="fas fa-chevron-left"></span></a>`;
+      eventoAnteriorPagination.appendChild(prevLi);
+
+      // Páginas
+      const startPage = Math.max(1, currentPage - 2);
+      const endPage = Math.min(totalPages, currentPage + 2);
+
+      if (startPage > 1) {
+        const firstLi = document.createElement('li');
+        firstLi.className = 'page-item';
+        firstLi.innerHTML = `<a class="page-link" href="#" data-page="1">1</a>`;
+        eventoAnteriorPagination.appendChild(firstLi);
+
+        if (startPage > 2) {
+          const dotsLi = document.createElement('li');
+          dotsLi.className = 'page-item disabled';
+          dotsLi.innerHTML = `<span class="page-link">...</span>`;
+          eventoAnteriorPagination.appendChild(dotsLi);
+        }
+      }
+
+      for (let i = startPage; i <= endPage; i++) {
+        const li = document.createElement('li');
+        li.className = `page-item ${i === currentPage ? 'active' : ''}`;
+        li.innerHTML = `<a class="page-link" href="#" data-page="${i}">${i}</a>`;
+        eventoAnteriorPagination.appendChild(li);
+      }
+
+      if (endPage < totalPages) {
+        if (endPage < totalPages - 1) {
+          const dotsLi = document.createElement('li');
+          dotsLi.className = 'page-item disabled';
+          dotsLi.innerHTML = `<span class="page-link">...</span>`;
+          eventoAnteriorPagination.appendChild(dotsLi);
+        }
+
+        const lastLi = document.createElement('li');
+        lastLi.className = 'page-item';
+        lastLi.innerHTML = `<a class="page-link" href="#" data-page="${totalPages}">${totalPages}</a>`;
+        eventoAnteriorPagination.appendChild(lastLi);
+      }
+
+      // Botão próximo
+      const nextLi = document.createElement('li');
+      nextLi.className = `page-item ${currentPage === totalPages ? 'disabled' : ''}`;
+      nextLi.innerHTML = `<a class="page-link" href="#" data-page="${currentPage + 1}"><span class="fas fa-chevron-right"></span></a>`;
+      eventoAnteriorPagination.appendChild(nextLi);
+
+      // Event listeners para paginação
+      eventoAnteriorPagination.querySelectorAll('a.page-link').forEach(link => {
+        link.addEventListener('click', function(e) {
+          e.preventDefault();
+          const page = parseInt(this.dataset.page);
+          if (page >= 1 && page <= totalPages) {
+            searchEventosAnteriores(eventoAnteriorSearchTerm, page);
+          }
+        });
+      });
+    }
+
+    // Selecionar evento anterior
+    window.selectEventoAnterior = async function(codEmpresa, codEventoAnterior) {
+      try {
+        const response = await fetch(`https://backend.caiuas.com.br/api/crm/eventos/vincular_evento_anterior/${codEvento}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({
+            cod_empresa_anterior: codEmpresa,
+            cod_evento_anterior: codEventoAnterior
+          })
+        });
+
+        if (!response.ok) {
+          throw new Error('Erro ao vincular evento');
+        }
+
+        window.showToast && window.showToast('Evento anterior vinculado com sucesso!', 'success');
+        editEventoAnteriorModal && editEventoAnteriorModal.hide();
+        setTimeout(() => location.reload(), 800);
+      } catch (error) {
+        console.error('Erro ao vincular evento:', error);
+        window.showToast && window.showToast('Erro ao vincular evento anterior', 'error');
+      }
+    };
+
+    // Remover vínculo
+    if (btnRemoverEventoAnterior) {
+      btnRemoverEventoAnterior.addEventListener('click', async function() {
+        try {
+          const response = await fetch(`https://backend.caiuas.com.br/api/crm/eventos/vincular_evento_anterior/${codEvento}`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({
+              cod_empresa_anterior: null,
+              cod_evento_anterior: null
+            })
+          });
+
+          if (!response.ok) {
+            throw new Error('Erro ao remover vínculo');
+          }
+
+          window.showToast && window.showToast('Vínculo removido com sucesso!', 'success');
+          editEventoAnteriorModal && editEventoAnteriorModal.hide();
+          setTimeout(() => location.reload(), 800);
+        } catch (error) {
+          console.error('Erro ao remover vínculo:', error);
+          window.showToast && window.showToast('Erro ao remover vínculo', 'error');
+        }
+      });
+    }
+
+    // Event listeners para busca
+    if (searchEventoAnteriorBtn) {
+      searchEventoAnteriorBtn.addEventListener('click', function() {
+        const search = searchEventoAnteriorInput.value.trim();
+        if (search.length >= 3 || search.length === 0) {
+          searchEventosAnteriores(search, 1);
+        } else {
+          window.showToast && window.showToast('Digite pelo menos 3 caracteres', 'warning');
+        }
+      });
+    }
+
+    if (searchEventoAnteriorInput) {
+      searchEventoAnteriorInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          searchEventoAnteriorBtn.click();
+        }
+      });
+    }
+
+    // Carregar eventos ao abrir modal
+    if (editEventoAnteriorModalEl) {
+      editEventoAnteriorModalEl.addEventListener('show.bs.modal', function() {
+        searchEventoAnteriorInput.value = '';
+        searchEventosAnteriores('', 1);
+      });
+    }
+    // ========== FIM EVENTO ANTERIOR ==========
+
     // Debug - verificar se elementos existem
     console.log('Elementos encontrados:', {
       btnRemarcarContato: !!btnRemarcarContato,
@@ -3959,7 +4343,8 @@
       obsForm: !!obsForm,
       editClientModal: !!document.getElementById('editClientModal'),
       searchClientInput: !!searchClientInput,
-      searchClientBtn: !!searchClientBtn
+      searchClientBtn: !!searchClientBtn,
+      editEventoAnteriorModal: !!editEventoAnteriorModalEl
     }); // <-- CHAVE DE FECHAMENTO ADICIONADA AQUI
     });
   </script>
