@@ -189,9 +189,9 @@
                                                             <option value="">Selecione responsável...</option>
                                                             {% if context.users %}
                                                                 {% for user in context.users %}
-                                                                    <option value="{{ user.email }}" 
-                                                                        {% if request.args.get('responsible') and user.email in request.args.get('responsible').split(',') %}selected{% endif %}>
-                                                                        {{ user.name }} ({{ user.email }})
+                                                                    <option value="{{ user.nome_usuario }}" 
+                                                                        {% if request.args.get('responsible') and user.nome_usuario in request.args.get('responsible').split(',') %}selected{% endif %}>
+                                                                        {{ user.nome_completo }} ({{ user.empresa }})
                                                                     </option>
                                                                 {% endfor %}
                                                             {% endif %}
