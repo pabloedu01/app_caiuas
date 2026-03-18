@@ -62,27 +62,21 @@ def eventos():
         created_at_min = request.args.get('created_at_min', None)
         created_at_max = request.args.get('created_at_max', None)
 
-        query = f"""
-            select u.id, u.name, email 
-            from users u
-            order by name
-        """
-        conn, cur = postgres_chatwoot()
-        cur.execute(query)
-        users = []
-        r = cur.fetchall()
-        for row in r:
-            users.append({
-                'id': row[0],
-                'name': row[1],
-                'email': row[2]
-            })
+        token = session.get('token')
+
+        url = f"https://backend.caiuas.com.br/api/crm/responsaveis"
+        payload = {}
+        headers = {
+            "Authorization": f"Bearer {token}"
+        }
+        response = requests.request("GET", url, headers=headers, data=payload)
+        responsaveis_response = response.json()
+        # Trata o retorno da API - busca a chave 'responsaveis' se existir
+        users = responsaveis_response.get('responsaveis', []) if isinstance(responsaveis_response, dict) else responsaveis_response if isinstance(responsaveis_response, list) else []
 
         context = {}
         context['token_data'] = request.token_data
         context['title'] = "Eventos Showroom"
-        
-        token = session.get('token')
 
         url = f"https://backend.caiuas.com.br/api/crm/eventos?&{f'&search={search}' if search else ''}{f'&status={status}' if status else ''}{f'&limit={limit}' if limit else ''}{f'&current_page={current_page}' if current_page else ''}{f'&initial_date={initial_date}' if initial_date else ''}{f'&final_date={final_date}' if final_date else ''}{f'&tipo_evento={tipo_evento}' if tipo_evento else ''}{f'&responsible={responsible}' if responsible else ''}{f'&created_at_min={created_at_min}' if created_at_min else ''}{f'&created_at_max={created_at_max}' if created_at_max else ''}"
         context['current_page'] = f'https://app.caiuas.com.br/crm/eventos?&{f'&search={search}' if search else ''}{f'&status={status}' if status else ''}{f'&limit={limit}' if limit else ''}{f'&current_page={current_page}' if current_page else ''}{f'&initial_date={initial_date}' if initial_date else ''}{f'&final_date={final_date}' if final_date else ''}{f'&tipo_evento={tipo_evento}' if tipo_evento else ''}{f'&responsible={responsible}' if responsible else ''}{f'&created_at_min={created_at_min}' if created_at_min else ''}{f'&created_at_max={created_at_max}' if created_at_max else ''}'
@@ -130,23 +124,15 @@ def show_eventos(evento_id):
         }
         response = requests.request("GET", url, headers=headers, data=payload)
         if response.status_code == 200:
-            query = f"""
-            select u.id, u.name, email 
-            from users u
-            order by name
-            """
-            conn, cur = postgres_chatwoot()
-            cur.execute(query)
-            users = []
-            r = cur.fetchall()
-            for row in r:
-                users.append({
-                    'id': row[0],
-                    'name': row[1],
-                    'email': row[2]
-                })
-            
-            conn.close()
+            url_responsaveis = f"https://backend.caiuas.com.br/api/crm/responsaveis"
+            payload = {}
+            headers = {
+                "Authorization": f"Bearer {token}"
+            }
+            response_responsaveis = requests.request("GET", url_responsaveis, headers=headers, data=payload)
+            responsaveis_response = response_responsaveis.json()
+            # Trata o retorno da API - busca a chave 'responsaveis' se existir
+            users = responsaveis_response.get('responsaveis', []) if isinstance(responsaveis_response, dict) else responsaveis_response if isinstance(responsaveis_response, list) else []
             data = response.json()
             context['status_response'] = response.status_code
             context['data'] = data
