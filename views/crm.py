@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify, request, render_template, session
+from flask import Blueprint, jsonify, request, render_template, session, redirect
 from datetime import datetime, timedelta
 from database import postgres_chatwoot, postgres_site
 import json
@@ -7,6 +7,8 @@ import requests
 from dotenv import load_dotenv
 import tempfile
 import urllib.request
+import urllib.parse
+import secrets
 from auth import token_required
 
 load_dotenv()
@@ -56,6 +58,7 @@ def eventos():
         final_date = request.args.get('final_date', None)
         current_page = request.args.get('current_page', None)
         tipo_evento = request.args.get('tipo_evento', None)
+        cod_empresa = request.args.get('cod_empresa', None)
         search = request.args.get('search', None)
         responsible = request.args.get('responsible', None)
         limit = request.args.get('limit', None)
@@ -78,8 +81,8 @@ def eventos():
         context['token_data'] = request.token_data
         context['title'] = "Eventos Showroom"
 
-        url = f"https://backend.caiuas.com.br/api/crm/eventos?&{f'&search={search}' if search else ''}{f'&status={status}' if status else ''}{f'&limit={limit}' if limit else ''}{f'&current_page={current_page}' if current_page else ''}{f'&initial_date={initial_date}' if initial_date else ''}{f'&final_date={final_date}' if final_date else ''}{f'&tipo_evento={tipo_evento}' if tipo_evento else ''}{f'&responsible={responsible}' if responsible else ''}{f'&created_at_min={created_at_min}' if created_at_min else ''}{f'&created_at_max={created_at_max}' if created_at_max else ''}"
-        context['current_page'] = f'https://app.caiuas.com.br/crm/eventos?&{f'&search={search}' if search else ''}{f'&status={status}' if status else ''}{f'&limit={limit}' if limit else ''}{f'&current_page={current_page}' if current_page else ''}{f'&initial_date={initial_date}' if initial_date else ''}{f'&final_date={final_date}' if final_date else ''}{f'&tipo_evento={tipo_evento}' if tipo_evento else ''}{f'&responsible={responsible}' if responsible else ''}{f'&created_at_min={created_at_min}' if created_at_min else ''}{f'&created_at_max={created_at_max}' if created_at_max else ''}'
+        url = f"https://backend.caiuas.com.br/api/crm/eventos?&{f'&search={search}' if search else ''}{f'&status={status}' if status else ''}{f'&limit={limit}' if limit else ''}{f'&current_page={current_page}' if current_page else ''}{f'&initial_date={initial_date}' if initial_date else ''}{f'&final_date={final_date}' if final_date else ''}{f'&tipo_evento={tipo_evento}' if tipo_evento else ''}{f'&responsible={responsible}' if responsible else ''}{f'&cod_empresa={cod_empresa}' if cod_empresa else ''}{f'&created_at_min={created_at_min}' if created_at_min else ''}{f'&created_at_max={created_at_max}' if created_at_max else ''}"
+        context['current_page'] = f'https://app.caiuas.com.br/crm/eventos?&{f'&search={search}' if search else ''}{f'&status={status}' if status else ''}{f'&limit={limit}' if limit else ''}{f'&current_page={current_page}' if current_page else ''}{f'&initial_date={initial_date}' if initial_date else ''}{f'&final_date={final_date}' if final_date else ''}{f'&tipo_evento={tipo_evento}' if tipo_evento else ''}{f'&responsible={responsible}' if responsible else ''}{f'&cod_empresa={cod_empresa}' if cod_empresa else ''}{f'&created_at_min={created_at_min}' if created_at_min else ''}{f'&created_at_max={created_at_max}' if created_at_max else ''}'
         payload = {}
         headers = {
             "Authorization": f"Bearer {token}"
@@ -179,3 +182,68 @@ def list_pesquisa_satisfacao():
     except Exception as e:
         return render_template('500.html', error=str(e))
     
+@crm_bp.route('/crm/open_whatsapp', methods=['POST'])
+def open_whatsapp():
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({'error': 'JSON inválido ou ausente'}), 400
+
+        url = data.get('url')
+        phone = data.get('phone', '')
+        cod_atendimento = data.get('cod_atendimento')
+
+        if not url:
+            return jsonify({'error': 'O campo "url" é obrigatório'}), 400
+
+        conn, cur = postgres_chatwoot()
+        try:
+            # Gera hash único de ~8 caracteres
+            for _ in range(10):
+                hash_code = secrets.token_urlsafe(6)  # 6 bytes → 8 chars base64url
+                cur.execute("SELECT id FROM whatsapp_links WHERE hash = %s", (hash_code,))
+                if cur.fetchone() is None:
+                    break
+            else:
+                return jsonify({'error': 'Não foi possível gerar um hash único'}), 500
+
+            cur.execute(
+                "INSERT INTO whatsapp_links (hash, url, phone, cod_atendimento) VALUES (%s, %s, %s, %s)",
+                (hash_code, url, phone, cod_atendimento)
+            )
+            conn.commit()
+        finally:
+            cur.close()
+            conn.close()
+
+        short_url = f"https://app.caiuas.com.br/r/{hash_code}"
+        message = f"Atendimento #{hash_code}: Olá, gostaria de dar continuidade a meu atendimento por aqui!"
+        whatsapp_url = f"https://api.whatsapp.com/send?phone={phone}&text={urllib.parse.quote(message)}"
+
+        return jsonify({
+            'whatsapp_url': whatsapp_url,
+            'short_url': short_url,
+            'hash': hash_code,
+            'cod_atendimento': cod_atendimento
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@crm_bp.route('/r/<string:hash_code>', methods=['GET'])
+def redirect_whatsapp_link(hash_code):
+    try:
+        conn, cur = postgres_chatwoot()
+        try:
+            cur.execute("SELECT url FROM whatsapp_links WHERE hash = %s", (hash_code,))
+            row = cur.fetchone()
+        finally:
+            cur.close()
+            conn.close()
+
+        if row is None:
+            return render_template('404.html'), 404
+
+        return redirect(row['url'], code=302)
+    except Exception as e:
+        return render_template('500.html', error=str(e))
