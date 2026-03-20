@@ -197,6 +197,15 @@
                                                             {% endif %}
                                                         </select>
                                                     </div>
+                                                    <div class="mb-3">
+                                                        <label for="companyFilter">Empresa</label>
+                                                        <select class="form-select" id="companyFilter" name="cod_empresa">
+                                                            <option value="TODOS" {% if not request.args.get('cod_empresa') %}selected{% endif %}>TODOS</option>
+                                                            <option value="11" {% if request.args.get('cod_empresa') == '11' %}selected{% endif %}>Sorocaba</option>
+                                                            <option value="33" {% if request.args.get('cod_empresa') == '33' %}selected{% endif %}>Indaiatuba</option>
+                                                            <option value="111" {% if request.args.get('cod_empresa') == '111' %}selected{% endif %}>Seminovos</option>
+                                                        </select>
+                                                    </div>
                                                     <hr class="my-2" />
                                                     <p class="text-body-tertiary fs-10 mb-2">Filtrar por período</p>
                                                     <div class="mb-3">
@@ -1154,6 +1163,15 @@
                     urlParams.delete('responsible');
                 }
 
+                // Handle empresa filter
+                const companyFilter = document.getElementById('companyFilter');
+                const selectedCompany = companyFilter ? companyFilter.value : 'TODOS';
+                if (selectedCompany && selectedCompany !== 'TODOS') {
+                    urlParams.set('cod_empresa', selectedCompany);
+                } else {
+                    urlParams.delete('cod_empresa');
+                }
+
                 // Handle data de criação (modal)
                 if (fpModalCreated && fpModalCreated.selectedDates.length === 2) {
                     urlParams.set('created_at_min', flatpickr.formatDate(fpModalCreated.selectedDates[0], "Y-m-d"));
@@ -1188,6 +1206,7 @@
                 urlParams.delete('final_date');
                 urlParams.delete('created_at_min');
                 urlParams.delete('created_at_max');
+                urlParams.delete('cod_empresa');
                 urlParams.delete('search');
                 urlParams.set('current_page', '1');
                 fp.clear();
