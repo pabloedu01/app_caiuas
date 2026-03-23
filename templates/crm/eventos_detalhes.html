@@ -285,6 +285,27 @@
                       </div>
                     </div>
 
+                    <!-- Proposta NBS -->
+                    <div class="mb-4">
+                      <div class="d-flex align-items-center mb-1">
+                        <span class="me-2 uil uil-file-alt"></span>
+                        <h5 class="text-body-highlight mb-0">Proposta NBS</h5>
+                      </div>
+                      <div class="d-flex align-items-center">
+                        <span id="valorPropostaNbs">{% if context.data.cod_proposta %}{{ context.data.cod_proposta }}{% else %}Não informado{% endif %}</span>
+                        {% if context.data.cod_cliente and context.data.cod_cliente != 1 %}
+                        <button class="btn btn-link p-0 ms-2" type="button" data-bs-toggle="modal"
+                          data-bs-target="#modalBuscarPropostaNbs" title="Alterar proposta NBS">
+                          <span class="fas fa-edit fs-10 text-body-tertiary"></span>
+                        </button>
+                        {% else %}
+                        <button class="btn btn-link p-0 ms-2" type="button" disabled title="Cliente não cadastrado — cadastre o cliente antes de vincular uma proposta">
+                          <span class="fas fa-edit fs-10 text-body-tertiary"></span>
+                        </button>
+                        {% endif %}
+                      </div>
+                    </div>
+
                     <script>
                       document.addEventListener('DOMContentLoaded', function () {
                         const startTime = new Date('{{ context.data.data_criacao }}');
@@ -1579,6 +1600,78 @@
       </div>
     </div>
 
+    <!-- Modal Buscar Proposta NBS -->
+    <div class="modal fade" id="modalBuscarPropostaNbs" tabindex="-1" aria-labelledby="modalBuscarPropostaNbsLabel" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h6 class="modal-title" id="modalBuscarPropostaNbsLabel">
+              <span class="fas fa-search text-primary me-2"></span>Buscar Proposta NBS
+            </h6>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+          </div>
+          <div class="modal-body">
+            <div class="row g-3 mb-3">
+              <div class="col-md-4">
+                <label class="form-label fw-semibold" for="buscaNbsCodCliente">Código do Cliente</label>
+                <input type="text" class="form-control" id="buscaNbsCodCliente" placeholder="Ex: 7494482881">
+              </div>
+              <div class="col-md-4">
+                <label class="form-label fw-semibold" for="buscaNbsNomeCliente">Nome do Cliente</label>
+                <input type="text" class="form-control" id="buscaNbsNomeCliente" placeholder="Digite o nome...">
+              </div>
+              <div class="col-md-4">
+                <label class="form-label fw-semibold" for="buscaNbsCodProposta">Código da Proposta</label>
+                <input type="text" class="form-control" id="buscaNbsCodProposta" placeholder="Ex: 110066900">
+              </div>
+            </div>
+            <div class="d-flex justify-content-end mb-3">
+              <button type="button" class="btn btn-primary" onclick="buscarPropostasNbs()">
+                <span class="fas fa-search me-1"></span>Buscar
+              </button>
+            </div>
+            <div id="tabelaNbsPropostasContainer">
+              <div id="tabelaNbsPropostasVazio" class="text-center py-4">
+                <span class="fas fa-file-alt fa-3x text-muted mb-3 d-block"></span>
+                <p class="text-muted mb-0">Utilize os filtros acima para buscar propostas</p>
+              </div>
+              <div id="tabelaNbsPropostasLoading" class="text-center py-4 d-none">
+                <span class="fas fa-spinner fa-spin fa-2x text-primary mb-3 d-block"></span>
+                <p class="text-muted mb-0">Buscando propostas...</p>
+              </div>
+              <div id="tabelaNbsPropostas" class="d-none">
+                <div class="table-responsive">
+                  <table class="table table-sm table-hover mb-0">
+                    <thead>
+                      <tr>
+                        <th></th>
+                        <th>Código Proposta</th>
+                        <th>Cliente</th>
+                        <th>Modelo</th>
+                        <th>Valor</th>
+                        <th>Emissão</th>
+                        <th>Processo</th>
+                      </tr>
+                    </thead>
+                    <tbody id="tabelaNbsPropostasBody"></tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-danger me-auto" id="btnRemoverPropostaNbs" onclick="removerPropostaNbs()">
+              <span class="fas fa-trash-alt me-1"></span>Remover Proposta
+            </button>
+            <button type="button" class="btn btn-phoenix-secondary" data-bs-dismiss="modal">Cancelar</button>
+            <button type="button" class="btn btn-primary" id="btnSalvarPropostaNbs" onclick="salvarPropostaNbsSelecionada()" disabled>
+              <span class="fas fa-save me-1"></span>Salvar
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- Fim Modal Buscar Proposta NBS -->
 
   </main>
   <!-- ===============================================-->
@@ -1675,6 +1768,139 @@
         }
       }
     }
+
+    // ========== PROPOSTA NBS - funções globais ==========
+    window._propostaNbsSelecionada = null;
+    var _tokenNbs = '{{ session.token }}';
+    var _codEventoNbs = '{{ context.data.cod_empresa }}{{ context.data.cod_evento }}';
+
+    function buscarPropostasNbs() {
+      var codCliente = document.getElementById('buscaNbsCodCliente').value.trim();
+      var nomeCliente = document.getElementById('buscaNbsNomeCliente').value.trim();
+      var codProposta = document.getElementById('buscaNbsCodProposta').value.trim();
+
+      var params = new URLSearchParams();
+      if (codCliente) params.append('cod_cliente', codCliente);
+      if (nomeCliente) params.append('search', nomeCliente);
+      if (codProposta) params.append('cod_proposta', codProposta);
+
+      document.getElementById('tabelaNbsPropostasVazio').classList.add('d-none');
+      document.getElementById('tabelaNbsPropostasLoading').classList.remove('d-none');
+      document.getElementById('tabelaNbsPropostas').classList.add('d-none');
+
+      fetch('https://backend.caiuas.com.br/api/veiculos/propostas?' + params.toString(), {
+        method: 'GET',
+        headers: { 'Authorization': 'Bearer ' + _tokenNbs }
+      })
+      .then(function(response) {
+        if (!response.ok) throw new Error('Erro ' + response.status);
+        return response.text();
+      })
+      .then(function(text) {
+        if (!text || text.trim() === '') return { propostas: [] };
+        return JSON.parse(text);
+      })
+      .then(function(data) {
+        document.getElementById('tabelaNbsPropostasLoading').classList.add('d-none');
+        if (!data.propostas || data.propostas.length === 0) {
+          document.getElementById('tabelaNbsPropostasVazio').classList.remove('d-none');
+          document.getElementById('tabelaNbsPropostasVazio').innerHTML = '<span class="fas fa-search fa-3x text-muted mb-3 d-block"></span><p class="text-muted mb-0">Nenhuma proposta encontrada</p>';
+          return;
+        }
+        var tbody = document.getElementById('tabelaNbsPropostasBody');
+        tbody.innerHTML = '';
+        data.propostas.forEach(function(proposta) {
+          var tr = document.createElement('tr');
+          tr.style.cursor = 'pointer';
+          tr.onclick = function() { selecionarPropostaNbs(proposta.cod_proposta, tr); };
+          var processoLink = proposta.id_processo
+            ? '<a href="/veiculos/processos/' + proposta.id_processo + '" target="_blank" onclick="event.stopPropagation();" class="btn btn-sm btn-phoenix-primary p-1"><span class="fas fa-external-link-alt"></span> ' + proposta.id_processo + '</a>'
+            : '-';
+          tr.innerHTML = '<td><input type="radio" name="propostaNbsSelecionada" value="' + proposta.cod_proposta + '"></td>' +
+            '<td><strong>' + proposta.cod_proposta + '</strong></td>' +
+            '<td>' + (proposta.nome_cliente || '-') + '</td>' +
+            '<td>' + (proposta.descricao_modelo || '-') + '</td>' +
+            '<td>' + (proposta.valor_proposta ? 'R$ ' + proposta.valor_proposta.toLocaleString('pt-BR', {minimumFractionDigits: 2}) : '-') + '</td>' +
+            '<td>' + (proposta.emissao ? proposta.emissao.split(' ')[0] : '-') + '</td>' +
+            '<td>' + processoLink + '</td>';
+          tbody.appendChild(tr);
+        });
+        document.getElementById('tabelaNbsPropostas').classList.remove('d-none');
+      })
+      .catch(function(error) {
+        document.getElementById('tabelaNbsPropostasLoading').classList.add('d-none');
+        document.getElementById('tabelaNbsPropostasVazio').classList.remove('d-none');
+        document.getElementById('tabelaNbsPropostasVazio').innerHTML = '<span class="fas fa-exclamation-triangle fa-3x text-danger mb-3 d-block"></span><p class="text-danger mb-0">Erro ao buscar propostas: ' + error.message + '</p>';
+      });
+    }
+
+    function selecionarPropostaNbs(codProposta, tr) {
+      window._propostaNbsSelecionada = codProposta;
+      var rows = document.querySelectorAll('#tabelaNbsPropostasBody tr');
+      rows.forEach(function(row) {
+        row.classList.remove('table-primary');
+        row.querySelector('input[type="radio"]').checked = false;
+      });
+      tr.classList.add('table-primary');
+      tr.querySelector('input[type="radio"]').checked = true;
+      document.getElementById('btnSalvarPropostaNbs').disabled = false;
+    }
+
+    function salvarPropostaNbsSelecionada() {
+      if (!window._propostaNbsSelecionada) {
+        window.showToast('Selecione uma proposta', 'warning');
+        return;
+      }
+      var btn = document.getElementById('btnSalvarPropostaNbs');
+      var originalHtml = btn.innerHTML;
+      btn.disabled = true;
+      btn.innerHTML = '<span class="fas fa-spinner fa-spin me-1"></span>Salvando...';
+
+      fetch('https://backend.caiuas.com.br/api/crm/eventos/' + _codEventoNbs + '/proposta', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + _tokenNbs },
+        body: JSON.stringify({ cod_proposta: window._propostaNbsSelecionada })
+      })
+      .then(function(response) {
+        return response.json().then(function(data) {
+          if (!response.ok || data.status === 'error') throw new Error(data.message || 'Erro ' + response.status);
+          return data;
+        });
+      })
+      .then(function() {
+        document.getElementById('valorPropostaNbs').textContent = window._propostaNbsSelecionada;
+        window.showToast('Proposta atualizada com sucesso!', 'success');
+        bootstrap.Modal.getInstance(document.getElementById('modalBuscarPropostaNbs')).hide();
+      })
+      .catch(function(error) {
+        window.showToast('Erro ao atualizar proposta: ' + error.message, 'error');
+        btn.innerHTML = originalHtml;
+        btn.disabled = false;
+      });
+    }
+    function removerPropostaNbs() {
+      if (!confirm('Deseja remover a proposta NBS deste evento?')) return;
+      fetch('https://backend.caiuas.com.br/api/crm/eventos/' + _codEventoNbs + '/proposta', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + _tokenNbs },
+        body: JSON.stringify({ cod_proposta: null })
+      })
+      .then(function(response) {
+        return response.json().then(function(data) {
+          if (!response.ok || data.status === 'error') throw new Error(data.message || 'Erro ' + response.status);
+          return data;
+        });
+      })
+      .then(function() {
+        document.getElementById('valorPropostaNbs').textContent = 'Não informado';
+        window.showToast('Proposta removida com sucesso!', 'success');
+      })
+      .catch(function(error) {
+        window.showToast('Erro ao remover proposta: ' + error.message, 'error');
+      });
+    }
+    // ========== FIM PROPOSTA NBS - funções globais ==========
+
     document.addEventListener('DOMContentLoaded', () => {
 
 
@@ -4305,6 +4531,22 @@
       });
     }
     // ========== FIM EVENTO ANTERIOR ==========
+
+    // ========== PROPOSTA NBS - inicialização do modal ==========
+    var modalBuscarPropostaNbsEl2 = document.getElementById('modalBuscarPropostaNbs');
+    if (modalBuscarPropostaNbsEl2) {
+      modalBuscarPropostaNbsEl2.addEventListener('show.bs.modal', function() {
+        window._propostaNbsSelecionada = null;
+        document.getElementById('buscaNbsCodCliente').value = '';
+        document.getElementById('buscaNbsNomeCliente').value = '';
+        document.getElementById('buscaNbsCodProposta').value = '';
+        document.getElementById('tabelaNbsPropostasVazio').classList.remove('d-none');
+        document.getElementById('tabelaNbsPropostasLoading').classList.add('d-none');
+        document.getElementById('tabelaNbsPropostas').classList.add('d-none');
+        document.getElementById('btnSalvarPropostaNbs').disabled = true;
+      });
+    }
+    // ========== FIM inicialização PROPOSTA NBS ==========
 
     // Debug - verificar se elementos existem
     console.log('Elementos encontrados:', {
