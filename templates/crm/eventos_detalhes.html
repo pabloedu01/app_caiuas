@@ -141,6 +141,8 @@
                     <!-- <li><a class="dropdown-item" href="#!">View profile</a></li>
                     <li><a class="dropdown-item" href="#!">Report</a></li>
                     <li><a class="dropdown-item" href="#!">Manage notifications</a></li> -->
+                    <li><a class="dropdown-item" href="#" id="btnAlterarDataCriacao"
+                      data-bs-toggle="modal" data-bs-target="#alterarDataCriacaoModal">Alterar data de criação</a></li>
                     <li><a class="dropdown-item text-danger" href="#" id="btnApagarEvento"
                       data-bs-toggle="modal" data-bs-target="#apagarEventoModal">Apagar Evento</a></li>
                   </ul>
@@ -265,6 +267,23 @@
                           <span class="fas fa-hourglass-half me-1"></span>
                           <span id="elapsed-time">Calculando...</span>
                         </span>
+                      </div>
+                    </div>
+
+                    <!-- Data de criação (somente leitura) -->
+                    <div class="mb-4">
+                      <div class="d-flex align-items-center mb-1"><span class="me-2 uil uil-clock"></span>
+                        <h5 class="text-body-highlight mb-0">Data de criação</h5>
+                      </div>
+                      <div class="d-flex align-items-center">
+                        {% if context.data.data_criacao %}
+                        <span>{{ context.data.data_criacao[:10].split('-')[2] }}/{{
+                          context.data.data_criacao[:10].split('-')[1]
+                          }}/{{ context.data.data_criacao[:10].split('-')[0] }} às {{ context.data.data_criacao[11:16]
+                          }}</span>
+                        {% else %}
+                        <span>Não informado</span>
+                        {% endif %}
                       </div>
                     </div>
 
@@ -1210,6 +1229,35 @@
                 <span class="fas fa-save me-2"></span>Salvar
               </button>
               <button class="btn btn-outline-primary" type="button" data-bs-dismiss="modal">Cancelar</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal Alterar Data de Criação -->
+    <div class="modal fade" id="alterarDataCriacaoModal" tabindex="-1" aria-labelledby="alterarDataCriacaoModalLabel"
+      aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <form id="alterarDataCriacaoForm">
+            <div class="modal-header bg-info bg-opacity-10">
+              <h5 class="modal-title text-info" id="alterarDataCriacaoModalLabel">
+                <span class="fas fa-calendar-edit me-2"></span>Alterar data de criação
+              </h5>
+              <button class="btn btn-close p-1" type="button" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <div class="mb-3">
+                <label for="novaDataCriacao" class="form-label">Nova data e hora <span class="text-danger">*</span></label>
+                <input type="datetime-local" class="form-control" id="novaDataCriacao" name="data_criacao" required>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button class="btn btn-info" type="submit" id="btnConfirmarAlterarDataCriacao">
+                <span class="fas fa-save me-2"></span>Salvar
+              </button>
+              <button class="btn btn-outline-secondary" type="button" data-bs-dismiss="modal">Cancelar</button>
             </div>
           </form>
         </div>
@@ -4562,6 +4610,61 @@
       searchClientBtn: !!searchClientBtn,
       editEventoAnteriorModal: !!editEventoAnteriorModalEl
     }); // <-- CHAVE DE FECHAMENTO ADICIONADA AQUI
+
+// =================== ALTERAR DATA DE CRIAÇÃO ===================
+      const alterarDataCriacaoForm = document.getElementById('alterarDataCriacaoForm');
+      if (alterarDataCriacaoForm) {
+        alterarDataCriacaoForm.addEventListener('submit', async function (e) {
+          e.preventDefault();
+          const btn = document.getElementById('btnConfirmarAlterarDataCriacao');
+          const originalHTML = btn.innerHTML;
+          btn.disabled = true;
+          btn.innerHTML = `<span class="fas fa-spinner fa-spin me-2"></span>Salvando...`;
+
+          try {
+            const dataCriacao = document.getElementById('novaDataCriacao').value;
+
+            const myHeaders = new Headers();
+            myHeaders.append("Authorization", `Bearer ${token}`);
+            myHeaders.append("Content-Type", "application/json");
+
+            const response = await fetch(
+              `https://backend.caiuas.com.br/api/crm/eventos/muda_data_criacao/${codEvento}`,
+              {
+                method: 'POST',
+                headers: myHeaders,
+                body: JSON.stringify({ data_criacao: dataCriacao }),
+                redirect: 'follow'
+              }
+            );
+
+            if (response.ok) {
+              if (window.showToast) window.showToast('Data de criação alterada com sucesso!', 'success');
+              const modalInstance = bootstrap.Modal.getInstance(document.getElementById('alterarDataCriacaoModal'));
+              modalInstance.hide();
+            } else {
+              let errorMessage = 'Erro ao alterar data de criação';
+              try {
+                const errorResponse = await response.json();
+                if (errorResponse && errorResponse.message) {
+                  errorMessage = errorResponse.message;
+                }
+              } catch (parseError) {
+                console.warn('Não foi possível fazer parse da resposta de erro:', parseError);
+              }
+              if (window.showToast) window.showToast(errorMessage, 'error');
+              btn.disabled = false;
+              btn.innerHTML = originalHTML;
+            }
+          } catch (error) {
+            console.error('Erro ao alterar data de criação:', error);
+            if (window.showToast) window.showToast(error.message || 'Erro ao alterar data de criação', 'error');
+            btn.disabled = false;
+            btn.innerHTML = originalHTML;
+          }
+        });
+      }
+
     });
   </script>
 
