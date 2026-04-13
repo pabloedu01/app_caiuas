@@ -423,7 +423,12 @@
                                         {% endif %}
                                     </td>
                                     <td class="align-middle white-space-nowrap text-end pe-0 ps-4">
-                                        <div class="btn-reveal-trigger position-static">
+                                        <button class="btn btn-sm btn-phoenix-success me-1"
+                                            onclick="abrirHistoricoChat('{{evento.cod_empresa}}{{evento.cod_evento}}', '{{ evento.nome_cliente | e }}')"
+                                            title="Histórico de mensagens">
+                                            <span class="fas fa-comments fs-10"></span>
+                                        </button>
+                                        <div class="btn-reveal-trigger position-static d-inline-block">
                                             <button
                                                 class="btn btn-sm dropdown-toggle dropdown-caret-none transition-none btn-reveal fs-10"
                                                 type="button" data-bs-toggle="dropdown" data-boundary="window"
@@ -1590,6 +1595,170 @@
                 searchIcon.style.cursor = 'pointer';
             }
         });
+    </script>
+
+    <!-- Modal Histórico Chat -->
+    <div class="modal fade" id="historicoChatModal" tabindex="-1" aria-labelledby="historicoChatModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="historicoChatModalLabel">Histórico de Mensagens</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="historicoChatBody" style="background-color:#e5ddd5; min-height:300px; max-height:60vh; overflow-y:auto; padding:16px;">
+                    <div class="d-flex justify-content-center align-items-center" style="min-height:200px;">
+                        <div class="spinner-border text-primary" role="status"></div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <small id="historicoChatInfo" class="text-muted me-auto"></small>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function escapeHtml(text) {
+            return String(text)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;');
+        }
+
+        function normalizeTel(tel) {
+            let t = String(tel).replace(/\D/g, '');
+            if (t.startsWith('55') && t.length > 11) t = t.slice(2);
+            return t;
+        }
+
+        function carregarHistorico(telefone, nomeCliente) {
+            const modalEl = document.getElementById('historicoChatModal');
+            const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+            const body = document.getElementById('historicoChatBody');
+            const info = document.getElementById('historicoChatInfo');
+
+            document.getElementById('historicoChatModalLabel').textContent =
+                'Histórico — ' + (nomeCliente || telefone);
+            info.textContent = '';
+            body.innerHTML =
+                '<div class="d-flex justify-content-center align-items-center" style="min-height:200px;">' +
+                '<div class="spinner-border text-primary" role="status"></div></div>';
+
+            modal.show();
+
+            const tel = normalizeTel(telefone);
+
+            fetch('https://app.caiuas.com.br/api/chat/historico/' + tel, {
+                method: 'GET',
+                headers: { 'Authorization': 'Bearer ' + token }
+            })
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                if (!data.mensagens || data.total === 0) {
+                    body.innerHTML = '<p class="text-center text-muted mt-4">Sem histórico de mensagens.</p>';
+                    return;
+                }
+
+                info.textContent = data.total + ' mensagem(ns) encontrada(s)';
+
+                var html = '';
+                data.mensagens.forEach(function(msg) {
+                    var isContact = msg.sender_type === 'Contact';
+                    var align = isContact ? 'flex-end' : 'flex-start';
+                    var bgColor = isContact ? '#dcf8c6' : '#ffffff';
+                    var time = msg.created_at
+                        ? new Date(msg.created_at).toLocaleString('pt-BR')
+                        : '';
+
+                    var content = '';
+                    if (msg.content_type && msg.file_url) {
+                        var ct = msg.content_type;
+                        if (ct.startsWith('image/')) {
+                            content = '<img src="' + msg.file_url + '" class="img-fluid rounded" style="max-width:250px;" alt="' + escapeHtml(msg.nome_do_arquivo || 'imagem') + '">';
+                        } else if (ct.startsWith('audio/')) {
+                            content = '<audio controls style="max-width:300px; width:100%;"><source src="' + msg.file_url + '"></audio>' +
+                              '<div class="mt-1"><a href="' + msg.file_url + '" target="_blank" rel="noopener noreferrer" style="font-size:0.75rem;">' +
+                              '<span class="fas fa-download me-1"></span>' + escapeHtml(msg.nome_do_arquivo || 'Baixar áudio') + '</a></div>';
+                            if (msg.transcribed_text) {
+                                content += '<p class="mt-1 mb-0" style="font-size:0.8rem;color:#666;font-style:italic;">' + escapeHtml(msg.transcribed_text) + '</p>';
+                            }
+                        } else if (ct.startsWith('video/')) {
+                            content = '<video controls class="img-fluid rounded" style="max-width:300px;"><source src="' + msg.file_url + '" type="' + escapeHtml(ct) + '"></video>';
+                        } else {
+                            content = '<a href="' + msg.file_url + '" target="_blank" rel="noopener noreferrer">' + escapeHtml(msg.nome_do_arquivo || 'Arquivo') + '</a>';
+                        }
+                    } else if (msg.message) {
+                        content = '<span style="white-space:pre-wrap;">' + escapeHtml(msg.message) + '</span>';
+                    }
+
+                    if (!content) return;
+
+                    html += '<div class="d-flex" style="justify-content:' + align + '; margin-bottom:8px;">' +
+                        '<div style="background:' + bgColor + '; border-radius:8px; padding:8px 12px; max-width:75%; box-shadow:0 1px 2px rgba(0,0,0,.1);">' +
+                        content +
+                        '<div style="text-align:right; font-size:0.7rem; color:#999; margin-top:4px;">' + time + '</div>' +
+                        '</div></div>';
+                });
+
+                body.innerHTML = html || '<p class="text-center text-muted mt-4">Sem histórico de mensagens.</p>';
+                body.scrollTop = body.scrollHeight;
+            })
+            .catch(function() {
+                body.innerHTML = '<p class="text-center text-danger mt-4">Erro ao carregar histórico.</p>';
+            });
+        }
+
+        function abrirHistoricoChat(eventoId, nomeCliente) {
+            const modalEl = document.getElementById('historicoChatModal');
+            const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+            const body = document.getElementById('historicoChatBody');
+
+            document.getElementById('historicoChatModalLabel').textContent =
+                'Buscando telefones — ' + (nomeCliente || eventoId);
+            document.getElementById('historicoChatInfo').textContent = '';
+            body.innerHTML =
+                '<div class="d-flex justify-content-center align-items-center" style="min-height:200px;">' +
+                '<div class="spinner-border text-primary" role="status"></div></div>';
+
+            modal.show();
+
+            fetch('https://backend.caiuas.com.br/api/crm/eventos/' + eventoId, {
+                method: 'GET',
+                headers: { 'Authorization': 'Bearer ' + token }
+            })
+            .then(function(r) { return r.json(); })
+            .then(function(detail) {
+                var phones = [];
+                if (detail.tel_whatsapp) phones.push({ label: 'WhatsApp (' + detail.tel_whatsapp + ')', tel: detail.tel_whatsapp });
+                if (detail.tel_cel) phones.push({ label: 'Celular (' + detail.tel_cel + ')', tel: detail.tel_cel });
+                if (detail.fone_cliente_avulso) phones.push({ label: 'Fone Evento (' + detail.fone_cliente_avulso + ')', tel: detail.fone_cliente_avulso });
+
+                if (phones.length === 0) {
+                    body.innerHTML = '<p class="text-center text-muted mt-4">Nenhum telefone cadastrado neste evento.</p>';
+                    return;
+                }
+
+                if (phones.length === 1) {
+                    carregarHistorico(phones[0].tel, nomeCliente);
+                    return;
+                }
+
+                // Múltiplos telefones: exibir seleção
+                var html = '<p class="text-center fw-semibold mb-3">Selecione o telefone:</p>';
+                phones.forEach(function(p) {
+                    html += '<div class="d-grid mb-2">' +
+                        '<button class="btn btn-phoenix-success" onclick="carregarHistorico(\'' + escapeHtml(p.tel) + '\', \'' + escapeHtml(nomeCliente) + '\')">' +
+                        '<span class="fas fa-comments me-2"></span>' + escapeHtml(p.label) +
+                        '</button></div>';
+                });
+                body.innerHTML = html;
+            })
+            .catch(function() {
+                body.innerHTML = '<p class="text-center text-danger mt-4">Erro ao buscar detalhes do evento.</p>';
+            });
+        }
     </script>
 </body>
 
