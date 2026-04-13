@@ -8,6 +8,9 @@ import requests
 from dotenv import load_dotenv
 import tempfile
 import urllib.request
+import boto3
+from botocore.exceptions import ClientError
+from auth import token_required
 
 load_dotenv()
 chat_bp = Blueprint('chat', __name__)    
@@ -798,4 +801,84 @@ def chatwoot_open_chat(number):
         
     except Exception as e:
         return json.dumps({'error': 'Invalid JSON payload'}), 400
+
+
+@chat_bp.route('/api/chat/historico/<telefone>', methods=['GET'])
+# @token_required
+def historico_chat(telefone):
+    """
+    Retorna o histórico de mensagens de um número de telefone.
+    As URLs de arquivos são pré-assinadas (S3 presigned URL).
+    Parâmetro: telefone — apenas dígitos, ex: 15997471818
+    """
+    try:
+        conn, cur = postgres_chatwoot()
+
+        query = """
+            SELECT 
+                m.created_at, 
+                m.content AS message,
+                m.message_type,
+                a.meta->>'transcribed_text' AS transcribed_text,
+                asb.key AS s3_file_key,
+                asb.filename AS nome_do_arquivo,
+                asb.content_type AS content_type,
+                m.sender_type
+            FROM messages m
+            LEFT JOIN conversations c ON c.id = m.conversation_id 
+            LEFT JOIN contacts c2 ON c2.id = c.contact_id 
+            LEFT JOIN attachments a ON a.message_id = m.id 
+            LEFT JOIN active_storage_attachments asa ON asa.record_id = a.id AND asa.record_type = 'Attachment'
+            LEFT JOIN active_storage_blobs asb ON asb.id = asa.blob_id
+            WHERE c2.phone_number LIKE %s
+              AND m.source_id IS NOT NULL
+            ORDER BY m.created_at ASC;
+        """
+
+        like_param = f'%{telefone}'
+        cur.execute(query, (like_param,))
+        rows = cur.fetchall()
+        cur.close()
+        conn.close()
+
+        # Configura cliente S3 para gerar URLs pré-assinadas
+        s3_client = boto3.client(
+            's3',
+            region_name=os.environ.get('AWS_REGION'),
+            aws_access_key_id=os.environ.get('AWS_ACCESS_KEY_ID'),
+            aws_secret_access_key=os.environ.get('AWS_SECRET_ACCESS_KEY')
+        )
+        bucket_name = os.environ.get('S3_BUCKET_NAME')
+
+        resultado = []
+        for row in rows:
+            s3_key = row['s3_file_key']
+
+            # Gera URL pré-assinada válida por 1 hora se houver arquivo
+            file_url = None
+            if s3_key:
+                try:
+                    file_url = s3_client.generate_presigned_url(
+                        'get_object',
+                        Params={'Bucket': bucket_name, 'Key': s3_key},
+                        ExpiresIn=3600
+                    )
+                except ClientError as e:
+                    file_url = None
+
+            resultado.append({
+                'created_at': row['created_at'].isoformat() if row['created_at'] else None,
+                'message': row['message'],
+                'message_type': row['message_type'],
+                'transcribed_text': row['transcribed_text'],
+                'nome_do_arquivo': row['nome_do_arquivo'],
+                'content_type': row['content_type'],
+                'sender_type': row['sender_type'],
+                'file_url': file_url
+            })
+
+        return jsonify({'telefone': telefone, 'total': len(resultado), 'mensagens': resultado}), 200
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
         

@@ -252,6 +252,10 @@
                       class="ms-2 text-success" title="Enviar WhatsApp">
                       <span class="fab fa-whatsapp"></span>
                     </a>
+                    <a href="#" onclick="carregarHistoricoDetalhe('{{ context.data.fone_cliente_avulso | e }}', '{{ context.data.nome_cliente | e }}'); return false;"
+                      class="ms-2 text-primary" title="Ver histórico de mensagens">
+                      <span class="fas fa-comments"></span>
+                    </a>
                   </div>
                   {% endif %}
                   {% if context.data.tel_cel %}
@@ -263,6 +267,10 @@
                       class="ms-2 text-success" title="Enviar WhatsApp">
                       <span class="fab fa-whatsapp"></span>
                     </a>
+                    <a href="#" onclick="carregarHistoricoDetalhe('{{ context.data.tel_cel | e }}', '{{ context.data.nome_cliente | e }}'); return false;"
+                      class="ms-2 text-primary" title="Ver histórico de mensagens">
+                      <span class="fas fa-comments"></span>
+                    </a>
                   </div>
                   {% endif %}
                   {% if context.data.tel_whatsapp %}
@@ -273,6 +281,10 @@
                     <a href="#" onclick="open_whatsapp('55{{ context.data.tel_whatsapp }}'); return false;"
                       class="ms-2 text-success" title="Enviar WhatsApp">
                       <span class="fab fa-whatsapp"></span>
+                    </a>
+                    <a href="#" onclick="carregarHistoricoDetalhe('{{ context.data.tel_whatsapp | e }}', '{{ context.data.nome_cliente | e }}'); return false;"
+                      class="ms-2 text-primary" title="Ver histórico de mensagens">
+                      <span class="fas fa-comments"></span>
                     </a>
                   </div>
                   {% endif %}
@@ -4816,6 +4828,122 @@
       }
 
     });
+  </script>
+
+  <!-- Modal Histórico Chat -->
+  <div class="modal fade" id="historicoChatModalDetalhe" tabindex="-1" aria-labelledby="historicoChatModalDetalheLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="historicoChatModalDetalheLabel">Histórico de Mensagens</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body" id="historicoChatBodyDetalhe" style="background-color:#e5ddd5; min-height:300px; max-height:60vh; overflow-y:auto; padding:16px;">
+          <div class="d-flex justify-content-center align-items-center" style="min-height:200px;">
+            <div class="spinner-border text-primary" role="status"></div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <small id="historicoChatInfoDetalhe" class="text-muted me-auto"></small>
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function() {
+      var _chatToken = '{{ session.token }}';
+
+      function escapeHtmlDetalhe(text) {
+        return String(text)
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;');
+      }
+
+      function normalizeTelDetalhe(tel) {
+        var t = String(tel).replace(/\D/g, '');
+        if (t.startsWith('55') && t.length > 11) t = t.slice(2);
+        return t;
+      }
+
+      window.carregarHistoricoDetalhe = function(telefone, nomeCliente) {
+        var modalEl = document.getElementById('historicoChatModalDetalhe');
+        var modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+        var body = document.getElementById('historicoChatBodyDetalhe');
+        var info = document.getElementById('historicoChatInfoDetalhe');
+
+        document.getElementById('historicoChatModalDetalheLabel').textContent =
+          'Histórico — ' + (nomeCliente || telefone);
+        info.textContent = '';
+        body.innerHTML =
+          '<div class="d-flex justify-content-center align-items-center" style="min-height:200px;">' +
+          '<div class="spinner-border text-primary" role="status"></div></div>';
+
+        modal.show();
+
+        var tel = normalizeTelDetalhe(telefone);
+
+        fetch('https://app.caiuas.com.br/api/chat/historico/' + tel, {
+          method: 'GET',
+          headers: { 'Authorization': 'Bearer ' + _chatToken }
+        })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+          if (!data.mensagens || data.total === 0) {
+            body.innerHTML = '<p class="text-center text-muted mt-4">Sem histórico de mensagens.</p>';
+            return;
+          }
+
+          info.textContent = data.total + ' mensagem(ns) encontrada(s)';
+
+          var html = '';
+          data.mensagens.forEach(function(msg) {
+            var isContact = msg.sender_type === 'Contact';
+            var align = isContact ? 'flex-end' : 'flex-start';
+            var bgColor = isContact ? '#dcf8c6' : '#ffffff';
+            var time = msg.created_at ? new Date(msg.created_at).toLocaleString('pt-BR') : '';
+
+            var content = '';
+            if (msg.content_type && msg.file_url) {
+              var ct = msg.content_type;
+              if (ct.startsWith('image/')) {
+                content = '<img src="' + msg.file_url + '" class="img-fluid rounded" style="max-width:250px;" alt="' + escapeHtmlDetalhe(msg.nome_do_arquivo || 'imagem') + '">';
+              } else if (ct.startsWith('audio/')) {
+                content = '<audio controls style="max-width:300px; width:100%;"><source src="' + msg.file_url + '"></audio>' +
+                  '<div class="mt-1"><a href="' + msg.file_url + '" target="_blank" rel="noopener noreferrer" style="font-size:0.75rem;">' +
+                  '<span class="fas fa-download me-1"></span>' + escapeHtmlDetalhe(msg.nome_do_arquivo || 'Baixar áudio') + '</a></div>';
+                if (msg.transcribed_text) {
+                  content += '<p class="mt-1 mb-0" style="font-size:0.8rem;color:#666;font-style:italic;">' + escapeHtmlDetalhe(msg.transcribed_text) + '</p>';
+                }
+              } else if (ct.startsWith('video/')) {
+                content = '<video controls class="img-fluid rounded" style="max-width:300px;"><source src="' + msg.file_url + '" type="' + escapeHtmlDetalhe(ct) + '"></video>';
+              } else {
+                content = '<a href="' + msg.file_url + '" target="_blank" rel="noopener noreferrer">' + escapeHtmlDetalhe(msg.nome_do_arquivo || 'Arquivo') + '</a>';
+              }
+            } else if (msg.message) {
+              content = '<span style="white-space:pre-wrap;">' + escapeHtmlDetalhe(msg.message) + '</span>';
+            }
+
+            if (!content) return;
+
+            html += '<div class="d-flex" style="justify-content:' + align + '; margin-bottom:8px;">' +
+              '<div style="background:' + bgColor + '; border-radius:8px; padding:8px 12px; max-width:75%; box-shadow:0 1px 2px rgba(0,0,0,.1);">' +
+              content +
+              '<div style="text-align:right; font-size:0.7rem; color:#999; margin-top:4px;">' + time + '</div>' +
+              '</div></div>';
+          });
+
+          body.innerHTML = html || '<p class="text-center text-muted mt-4">Sem histórico de mensagens.</p>';
+          body.scrollTop = body.scrollHeight;
+        })
+        .catch(function() {
+          body.innerHTML = '<p class="text-center text-danger mt-4">Erro ao carregar histórico.</p>';
+        });
+      };
+    })();
   </script>
 
 </body>
