@@ -108,6 +108,30 @@ def eventos():
     except Exception as e:
         return render_template('500.html', error=str(e))
 
+@crm_bp.route('/crm/eventos_descartados', methods=['GET'])
+@token_required
+def eventos_descartados():
+    try:
+        context = {}
+        context['token_data'] = request.token_data
+        context['title'] = "Eventos Descartados"
+
+        token = session.get('token')
+
+        url = "https://backend.caiuas.com.br/api/crm/eventos_descartados"
+        headers = {
+            "Authorization": f"Bearer {token}"
+        }
+        response = requests.request("GET", url, headers=headers, data={})
+
+        data = response.json()
+        context['token'] = token
+        context['status_response'] = response.status_code
+        context['data'] = data
+        return render_template('crm/eventos_descartados.html', context=context)
+    except Exception as e:
+        return render_template('500.html', error=str(e))
+
 @crm_bp.route('/crm/eventos/<int:evento_id>', methods=['GET'])
 @token_required
 def show_eventos(evento_id):
@@ -228,7 +252,6 @@ def open_whatsapp():
         })
     except Exception as e:
         return jsonify({'error': str(e)}), 500
-
 
 @crm_bp.route('/r/<string:hash_code>', methods=['GET'])
 def redirect_whatsapp_link(hash_code):
