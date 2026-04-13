@@ -309,6 +309,33 @@
         </div>
     </div>
 
+    <!-- Modal Reabrir Evento -->
+    <div class="modal fade" id="reabrirModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border border-translucent">
+                <div class="modal-header border-translucent p-4">
+                    <h5 class="modal-title text-body-highlight fs-6">Reabrir evento</h5>
+                    <button class="btn p-1 text-danger" type="button" data-bs-dismiss="modal" aria-label="Close">
+                        <span class="fas fa-times fs-9"></span>
+                    </button>
+                </div>
+                <div class="modal-body px-4 py-3">
+                    <p class="text-body-secondary mb-3">Tem certeza que deseja reabrir este evento? O descarte será removido e o evento voltará ao status anterior.</p>
+                    <label for="reabrirObservacao" class="form-label fw-semibold">Observação <span class="text-danger">*</span></label>
+                    <textarea id="reabrirObservacao" class="form-control" rows="3" maxlength="190"
+                        placeholder="Digite o motivo da reabertura..."></textarea>
+                    <div class="d-flex justify-content-end mt-1">
+                        <small id="reabrirObsCounter" class="text-muted">0 / 190</small>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 pt-0 pb-4 px-4">
+                    <button class="btn btn-outline-secondary btn-sm" type="button" data-bs-dismiss="modal">Cancelar</button>
+                    <button class="btn btn-warning btn-sm" id="reabrirConfirmBtn" type="button">Reabrir</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Modal de confirmação genérico -->
     <div class="modal fade" id="confirmacaoModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
@@ -409,20 +436,77 @@
             });
 
             // Reabrir evento
+            const reabrirObs = document.getElementById('reabrirObservacao');
+            const reabrirCounter = document.getElementById('reabrirObsCounter');
+
+            reabrirObs.addEventListener('input', function () {
+                reabrirCounter.textContent = reabrirObs.value.length + ' / 190';
+                reabrirObs.classList.remove('is-invalid');
+            });
+
+            document.getElementById('reabrirModal').addEventListener('hidden.bs.modal', function () {
+                reabrirObs.value = '';
+                reabrirCounter.textContent = '0 / 190';
+                reabrirObs.classList.remove('is-invalid');
+            });
+
             document.getElementById('btnReabrir').addEventListener('click', function () {
                 bootstrap.Modal.getInstance(document.getElementById('acaoDescarteModal')).hide();
+                new bootstrap.Modal(document.getElementById('reabrirModal')).show();
+            });
 
-                document.getElementById('confirmacaoModalTitle').textContent = 'Reabrir evento';
-                document.getElementById('confirmacaoModalBody').textContent = 'Tem certeza que deseja reabrir este evento? O descarte será removido e o evento voltará ao status anterior.';
-                const confirmBtn = document.getElementById('confirmacaoModalConfirm');
-                confirmBtn.className = 'btn btn-warning btn-sm';
-                confirmBtn.textContent = 'Reabrir';
-                confirmBtn.onclick = function () {
-                    bootstrap.Modal.getInstance(document.getElementById('confirmacaoModal')).hide();
-                    chamarAPI('PUT', 'https://backend.caiuas.com.br/api/crm/eventos/remover_descarte/' + currentIdEvento, 'Evento reaberto com sucesso!');
-                };
+            document.getElementById('reabrirConfirmBtn').addEventListener('click', async function () {
+                const obs = reabrirObs.value.trim();
+                if (!obs) {
+                    reabrirObs.classList.add('is-invalid');
+                    if (!document.getElementById('reabrirObsError')) {
+                        const err = document.createElement('div');
+                        err.id = 'reabrirObsError';
+                        err.className = 'invalid-feedback';
+                        err.textContent = 'A observação é obrigatória.';
+                        reabrirObs.parentNode.insertBefore(err, reabrirObs.nextSibling);
+                    }
+                    return;
+                }
 
-                new bootstrap.Modal(document.getElementById('confirmacaoModal')).show();
+                const btn = this;
+                btn.disabled = true;
+                btn.innerHTML = '<span class="fas fa-spinner fa-spin"></span> Reabrindo...';
+
+                try {
+                    // 1. Reabrir evento
+                    const res = await fetch('https://backend.caiuas.com.br/api/crm/eventos/remover_descarte/' + currentIdEvento, {
+                        method: 'PUT',
+                        headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' }
+                    });
+                    const result = await res.json();
+                    if (!res.ok) throw new Error(result.message || 'Erro ao reabrir evento.');
+
+                    // 2. Criar ação com a observação
+                    await fetch('https://backend.caiuas.com.br/api/crm/eventos_showroom/create_acao/' + currentIdEvento, {
+                        method: 'POST',
+                        headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ observacao: obs, tipo_acao: 4 })
+                    });
+
+                    bootstrap.Modal.getInstance(document.getElementById('reabrirModal')).hide();
+                    showToast('Evento reaberto com sucesso!', 'success');
+
+                    const row = document.querySelector('tr.evento-row[data-id-evento="' + currentIdEvento + '"]');
+                    if (row) {
+                        row.remove();
+                        const h2 = document.querySelector('h2.mb-4');
+                        if (h2) {
+                            const n = parseInt(h2.textContent.match(/\d+/));
+                            if (!isNaN(n) && n > 0) h2.textContent = (n - 1) + ' Eventos Descartados';
+                        }
+                    }
+                } catch (err) {
+                    showToast(err.message || 'Erro ao reabrir evento.', 'error');
+                } finally {
+                    btn.disabled = false;
+                    btn.innerHTML = 'Reabrir';
+                }
             });
 
             async function chamarAPI(method, url, successMsg) {
