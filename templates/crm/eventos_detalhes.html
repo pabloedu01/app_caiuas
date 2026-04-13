@@ -103,6 +103,36 @@
                     <span class="fa-solid fa-calendar-check me-sm-2"></span>
                     <span class="d-none d-sm-inline">Remarcar contato</span>
                   </button>
+                  {% if context.data.data_agendada %}
+                  <button id="btnAgendarVisita" class="btn btn-phoenix-danger px-3 px-sm-5 me-2"
+                    {% if context.data.data_visita %}disabled title="Não é possível remover o agendamento com visita registrada"
+                    {% elif context.data.status not in ['E', 'D'] %}data-bs-toggle="modal" data-bs-target="#novoAgendamentoModal"
+                    {% else %}disabled title="Evento encerrado ou descartado"{% endif %}>
+                    <span class="fa-solid fa-calendar-times me-sm-2"></span>
+                    <span class="d-none d-sm-inline">Remover agendamento</span>
+                  </button>
+                  {% else %}
+                  <button id="btnAgendarVisita" class="btn btn-phoenix-secondary px-3 px-sm-5 me-2"
+                    {% if context.data.status not in ['E', 'D'] %}data-bs-toggle="modal" data-bs-target="#novoAgendamentoModal"{% else %}disabled title="Evento encerrado ou descartado"{% endif %}>
+                    <span class="fa-solid fa-calendar-plus me-sm-2"></span>
+                    <span class="d-none d-sm-inline">Agendar visita</span>
+                  </button>
+                  {% endif %}
+                  {% if context.data.data_agendada %}
+                  {% if context.data.data_visita %}
+                  <button id="btnRegistrarVisita" class="btn btn-phoenix-danger px-3 px-sm-5 me-2"
+                    {% if context.data.status not in ['E', 'D'] %}data-bs-toggle="modal" data-bs-target="#removerVisitaModal"{% else %}disabled title="Evento encerrado ou descartado"{% endif %}>
+                    <span class="fa-solid fa-times-circle me-sm-2"></span>
+                    <span class="d-none d-sm-inline">Remover visita</span>
+                  </button>
+                  {% else %}
+                  <button id="btnRegistrarVisita" class="btn btn-phoenix-success px-3 px-sm-5 me-2"
+                    {% if context.data.status not in ['E', 'D'] %}data-bs-toggle="modal" data-bs-target="#registrarVisitaModal"{% else %}disabled title="Evento encerrado ou descartado"{% endif %}>
+                    <span class="fa-solid fa-check-circle me-sm-2"></span>
+                    <span class="d-none d-sm-inline">Registrar visita</span>
+                  </button>
+                  {% endif %}
+                  {% endif %}
                   {% if context.data.status == 'E' %}
                   <button class="btn btn-outline-warning px-3 px-sm-5 me-2" type="button" data-bs-toggle="modal"
                     data-bs-target="#reativarEventoModal">
@@ -300,6 +330,34 @@
                           }}</span>
                         {% else %}
                         <span>Não informado</span>
+                        {% endif %}
+                      </div>
+                    </div>
+
+                    <!-- Data de agendamento de visita -->
+                    <div class="mb-4">
+                      <div class="d-flex align-items-center mb-1"><span class="me-2 uil uil-calendar-alt"></span>
+                        <h5 class="text-body-highlight mb-0">Data agendada</h5>
+                      </div>
+                      <div class="d-flex align-items-center">
+                        {% if context.data.data_agendada %}
+                        <span id="dataAgendadaDisplay">{{ context.data.data_agendada[:10].split('-')[2] }}/{{ context.data.data_agendada[:10].split('-')[1] }}/{{ context.data.data_agendada[:10].split('-')[0] }} às {{ context.data.data_agendada[11:16] }}</span>
+                        {% else %}
+                        <span id="dataAgendadaDisplay">Não informado</span>
+                        {% endif %}
+                      </div>
+                    </div>
+
+                    <!-- Data da visita realizada -->
+                    <div class="mb-4">
+                      <div class="d-flex align-items-center mb-1"><span class="me-2 uil uil-check-circle"></span>
+                        <h5 class="text-body-highlight mb-0">Data da visita</h5>
+                      </div>
+                      <div class="d-flex align-items-center">
+                        {% if context.data.data_visita %}
+                        <span id="dataVisitaDisplay">{{ context.data.data_visita[:10].split('-')[2] }}/{{ context.data.data_visita[:10].split('-')[1] }}/{{ context.data.data_visita[:10].split('-')[0] }} às {{ context.data.data_visita[11:16] }}</span>
+                        {% else %}
+                        <span id="dataVisitaDisplay">Não informado</span>
                         {% endif %}
                       </div>
                     </div>
@@ -570,89 +628,6 @@
                   </div>
                   {% endif %}
 
-                </div>
-              </div>
-
-
-              
-              <div class="card mb-3">
-                <div class="card-body">
-                  <div class="d-flex align-items-center mb-5">
-                    <h3>Agendamento de visita</h3>
-
-                  </div>
-
-                  {% if context.data.data_agendada %}
-                  <!-- Formulário para editar agendamento existente -->
-                  <form id="agendamentoForm" class="border rounded-3 p-4 bg-body-emphasis">
-                    <div class="mb-3">
-                      <label class="form-label" for="data-agendada">Data Agendada</label>
-                      <div class="input-group">
-                        <input type="datetime-local" class="form-control" id="data-agendada" name="data_agendada"
-                          value="{{ context.data.data_agendada[:16] if context.data.data_agendada else '' }}">
-                        <button type="button" class="btn btn-outline-danger" title="Remover data agendada"
-                          onclick="document.getElementById('data-agendada').value = ''">
-                          <span class="fas fa-times"></span>
-                        </button>
-                      </div>
-                      <div class="form-text">Campo opcional - clique no × para remover o agendamento</div>
-                    </div>
-
-                    <div class="d-flex justify-content-end">
-                      <button type="submit" class="btn btn-primary">
-                        <span class="fas fa-save me-2"></span>Salvar Alterações
-                      </button>
-                    </div>
-                  </form>
-
-                  <!-- Exibir informações atuais -->
-                  <div class="mt-4">
-                    <div class="mb-3">
-                      <div class="d-flex align-items-center mb-1">
-                        <span class="me-2 uil uil-calendar-alt"></span>
-                        <h5 class="mb-0 text-body-highlight">Data Agendada</h5>
-                      </div>
-                      <p class="mb-0 text-body-secondary">
-                        {% if context.data.data_agendada %}
-                        {{ context.data.data_agendada[:10].split('-')[2] }}/{{
-                        context.data.data_agendada[:10].split('-')[1] }}/{{
-                        context.data.data_agendada[:10].split('-')[0] }} às {{ context.data.data_agendada[11:16] }}
-                        {% else %}
-                        Não informado
-                        {% endif %}
-                      </p>
-                    </div>
-
-                    {% if context.data.data_visita %}
-                    <div>
-                      <div class="d-flex align-items-center mb-1">
-                        <span class="me-2 uil uil-check-circle"></span>
-                        <h5 class="mb-0 text-body-highlight">Data da Visita Realizada</h5>
-                      </div>
-                      <p class="mb-0 text-body-secondary">
-                        {{ context.data.data_visita[:10].split('-')[2] }}/{{ context.data.data_visita[:10].split('-')[1]
-                        }}/{{ context.data.data_visita[:10].split('-')[0] }} às {{ context.data.data_visita[11:16] }}
-                      </p>
-                    </div>
-                    {% endif %}
-                  </div>
-
-                  {% else %}
-                  <!-- Mensagem quando não há agendamento -->
-                  <div class="text-center py-5">
-                    <div class="mb-4">
-                      <span class="fa-solid fa-calendar-plus fa-3x text-secondary"></span>
-                    </div>
-                    <h5 class="mb-3">Nenhum agendamento encontrado</h5>
-                    <p class="text-body-secondary mb-4">
-                      Este evento ainda não possui uma data de visita agendada.
-                    </p>
-                    <button type="button" class="btn btn-primary" data-bs-toggle="modal"
-                      data-bs-target="#novoAgendamentoModal">
-                      <span class="fas fa-plus me-2"></span>Agendar Nova Visita
-                    </button>
-                  </div>
-                  {% endif %}
                 </div>
               </div>
 
@@ -1007,6 +982,62 @@
         </div>
       </div>
     </div>
+
+    <!-- Modal Registrar Visita -->
+    <div class="modal fade" id="registrarVisitaModal" tabindex="-1" aria-labelledby="registrarVisitaModalLabel"
+      aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="registrarVisitaModalLabel">Registrar Visita Realizada</h5>
+            <button class="btn btn-close p-1" type="button" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <form id="registrarVisitaForm">
+              <div class="mb-3">
+                <label for="dataVisitaRealizada" class="form-label">Data da Visita</label>
+                <input type="datetime-local" class="form-control" id="dataVisitaRealizada" name="data_visita" required>
+                <div class="form-text">Informe a data e hora em que a visita foi realizada</div>
+              </div>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-primary" type="submit" form="registrarVisitaForm">Salvar</button>
+            <button class="btn btn-outline-primary" type="button" data-bs-dismiss="modal">Cancelar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- Fim Modal Registrar Visita -->
+
+    <!-- Modal Remover Visita -->
+    <div class="modal fade" id="removerVisitaModal" tabindex="-1" aria-labelledby="removerVisitaModalLabel"
+      aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="removerVisitaModalLabel">Remover Visita Registrada</h5>
+            <button class="btn btn-close p-1" type="button" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <div class="d-flex align-items-start gap-3">
+              <span class="fa-solid fa-triangle-exclamation text-danger fs-4 mt-1"></span>
+              <div>
+                <p class="mb-1 fw-semibold">Deseja remover a visita registrada?</p>
+                <p class="text-body-secondary mb-0 fs-9">A data da visita será apagada e o agendamento permanecerá.</p>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-phoenix-secondary" data-bs-dismiss="modal">Cancelar</button>
+            <button type="button" class="btn btn-danger" id="btnConfirmarRemoverVisita">
+              <span class="fas fa-times-circle me-2"></span>Remover visita
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- Fim Modal Remover Visita -->
 
     <!-- Modal de busca de clientes -->
     <div class="modal fade" id="editClientModal" tabindex="-1" aria-labelledby="editClientModalLabel"
@@ -3534,6 +3565,125 @@
           // Restaurar botão
           btn.disabled = false;
           btn.innerHTML = originalHTML;
+        }
+      });
+    }
+
+    // ============================================================================
+    // MODAL REGISTRAR VISITA
+    // ============================================================================
+    const registrarVisitaModal = new bootstrap.Modal(document.getElementById('registrarVisitaModal'));
+    const registrarVisitaForm = document.getElementById('registrarVisitaForm');
+
+    if (registrarVisitaForm) {
+      registrarVisitaForm.addEventListener('submit', async function (e) {
+        e.preventDefault();
+
+        if (!verificarPermissaoEdicao('registrar visita')) {
+          return;
+        }
+
+        const btn = e.submitter;
+        const originalHTML = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = `<span class="fas fa-spinner fa-spin"></span> Salvando...`;
+
+        try {
+          const dataVisita = document.getElementById('dataVisitaRealizada').value;
+
+          if (!dataVisita) {
+            throw new Error('Informe a data da visita.');
+          }
+
+          const payload = {
+            "data_visita": dataVisita.replace('T', ' ') + ':00'
+          };
+
+          const response = await fetch(`https://backend.caiuas.com.br/api/crm/eventos_showroom/agenda_visita/${codEvento}`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${token}`
+            },
+            body: JSON.stringify(payload),
+            redirect: "follow"
+          });
+
+          const result = await response.json();
+
+          if (!response.ok) {
+            throw new Error(result.message || 'Ocorreu um erro ao registrar a visita.');
+          }
+
+          if (window.showToast) {
+            window.showToast('Visita registrada com sucesso!', 'success');
+          }
+
+          registrarVisitaModal.hide();
+
+          setTimeout(() => {
+            window.location.reload();
+          }, 1500);
+
+        } catch (error) {
+          console.error('Erro ao registrar visita:', error);
+          if (window.showToast) {
+            window.showToast(error.message || 'Erro ao registrar visita', 'error');
+          }
+        } finally {
+          btn.disabled = false;
+          btn.innerHTML = originalHTML;
+        }
+      });
+    }
+
+    // ============================================================================
+    // MODAL REMOVER VISITA
+    // ============================================================================
+    const btnConfirmarRemoverVisita = document.getElementById('btnConfirmarRemoverVisita');
+    if (btnConfirmarRemoverVisita) {
+      btnConfirmarRemoverVisita.addEventListener('click', async function () {
+        const originalHTML = this.innerHTML;
+        this.disabled = true;
+        this.innerHTML = `<span class="fas fa-spinner fa-spin"></span> Removendo...`;
+
+        try {
+          const payload = { "data_visita": null };
+
+          const response = await fetch(`https://backend.caiuas.com.br/api/crm/eventos_showroom/agenda_visita/${codEvento}`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${token}`
+            },
+            body: JSON.stringify(payload),
+            redirect: "follow"
+          });
+
+          const result = await response.json();
+
+          if (!response.ok) {
+            throw new Error(result.message || 'Ocorreu um erro ao remover a visita.');
+          }
+
+          if (window.showToast) {
+            window.showToast('Visita removida com sucesso!', 'success');
+          }
+
+          bootstrap.Modal.getInstance(document.getElementById('removerVisitaModal')).hide();
+
+          setTimeout(() => {
+            window.location.reload();
+          }, 1500);
+
+        } catch (error) {
+          console.error('Erro ao remover visita:', error);
+          if (window.showToast) {
+            window.showToast(error.message || 'Erro ao remover visita', 'error');
+          }
+        } finally {
+          this.disabled = false;
+          this.innerHTML = originalHTML;
         }
       });
     }
