@@ -270,3 +270,18 @@ def redirect_whatsapp_link(hash_code):
         return redirect(row['url'], code=302)
     except Exception as e:
         return render_template('500.html', error=str(e))
+
+@crm_bp.route('/crm/delete', methods=['GET'])
+@token_required
+def delete_eventos_page():
+    try:
+        context = {}
+        context['token_data'] = request.token_data
+        context['title'] = "Deletar Eventos em Massa"
+        
+        token = session.get('token')
+        context['token'] = token
+        
+        return render_template('crm/delete.html', context=context)
+    except Exception as e:
+        return render_template('500.html', error=str(e))
