@@ -1000,6 +1000,23 @@
     <script src="/static/assets/js/phoenix.js"></script>
     <script src="/static/assets/js/toast.js"></script>
     <script>
+        // Patch do Choices.js para capturar instâncias dos selects do filtro
+        // Este código roda ANTES do DOMContentLoaded do phoenix.js criar as instâncias
+        window._filterChoicesInstances = {};
+        (function () {
+            if (!window.Choices) return;
+            const _OrigChoices = window.Choices;
+            const _filterIds = ['organizerMultiple', 'tipoEventoMultiple', 'responsibleMultiple'];
+            class PatchedChoices extends _OrigChoices {
+                constructor(element, options) {
+                    super(element, options);
+                    if (element && element.id && _filterIds.includes(element.id)) {
+                        window._filterChoicesInstances[element.id] = this;
+                    }
+                }
+            }
+            window.Choices = PatchedChoices;
+        })();
         document.addEventListener('DOMContentLoaded', function () {
             // Imprimir contexto completo no console
             // console.log('========== CONTEXTO COMPLETO ==========');
@@ -1198,23 +1215,24 @@
             // Handle reset button
             resetButton.addEventListener('click', function (e) {
                 e.preventDefault();
-                const urlParams = new URLSearchParams(window.location.search);
-                urlParams.delete('status');
-                urlParams.delete('tipo_evento');
-                urlParams.delete('responsible');
-                urlParams.delete('initial_date');
-                urlParams.delete('final_date');
-                urlParams.delete('created_at_min');
-                urlParams.delete('created_at_max');
-                urlParams.delete('cod_empresa');
-                urlParams.delete('search');
-                urlParams.set('current_page', '1');
-                fp.clear();
+
+                // Limpar selects do Choices.js (status, tipo evento, responsável)
+                ['organizerMultiple', 'tipoEventoMultiple', 'responsibleMultiple'].forEach(function (id) {
+                    const instance = window._filterChoicesInstances[id];
+                    if (instance) instance.removeActiveItems();
+                });
+
+                // Resetar select simples de empresa
+                const companyFilter = document.getElementById('companyFilter');
+                if (companyFilter) companyFilter.value = 'TODOS';
+
+                // Limpar flatpickrs do modal
                 if (fpModalCreated) fpModalCreated.clear();
                 if (fpModalContact) fpModalContact.clear();
+
+                // Limpar flatpickr rápido da barra e campo de busca
+                fp.clear();
                 searchInput.value = '';
-                const newUrl = window.location.pathname + '?' + urlParams.toString();
-                window.location.href = newUrl;
             });
 
             // Handle search input
