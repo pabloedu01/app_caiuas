@@ -300,3 +300,18 @@ def descartar_eventos_page():
         return render_template('crm/descartar.html', context=context)
     except Exception as e:
         return render_template('500.html', error=str(e))
+
+@crm_bp.route('/crm/contato_perdido', methods=['GET'])
+@token_required
+def contato_perdido_page():
+    try:
+        context = {}
+        context['token_data'] = request.token_data
+        context['title'] = "Contato Perdido em Massa"
+        
+        token = session.get('token')
+        context['token'] = token
+        
+        return render_template('crm/contato_perdido.html', context=context)
+    except Exception as e:
+        return render_template('500.html', error=str(e))
