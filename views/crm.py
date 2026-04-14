@@ -285,3 +285,18 @@ def delete_eventos_page():
         return render_template('crm/delete.html', context=context)
     except Exception as e:
         return render_template('500.html', error=str(e))
+
+@crm_bp.route('/crm/descartar', methods=['GET'])
+@token_required
+def descartar_eventos_page():
+    try:
+        context = {}
+        context['token_data'] = request.token_data
+        context['title'] = "Descartar Eventos em Massa"
+        
+        token = session.get('token')
+        context['token'] = token
+        
+        return render_template('crm/descartar.html', context=context)
+    except Exception as e:
+        return render_template('500.html', error=str(e))
