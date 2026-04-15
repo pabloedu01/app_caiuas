@@ -210,6 +210,10 @@
                         <p class="mb-0">CPF ou CNPJ</p><a class="fw-bold">{{ context.data.cod_cliente }}</a>
                         <button class="btn btn-link px-3" type="button" data-bs-target="#editClientModal"
                           data-bs-toggle="modal">Edit</button>
+                        {% if context.data.nome_cliente_avulso %}
+                        <p class="mb-0 mt-2 text-muted">Nome no evento</p>
+                        <span class="fw-normal small">{{ context.data.nome_cliente_avulso }}</span>
+                        {% endif %}
                         {% endif %}
                       </div>
                     </div>
@@ -1498,6 +1502,10 @@
                   </select>
                   <div class="form-text"><span id="cpMotivoCount">0</span> motivos disponíveis</div>
                 </div>
+                <div class="mb-3">
+                  <label for="cpObservacao" class="form-label">Observação</label>
+                  <textarea class="form-control" id="cpObservacao" rows="3" placeholder="Descreva o que aconteceu (opcional)..."></textarea>
+                </div>
               </div>
 
               <!-- Erro -->
@@ -2304,6 +2312,7 @@
       const cpErrorIndicator = document.getElementById('cpErrorIndicator');
       const cpErrorMsg = document.getElementById('cpErrorMsg');
       const btnConfirmarContatoPerdido = document.getElementById('btnConfirmarContatoPerdido');
+      const cpObservacao = document.getElementById('cpObservacao');
 
       function cpRenderizarMotivos(motivos) {
         cpMotivoSelect.innerHTML = '<option value="">Selecione um motivo...</option>';
@@ -2349,6 +2358,7 @@
       cpModal.addEventListener('hidden.bs.modal', function () {
         cpForm.reset();
         cpSearchInput.value = '';
+        cpObservacao.value = '';
         cpMotivoSelect.innerHTML = '<option value="">Selecione um motivo...</option>';
         cpLoadingIndicator.style.display = 'block';
         cpFormFields.style.display = 'none';
@@ -2379,6 +2389,7 @@
         btn.innerHTML = `<span class="fas fa-spinner fa-spin me-2"></span>Processando...`;
 
         try {
+          // Primeiro registra o contato perdido
           const response = await fetch(
             `https://backend.caiuas.com.br/api/crm/eventos/contato_perdido/${codEvento}`,
             {
@@ -2393,6 +2404,26 @@
 
           const result = await response.json();
           if (!response.ok) throw new Error(result.message || 'Erro ao registrar contato perdido');
+
+          // Se houver observação, cria uma ação
+          const observacaoTexto = cpObservacao.value.trim();
+          if (observacaoTexto) {
+            try {
+              await fetch(`https://backend.caiuas.com.br/api/crm/eventos_showroom/create_acao/${codEvento}`, {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                  observacao: observacaoTexto,
+                  tipo_acao: 4
+                })
+              });
+            } catch (acaoError) {
+              console.warn('Erro ao criar ação de observação:', acaoError);
+            }
+          }
 
           if (window.showToast) window.showToast('Contato perdido registrado com sucesso!', 'success');
 
