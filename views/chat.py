@@ -524,7 +524,6 @@ def chat_corretora_api():
             f.write(json.dumps(retorno, indent=4, ensure_ascii=False))
         return jsonify(retorno), 400
 
-
 def get_chatbot_information(id_bot: int = 1):
     """Busca informações do chatbot diretamente no banco (evita chamada HTTP interna)."""
     try:
