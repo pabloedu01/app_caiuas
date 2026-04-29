@@ -132,6 +132,30 @@ def eventos_descartados():
     except Exception as e:
         return render_template('500.html', error=str(e))
 
+@crm_bp.route('/crm/eventos_contato_perdido', methods=['GET'])
+@token_required
+def eventos_contato_perdido():
+    try:
+        context = {}
+        context['token_data'] = request.token_data
+        context['title'] = "Eventos Contato Perdido"
+
+        token = session.get('token')
+
+        url = f"{os.getenv('BACKEND_URL')}/api/crm/eventos_contato_perdido"
+        headers = {
+            "Authorization": f"Bearer {token}"
+        }
+        response = requests.request("GET", url, headers=headers, data={})
+
+        data = response.json()
+        context['token'] = token
+        context['status_response'] = response.status_code
+        context['data'] = data
+        return render_template('crm/eventos_contato_perdido.html', context=context)
+    except Exception as e:
+        return render_template('500.html', error=str(e))
+
 @crm_bp.route('/crm/eventos/<int:evento_id>', methods=['GET'])
 @token_required
 def show_eventos(evento_id):

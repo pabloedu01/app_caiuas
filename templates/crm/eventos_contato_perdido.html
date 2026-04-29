@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="en-US" dir="ltr" data-navigation-type="default" data-navbar-horizontal-shape="default">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>{{ context.title }}</title>
+
+    <link rel="apple-touch-icon" sizes="180x180" href="/static/assets/img/favicons/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/static/assets/img/favicons/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/static/assets/img/favicons/favicon-16x16.png">
+    <link rel="shortcut icon" type="image/x-icon" href="/static/assets/img/favicons/favicon.ico">
+    <link rel="manifest" href="/static/assets/img/favicons/manifest.json">
+    <meta name="msapplication-TileImage" content="/static/assets/img/favicons/mstile-150x150.png">
+    <meta name="theme-color" content="#ffffff">
+    <script src="/static/vendors/simplebar/simplebar.min.js"></script>
+    <script src="/static/assets/js/config.js"></script>
+
+    <link href="/static/vendors/flatpickr/flatpickr.min.css" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@300;400;600;700;800;900&amp;display=swap" rel="stylesheet">
+    <link href="/static/vendors/simplebar/simplebar.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://unicons.iconscout.com/release/v4.0.8/css/line.css">
+    <link href="/static/assets/css/theme-rtl.min.css" type="text/css" rel="stylesheet" id="style-rtl">
+    <link href="/static/assets/css/theme.min.css" type="text/css" rel="stylesheet" id="style-default">
+    <link href="/static/assets/css/user-rtl.min.css" type="text/css" rel="stylesheet" id="user-style-rtl">
+    <link href="/static/assets/css/user.min.css" type="text/css" rel="stylesheet" id="user-style-default">
+    <script>
+        var phoenixIsRTL = window.config.config.phoenixIsRTL;
+        if (phoenixIsRTL) {
+            var linkDefault = document.getElementById('style-default');
+            var userLinkDefault = document.getElementById('user-style-default');
+            linkDefault.setAttribute('disabled', true);
+            userLinkDefault.setAttribute('disabled', true);
+            document.querySelector('html').setAttribute('dir', 'rtl');
+        } else {
+            var linkRTL = document.getElementById('style-rtl');
+            var userLinkRTL = document.getElementById('user-style-rtl');
+            linkRTL.setAttribute('disabled', true);
+            userLinkRTL.setAttribute('disabled', true);
+        }
+    </script>
+</head>
+
+<body>
+    <main class="main" id="top">
+        {% include 'menu.html' %}
+        {% include 'top_bar.html' %}
+        <div class="content">
+            <nav class="mb-3" aria-label="breadcrumb">
+                <ol class="breadcrumb mb-0">
+                    <li class="breadcrumb-item"><a href="/">Home</a></li>
+                    <li class="breadcrumb-item active">Eventos Contato Perdido</li>
+                </ol>
+            </nav>
+            <div class="pb-6">
+                <h2 class="mb-4">
+                    {{ context.data.eventos_contatos_perdidos | length if context.data and context.data.eventos_contatos_perdidos else (context.data.eventos_contato_perdido | length if context.data and context.data.eventos_contato_perdido else 0) }}
+                    Eventos Contato Perdido
+                </h2>
+                <div id="descartadosTable">
+                    <div class="row g-3 justify-content-between mb-4">
+                        <div class="col-auto">
+                            <div class="d-md-flex justify-content-between">
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <div class="d-flex">
+                                <div class="search-box me-2">
+                                    <form class="position-relative">
+                                        <input id="searchInput" class="form-control search-input search" type="search"
+                                            placeholder="Procure aqui" aria-label="Search" />
+                                        <span class="fas fa-search search-box-icon"></span>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="table-responsive scrollbar mx-n1 px-1">
+                        <table class="table fs-9 mb-0 leads-table border-top border-translucent">
+                            <thead>
+                                <tr>
+                                    <th class="sort align-middle ps-4 pe-5 text-uppercase border-end border-translucent" scope="col" style="width:15%;">
+                                        <div class="d-inline-flex flex-center">
+                                            <div class="d-flex align-items-center px-1 py-1 bg-success-subtle rounded me-2">
+                                                <span class="text-success-dark fas fa-user"></span>
+                                            </div>
+                                            <span>Nome</span>
+                                        </div>
+                                    </th>
+                                    <th class="sort align-middle ps-4 pe-5 text-uppercase border-end border-translucent" scope="col" style="width:12%;">
+                                        <div class="d-inline-flex flex-center">
+                                            <div class="d-flex align-items-center px-1 py-1 bg-success-subtle rounded me-2">
+                                                <span class="text-success-dark fas fa-user"></span>
+                                            </div>
+                                            <span>Responsável</span>
+                                        </div>
+                                    </th>
+                                    <th class="sort align-middle ps-4 pe-5 text-uppercase border-end border-translucent" scope="col" style="width:12%;">
+                                        <div class="d-inline-flex flex-center">
+                                            <div class="d-flex align-items-center px-1 py-1 bg-danger-subtle rounded me-2">
+                                                <span class="text-danger-dark fas fa-user-times"></span>
+                                            </div>
+                                            <span>Quem Encerrou</span>
+                                        </div>
+                                    </th>
+                                    <th class="sort align-middle ps-4 pe-5 text-uppercase border-end border-translucent" scope="col" style="width:10%;">
+                                        <div class="d-inline-flex flex-center">
+                                            <div class="d-flex align-items-center px-1 py-1 bg-primary-subtle rounded me-2">
+                                                <span class="text-primary-dark fas fa-hashtag"></span>
+                                            </div>
+                                            <span>Cód. Evento</span>
+                                        </div>
+                                    </th>
+                                    <th class="sort align-middle ps-4 pe-5 text-uppercase border-end border-translucent" scope="col" style="width:12%;">
+                                        <div class="d-inline-flex flex-center">
+                                            <div class="d-flex align-items-center px-1 py-1 bg-info-subtle rounded me-2">
+                                                <span class="text-info-dark fas fa-calendar"></span>
+                                            </div>
+                                            <span>Tipo do Evento</span>
+                                        </div>
+                                    </th>
+                                    <th class="sort align-middle ps-4 pe-5 text-uppercase border-end border-translucent" scope="col" style="width:12%;">
+                                        <div class="d-inline-flex flex-center">
+                                            <div class="d-flex align-items-center px-1 py-1 bg-warning-subtle rounded me-2">
+                                                <span class="text-warning-dark fas fa-tasks"></span>
+                                            </div>
+                                            <span>Andamento</span>
+                                        </div>
+                                    </th>
+                                    <th class="sort align-middle ps-4 pe-5 text-uppercase border-end border-translucent" scope="col" style="width:15%;">
+                                        <div class="d-inline-flex flex-center">
+                                            <div class="d-flex align-items-center px-1 py-1 bg-danger-subtle rounded me-2">
+                                                <span class="text-danger-dark fas fa-ban"></span>
+                                            </div>
+                                            <span>Motivo Perda</span>
+                                        </div>
+                                    </th>
+                                    <th class="sort align-middle ps-4 pe-5 text-uppercase" scope="col" style="width:12%;">Data do Encerramento</th>
+                                </tr>
+                            </thead>
+                            <tbody class="list" id="descartados-table-body">
+                                {% set eventos = context.data.eventos_contatos_perdidos if context.data and context.data.eventos_contatos_perdidos else (context.data.eventos_contato_perdido if context.data and context.data.eventos_contato_perdido else []) %}
+                                {% if eventos %}
+                                {% for evento in eventos %}
+                                <tr class="hover-actions-trigger btn-reveal-trigger position-static evento-row"
+                                    style="cursor:pointer;"
+                                    data-id-evento="{{ evento.cod_empresa }}{{ evento.cod_evento }}"
+                                    data-cod-evento="{{ evento.cod_evento }}"
+                                    data-nome-cliente="{{ evento.nome_cliente if evento.nome_cliente else '-' }}">
+                                    <td class="name align-middle white-space-nowrap ps-4">
+                                        <div class="d-flex align-items-center">
+                                            <div>
+                                                <span class="fs-8 fw-bold">{{ evento.nome_cliente if evento.nome_cliente else '-' }}</span>
+                                                <div class="d-flex align-items-center">
+                                                    <p class="mb-0 text-body-highlight fw-semibold fs-9 me-2">
+                                                        {{ evento.descricao_modelo if evento.descricao_modelo else '' }}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="align-middle white-space-nowrap fw-semibold ps-4">
+                                        {% if evento.responsavel_nome_completo %}
+                                        <span class="text-body-highlight">{{ evento.responsavel_nome_completo }}</span>
+                                        {% else %}
+                                        <span class="text-body-tertiary">-</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="align-middle white-space-nowrap fw-semibold ps-4">
+                                        {% if evento.quem_encerrou_nome_completo %}
+                                        <span class="text-danger">{{ evento.quem_encerrou_nome_completo }}</span>
+                                        {% else %}
+                                        <span class="text-body-tertiary">-</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="align-middle white-space-nowrap fw-semibold ps-4">
+                                        <span class="fas fa-hashtag me-1"></span>{{ evento.cod_evento }}
+                                    </td>
+                                    <td class="align-middle white-space-nowrap ps-4 fw-semibold text-body-highlight">
+                                        <div class="d-flex align-items-center">
+                                            {% if evento.desc_tipo_evento %}
+                                            {% if 'Showroom' in evento.desc_tipo_evento %}
+                                            <span class="fas fa-store text-info me-2"></span>
+                                            {% elif 'Visita' in evento.desc_tipo_evento %}
+                                            <span class="fas fa-home text-success me-2"></span>
+                                            {% elif 'Ligação' in evento.desc_tipo_evento or 'Contato' in evento.desc_tipo_evento %}
+                                            <span class="fas fa-phone text-primary me-2"></span>
+                                            {% elif 'WhatsApp' in evento.desc_tipo_evento %}
+                                            <span class="fab fa-whatsapp text-success me-2"></span>
+                                            {% else %}
+                                            <span class="fas fa-calendar text-body-tertiary me-2"></span>
+                                            {% endif %}
+                                            {{ evento.desc_tipo_evento }}
+                                            {% else %}
+                                            <span class="text-body-tertiary">-</span>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                    <td class="align-middle white-space-nowrap ps-4">
+                                        {% if evento.andamento %}
+                                        <span class="badge badge-phoenix badge-phoenix-primary">{{ evento.andamento }}</span>
+                                        {% else %}
+                                        <span class="text-body-tertiary">-</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="align-middle ps-4">
+                                        {% if evento.motivo_perda %}
+                                        <span class="badge badge-phoenix badge-phoenix-danger">{{ evento.motivo_perda }}</span>
+                                        {% else %}
+                                        <span class="text-body-tertiary">-</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="align-middle white-space-nowrap text-body-tertiary ps-4">
+                                        {% if evento.created_at %}
+                                        {% set dt = evento.created_at %}
+                                        {% if '-' in dt and ' ' in dt %}
+                                        {% set dt_parts = dt.split(' ') %}
+                                        {% set date_parts = dt_parts[0].split('-') %}
+                                        {% set time_parts = dt_parts[1].split(':') %}
+                                        {{ date_parts[2] }}/{{ date_parts[1] }}/{{ date_parts[0][2:] }} {{ time_parts[0] }}:{{ time_parts[1] }}
+                                        {% else %}
+                                        {{ evento.created_at }}
+                                        {% endif %}
+                                        {% else %}
+                                        -
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                                {% else %}
+                                <tr>
+                                    <td colspan="8" class="text-center text-body-tertiary py-4">
+                                        <span class="fas fa-inbox fs-5 me-2"></span>
+                                        Nenhum evento de contato perdido encontrado.
+                                    </td>
+                                </tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <footer class="footer position-absolute"></footer>
+        </div>
+
+        <div class="modal fade" id="searchBoxModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="true"
+            data-phoenix-modal="data-phoenix-modal" style="--phoenix-backdrop-opacity: 1;">
+            <div class="modal-dialog">
+                <div class="modal-content mt-15 rounded-pill">
+                    <div class="modal-body p-0">
+                        <div class="search-box navbar-top-search-box" data-list='{"valueNames":["title"]}'
+                            style="width: auto;">
+                            <form class="position-relative" data-bs-toggle="search" data-bs-display="static">
+                                <input class="form-control search-input fuzzy-search rounded-pill form-control-lg"
+                                    type="search" placeholder="Search..." aria-label="Search" />
+                                <span class="fas fa-search search-box-icon"></span>
+                            </form>
+                            <div class="btn-close position-absolute end-0 top-50 translate-middle cursor-pointer shadow-none"
+                                data-bs-dismiss="search">
+                                <button class="btn btn-link p-0" aria-label="Close"></button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modal de ações do evento contato perdido -->
+    <div class="modal fade" id="acaoDescarteModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border border-translucent">
+                <div class="modal-header border-translucent p-4 justify-content-between">
+                    <h5 class="modal-title text-body-highlight fs-6 lh-sm">
+                        <span class="fas fa-gavel me-2 text-danger"></span>
+                        Evento Contato Perdido
+                    </h5>
+                    <button class="btn p-1 text-danger" type="button" data-bs-dismiss="modal" aria-label="Close">
+                        <span class="fas fa-times fs-9"></span>
+                    </button>
+                </div>
+                <div class="modal-body pt-3 pb-2 px-4">
+                    <p class="text-body-secondary mb-1 fs-9">
+                        <span class="fas fa-user me-1"></span>
+                        <span id="modalNomeCliente" class="fw-semibold"></span>
+                    </p>
+                    <p class="text-body-tertiary fs-10 mb-3">
+                        Cód. Evento: <span id="modalCodEvento" class="fw-bold"></span>
+                    </p>
+                    <p class="text-body-tertiary fs-10 mb-0">Selecione uma ação para este evento:</p>
+                </div>
+                <div class="modal-footer d-flex flex-column gap-2 border-0 pt-0 pb-4 px-4">
+                    <button class="btn btn-success w-100" id="btnAutorizar">
+                        <span class="fas fa-check-circle me-2"></span>Autorizar contato perdido
+                    </button>
+                    <button class="btn btn-warning w-100" id="btnReabrir">
+                        <span class="fas fa-undo me-2"></span>Reabrir evento
+                    </button>
+                    <a class="btn btn-primary w-100" id="btnAbrirEvento" href="#" target="_blank">
+                        <span class="fas fa-external-link-alt me-2"></span>Abrir evento
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Reabrir Evento -->
+    <div class="modal fade" id="reabrirModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border border-translucent">
+                <div class="modal-header border-translucent p-4">
+                    <h5 class="modal-title text-body-highlight fs-6">Reabrir evento</h5>
+                    <button class="btn p-1 text-danger" type="button" data-bs-dismiss="modal" aria-label="Close">
+                        <span class="fas fa-times fs-9"></span>
+                    </button>
+                </div>
+                <div class="modal-body px-4 py-3">
+                    <p class="text-body-secondary mb-3">Tem certeza que deseja reabrir este evento? O contato perdido será removido e o evento voltará ao status anterior.</p>
+                    <label for="reabrirObservacao" class="form-label fw-semibold">Observação <span class="text-danger">*</span></label>
+                    <textarea id="reabrirObservacao" class="form-control" rows="3" maxlength="190"
+                        placeholder="Digite o motivo da reabertura..."></textarea>
+                    <div class="d-flex justify-content-end mt-1">
+                        <small id="reabrirObsCounter" class="text-muted">0 / 190</small>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 pt-0 pb-4 px-4">
+                    <button class="btn btn-outline-secondary btn-sm" type="button" data-bs-dismiss="modal">Cancelar</button>
+                    <button class="btn btn-warning btn-sm" id="reabrirConfirmBtn" type="button">Reabrir</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de confirmação genérico -->
+    <div class="modal fade" id="confirmacaoModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border border-translucent">
+                <div class="modal-header border-translucent p-4">
+                    <h5 class="modal-title text-body-highlight fs-6" id="confirmacaoModalTitle">Confirmar ação</h5>
+                    <button class="btn p-1 text-danger" type="button" data-bs-dismiss="modal" aria-label="Close">
+                        <span class="fas fa-times fs-9"></span>
+                    </button>
+                </div>
+                <div class="modal-body px-4 py-3">
+                    <p id="confirmacaoModalBody" class="text-body-secondary mb-0"></p>
+                </div>
+                <div class="modal-footer border-0 pt-0 pb-4 px-4">
+                    <button class="btn btn-outline-secondary btn-sm" type="button" data-bs-dismiss="modal">Cancelar</button>
+                    <button class="btn btn-sm" id="confirmacaoModalConfirm" type="button">Confirmar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="/static/vendors/popper/popper.min.js"></script>
+    <script src="/static/vendors/bootstrap/bootstrap.min.js"></script>
+    <script src="/static/vendors/anchorjs/anchor.min.js"></script>
+    <script src="/static/vendors/is/is.min.js"></script>
+    <script src="/static/vendors/fontawesome/all.min.js"></script>
+    <script src="/static/vendors/lodash/lodash.min.js"></script>
+    <script src="/static/vendors/list.js/list.min.js"></script>
+    <script src="/static/vendors/feather-icons/feather.min.js"></script>
+    <script src="/static/vendors/dayjs/dayjs.min.js"></script>
+    <script src="/static/assets/js/phoenix.js"></script>
+    <script src="/static/assets/js/toast.js"></script>
+    <script>
+        var navbarTopStyle = window.config.config.phoenixNavbarTopStyle;
+        var navbarTop = document.querySelector('.navbar-top');
+        if (navbarTopStyle === 'darker') {
+            navbarTop.setAttribute('data-navbar-appearance', 'darker');
+        }
+
+        var navbarVerticalStyle = window.config.config.phoenixNavbarVerticalStyle;
+        var navbarVertical = document.querySelector('.navbar-vertical');
+        if (navbarVertical && navbarVerticalStyle === 'darker') {
+            navbarVertical.setAttribute('data-navbar-appearance', 'darker');
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            const searchInput = document.getElementById('searchInput');
+            const token = "{{ context.token }}";
+            let currentIdEvento = null;
+
+            const urlParams = new URLSearchParams(window.location.search);
+            const searchQuery = urlParams.get('search');
+            if (searchQuery) {
+                searchInput.value = searchQuery;
+            }
+
+            searchInput.addEventListener('keypress', function (e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    const query = searchInput.value.trim();
+                    const rows = document.querySelectorAll('#descartados-table-body tr');
+                    rows.forEach(function (row) {
+                        const text = row.textContent.toLowerCase();
+                        row.style.display = !query || text.includes(query.toLowerCase()) ? '' : 'none';
+                    });
+                }
+            });
+
+            // Abrir modal ao clicar na linha
+            document.getElementById('descartados-table-body').addEventListener('click', function (e) {
+                const row = e.target.closest('tr.evento-row');
+                if (!row) return;
+                currentIdEvento = row.dataset.idEvento;
+                const nomeCliente = row.dataset.nomeCliente;
+                const codEvento = row.dataset.codEvento;
+
+                document.getElementById('modalNomeCliente').textContent = nomeCliente;
+                document.getElementById('modalCodEvento').textContent = codEvento;
+                document.getElementById('btnAbrirEvento').href = '/crm/eventos/' + currentIdEvento + '?previous_page=/crm/eventos_contato_perdido';
+
+                new bootstrap.Modal(document.getElementById('acaoDescarteModal')).show();
+            });
+
+            // Autorizar contato perdido
+            document.getElementById('btnAutorizar').addEventListener('click', function () {
+                bootstrap.Modal.getInstance(document.getElementById('acaoDescarteModal')).hide();
+
+                document.getElementById('confirmacaoModalTitle').textContent = 'Autorizar contato perdido';
+                document.getElementById('confirmacaoModalBody').textContent = 'Tem certeza que deseja autorizar o contato perdido deste evento? Esta ação registrará sua aprovação.';
+                const confirmBtn = document.getElementById('confirmacaoModalConfirm');
+                confirmBtn.className = 'btn btn-success btn-sm';
+                confirmBtn.textContent = 'Autorizar';
+                confirmBtn.onclick = function () {
+                    bootstrap.Modal.getInstance(document.getElementById('confirmacaoModal')).hide();
+                    chamarAPI('PUT', 'https://backend.caiuas.com.br/api/crm/eventos/autorizar_contato_perdido/' + currentIdEvento, 'Contato perdido autorizado com sucesso!');
+                };
+
+                new bootstrap.Modal(document.getElementById('confirmacaoModal')).show();
+            });
+
+            // Reabrir evento
+            const reabrirObs = document.getElementById('reabrirObservacao');
+            const reabrirCounter = document.getElementById('reabrirObsCounter');
+
+            reabrirObs.addEventListener('input', function () {
+                reabrirCounter.textContent = reabrirObs.value.length + ' / 190';
+                reabrirObs.classList.remove('is-invalid');
+            });
+
+            document.getElementById('reabrirModal').addEventListener('hidden.bs.modal', function () {
+                reabrirObs.value = '';
+                reabrirCounter.textContent = '0 / 190';
+                reabrirObs.classList.remove('is-invalid');
+            });
+
+            document.getElementById('btnReabrir').addEventListener('click', function () {
+                bootstrap.Modal.getInstance(document.getElementById('acaoDescarteModal')).hide();
+                new bootstrap.Modal(document.getElementById('reabrirModal')).show();
+            });
+
+            document.getElementById('reabrirConfirmBtn').addEventListener('click', async function () {
+                const obs = reabrirObs.value.trim();
+                if (!obs) {
+                    reabrirObs.classList.add('is-invalid');
+                    if (!document.getElementById('reabrirObsError')) {
+                        const err = document.createElement('div');
+                        err.id = 'reabrirObsError';
+                        err.className = 'invalid-feedback';
+                        err.textContent = 'A observação é obrigatória.';
+                        reabrirObs.parentNode.insertBefore(err, reabrirObs.nextSibling);
+                    }
+                    return;
+                }
+
+                const btn = this;
+                btn.disabled = true;
+                btn.innerHTML = '<span class="fas fa-spinner fa-spin"></span> Reabrindo...';
+
+                try {
+                    // 1. Reabrir evento
+                    const res = await fetch('https://backend.caiuas.com.br/api/crm/eventos/reabrir_evento/' + currentIdEvento, {
+                        method: 'PUT',
+                        headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' }
+                    });
+                    const result = await res.json();
+                    if (!res.ok) throw new Error(result.message || 'Erro ao reabrir evento.');
+
+                    // 2. Criar ação com a observação
+                    await fetch('https://backend.caiuas.com.br/api/crm/eventos_showroom/create_acao/' + currentIdEvento, {
+                        method: 'POST',
+                        headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ observacao: obs, tipo_acao: 4 })
+                    });
+
+                    bootstrap.Modal.getInstance(document.getElementById('reabrirModal')).hide();
+                    showToast('Evento reaberto com sucesso!', 'success');
+
+                    const row = document.querySelector('tr.evento-row[data-id-evento="' + currentIdEvento + '"]');
+                    if (row) {
+                        row.remove();
+                        const h2 = document.querySelector('h2.mb-4');
+                            if (h2) {
+                                const n = parseInt(h2.textContent.match(/\d+/));
+                                if (!isNaN(n) && n > 0) h2.textContent = (n - 1) + ' Eventos Contato Perdido';
+                            }
+                    }
+                } catch (err) {
+                    showToast(err.message || 'Erro ao reabrir evento.', 'error');
+                } finally {
+                    btn.disabled = false;
+                    btn.innerHTML = 'Reabrir';
+                }
+            });
+
+            async function chamarAPI(method, url, successMsg) {
+                try {
+                    const response = await fetch(url, {
+                        method: method,
+                        headers: {
+                            'Authorization': 'Bearer ' + token,
+                            'Content-Type': 'application/json'
+                        }
+                    });
+                    const result = await response.json();
+                    if (response.ok) {
+                        showToast(successMsg, 'success');
+                        const row = document.querySelector('tr.evento-row[data-id-evento="' + currentIdEvento + '"]');
+                        if (row) {
+                            row.remove();
+                            const h2 = document.querySelector('h2.mb-4');
+                            if (h2) {
+                                const n = parseInt(h2.textContent.match(/\d+/));
+                                if (!isNaN(n) && n > 0) h2.textContent = (n - 1) + ' Eventos Contato Perdido';
+                            }
+                        }
+                    } else {
+                        showToast(result.message || 'Erro ao executar ação.', 'error');
+                    }
+                } catch (err) {
+                    showToast('Erro de conexão.', 'error');
+                }
+            }
+        });
+    </script>
+</body>
+
+</html>
