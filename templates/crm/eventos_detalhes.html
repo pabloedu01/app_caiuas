@@ -142,16 +142,16 @@
                   {% elif context.data.status == 'D' %}
                   <button class="btn btn-success me-2" disabled title="Evento descartado">
                     <span class="fa-solid fa-check me-2"></span>
-                    <span>Encerrar Evento</span>
+                    <span>Sucesso !</span>
                   </button>
                   {% else %}
                   <button class="btn btn-success me-2" type="button" data-bs-toggle="modal"
                     data-bs-target="#encerrarEventoModal">
                     <span class="fa-solid fa-check me-2"></span>
-                    <span>Encerrar Evento</span>
+                    <span>Sucesso !</span>
                   </button>
                   {% endif %}
-                  <button class="btn btn-phoenix-secondary px-3 px-sm-5 me-2" type="button"
+                  <button class="btn btn-phoenix-danger px-3 px-sm-5 me-2" type="button"
                     {% if context.data.status in ['E', 'D', 'CP'] %}disabled title="Ação não disponível para este status"{% else %}data-bs-toggle="modal" data-bs-target="#contatoPerdidoModal"{% endif %}>
                     <span class="fa-solid fa-phone-slash me-sm-2"></span>
                     <span class="d-none d-sm-inline">Contato Perdido</span>
@@ -384,13 +384,13 @@
                       </div>
                       <div class="d-flex align-items-center">
                         <span id="valorPropostaNbs">{% if context.data.cod_proposta %}{{ context.data.cod_proposta }}{% else %}Não informado{% endif %}</span>
-                        {% if context.data.cod_cliente and context.data.cod_cliente != 1 %}
+                        {% if context.data.status not in ['E', 'D'] %}
                         <button class="btn btn-link p-0 ms-2" type="button" data-bs-toggle="modal"
                           data-bs-target="#modalBuscarPropostaNbs" title="Alterar proposta NBS">
                           <span class="fas fa-edit fs-10 text-body-tertiary"></span>
                         </button>
                         {% else %}
-                        <button class="btn btn-link p-0 ms-2" type="button" disabled title="Cliente não cadastrado — cadastre o cliente antes de vincular uma proposta">
+                        <button class="btn btn-link p-0 ms-2" type="button" disabled title="Evento encerrado ou descartado">
                           <span class="fas fa-edit fs-10 text-body-tertiary"></span>
                         </button>
                         {% endif %}
@@ -448,6 +448,7 @@
                       </button>
                     </div>
 
+                    <!-- Campo Evento Anterior ocultado
                     <div class="mb-4">
                       <div class="d-flex align-items-center mb-1"><span class="me-2 uil uil-history"></span>
                         <h5 class="text-body-highlight mb-0">Evento Anterior</h5>
@@ -463,6 +464,7 @@
                         <span class="fas fa-edit fs-10 text-body-tertiary"></span>
                       </button>
                     </div>
+                    -->
 
                     <div class="mb-4">
                       <div class="d-flex align-items-center mb-1">
@@ -1860,7 +1862,7 @@
         myHeaders.append("Content-Type", "application/json");
 
         const raw = JSON.stringify({
-          "name": "{{ context.data.nome_cliente }}" || "Cliente"
+          "name": {{ context.data.nome_cliente|tojson }} || "Cliente"
         });
 
         const requestOptions = {
@@ -2517,7 +2519,7 @@
           option.textContent = `${resp.nome_completo} (${resp.empresa})`;
 
           // Marcar se for o responsável atual
-          if (resp.nome_completo === '{{ context.data.responsavel_nome_completo }}') {
+          if (resp.nome_completo === {{ context.data.responsavel_nome_completo|tojson }}) {
             option.selected = true;
           }
 
@@ -2697,7 +2699,7 @@
           option.textContent = tipo.desc_tipo_evento;
 
           // Marcar o tipo atual
-          if (tipo.desc_tipo_evento === '{{ context.data.desc_tipo_evento }}') {
+          if (tipo.desc_tipo_evento === {{ context.data.desc_tipo_evento|tojson }}) {
             option.selected = true;
           }
 
@@ -2880,7 +2882,7 @@
           option.textContent = midia.descricao;
           
           // Marcar se for a mídia atual
-          if (midia.descricao === '{{ context.data.desc_midia }}') {
+          if (midia.descricao === {{ context.data.desc_midia|tojson }}) {
             option.selected = true;
           }
           
@@ -3067,7 +3069,7 @@
           option.dataset.codProduto = modelo.cod_produto;
           
           // Marcar se for o modelo atual
-          if (modelo.descricao_modelo === '{{ context.data.descricao_modelo }}') {
+          if (modelo.descricao_modelo === {{ context.data.descricao_modelo|tojson }}) {
             option.selected = true;
           }
           
@@ -3310,7 +3312,7 @@
 
       // Abrir modal e selecionar valor atual
       document.querySelector('[data-bs-target="#editTestDriveModal"]').addEventListener('click', function () {
-        const atual = '{{ context.data.tem_test_drive|default("NÃO") }}';
+        const atual = {{ context.data.tem_test_drive|default("NÃO")|tojson }};
         Array.from(testDriveSelect.options).forEach(opt => {
           opt.selected = opt.value === atual;
         });
@@ -3482,7 +3484,7 @@
             const option = document.createElement('option');
             option.value = opt.cod_andamento;
             option.textContent = opt.andamento;
-            if (opt.andamento === '{{ context.data.andamento }}') option.selected = true;
+            if (opt.andamento === {{ context.data.andamento|tojson }}) option.selected = true;
             andamentoSelect.appendChild(option);
           });
         } else {
