@@ -1,0 +1,11 @@
+services:
+  flask_app:
+    build: .
+    env_file: .env
+    container_name: app_flask
+    restart: always
+    ports:
+      - "5000:5000"
+    volumes:
+      - .:/app
+    command: "flask run --host=0.0.0.0 --port=5000 --debug"
