@@ -1474,6 +1474,13 @@
                     e.preventDefault();
                     console.log('Formulário submetido');
 
+                    const submitBtn = createLeadForm.querySelector('button[type="submit"]');
+                    const originalBtnHtml = submitBtn ? submitBtn.innerHTML : '';
+                    if (submitBtn) {
+                        submitBtn.disabled = true;
+                        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Criando...';
+                    }
+
                     // Obter valores dos campos
                     const leadData = {
                         nome_cliente: document.getElementById('nomeCliente').value.trim(),
@@ -1492,6 +1499,10 @@
                     // Validação básica
                     if (!leadData.nome_cliente || !leadData.telefone || !leadData.responsavel || !leadData.cod_andamento || !leadData.cod_tipo_evento) {
                         showToast('Por favor, preencha todos os campos obrigatórios.', 'error');
+                        if (submitBtn) {
+                            submitBtn.disabled = false;
+                            submitBtn.innerHTML = originalBtnHtml;
+                        }
                         return;
                     }
 
@@ -1539,11 +1550,19 @@
                             }
 
                             showToast(errorMessage, 'error');
+                            if (submitBtn) {
+                                submitBtn.disabled = false;
+                                submitBtn.innerHTML = originalBtnHtml;
+                            }
                         }
 
                     } catch (error) {
                         console.error('Erro ao criar lead:', error);
                         showToast('Erro de conexão. Tente novamente.', 'error');
+                        if (submitBtn) {
+                            submitBtn.disabled = false;
+                            submitBtn.innerHTML = originalBtnHtml;
+                        }
                     }
                 });
             }
@@ -1557,6 +1576,11 @@
                 const form = document.getElementById('createLeadForm');
                 if (form) {
                     form.reset();
+                    const submitBtn = form.querySelector('button[type="submit"]');
+                    if (submitBtn) {
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = '<i class="fas fa-save me-2"></i>Criar Lead';
+                    }
                 }
             });
 
